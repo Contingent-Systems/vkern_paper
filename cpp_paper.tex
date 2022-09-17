@@ -37,6 +37,29 @@
 %% The first command in your LaTeX source must be the \documentclass command.
 
 \documentclass[sigplan,10pt,anonymous,review]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
+\usepackage[utf8]{inputenc}
+\usepackage{todonotes}
+\usepackage{blindtext}
+
+% Packages.
+\usepackage{amsmath}
+% If we need multiple references to a footnote, via \cref:
+\usepackage{cleveref}
+\crefformat{footnote}{#2\footnotemark[#1]#3}
+\usepackage[T1]{fontenc}
+\usepackage{fontawesome}
+\usepackage[utf8]{inputenc}
+\usepackage{iris}
+\usepackage{mathpartir}
+\renewcommand{\TirNameStyle}[1]{\hypertarget{#1}{\textsc{#1}}}
+\newcommand{\RULE}[1]{\hyperlink{#1}{\textsc{#1}}\xspace}
+\usepackage{xspace}
+\input{macros}
+
+\newcommand{\mytodo}[1]{% <==========================================
+  \todo[linecolor=white, backgroundcolor=white,bordercolor=white, textcolor=white]{#1}%
+}
+
 %%
 %% \BibTeX command to typeset BibTeX logo in the docs
 \AtBeginDocument{%
@@ -192,10 +215,11 @@ switches between address spaces. All definitions and theorems mentioned in this 
 %%
 %% Keywords. The author(s) should pick words that accurately describe
 %% the work being presented. Separate the keywords with commas.
-\keywords{datasets, neural networks, gaze detection, text tagging}
+\keywords{program verification}
 
 \maketitle
 \input{intro.tex}
+\input{motivation.tex}
 \input{background.tex}
 \input{syntax.tex}
 \input{semantics.tex}

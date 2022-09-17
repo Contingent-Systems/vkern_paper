@@ -1,0 +1,281 @@
+% References to sections, lemmas, theorems, etc.
+\newcommand{\sref}[1]{\S\ref{#1}}
+\newcommand{\fref}[1]{Figure~\ref{#1}}
+
+% Abbreviations.
+\def\etal.{\emph{et al.}}
+\newcommand{\SL}{Separation Logic\xspace}
+\newcommand{\spacelang}{SpaceLang\xspace}
+\let\ar\rightarrow
+\newcommand{\iProp}{\mathit{iProp}}
+\newcommand{\lc}{$\lambda$-calculus\xspace}
+
+% I have hesitated between "logical heap" (Dreyer et al.'s terminology)
+% and "conceptual heap".
+\newcommand{\logical}{logical\xspace}
+\newcommand{\logically}{logically\xspace}
+\newcommand{\Logical}{Logical\xspace}
+\newcommand{\FlawedLogicalFree}{FlawedLogicalFree}
+\newcommand{\BasicLogicalFree}{BasicLogicalFree}
+
+% The name of our system.
+\newcommand{\DIAMS}{\texorpdfstring{SL$\diamond$}{SL♢}\xspace}
+
+% Space credit.
+\newcommand{\SC}[1]{\diamond#1}
+\newcommand{\SCparen}[1]{\SC{(#1)}}
+% Assertions.
+\newcommand{\pointsto}{\mapsto}
+\newcommand{\mystackrel}[2]{#2_{#1}}
+\newcommand{\fpointsto}[1]{\mathrel{\mystackrel{#1}{\mapsto}}}
+\newcommand{\pointedby}{\mapsfrom}
+\newcommand{\vfpointedby}[1]{\mathrel{\mystackrel{#1}{\mapsfrom}}}
+\newcommand{\vpointedby}{\mathrel{\mapsfrom}}
+\newcommand{\mydagger}{\mathord{\dagger}}
+\renewcommand{\ddag}{\mydagger\kern-0.8mm\mydagger}
+\newcommand{\ddagsingleton}[1]{\ddag\{#1\}}
+% \newcommand{\ocloud}[3]{\tensor*[_{#3}]{\text{\faCloud}}{^{#2}_{#1}}}
+\newcommand{\ocloud}[3]{#3\;\text{\faCloud}^{#2}\,#1}
+\newcommand{\cloud}[2]{\ocloud{#1}{#2}{#1}}
+\newcommand{\pure}[1]{#1}
+% Reference counting.
+\newcommand{\rcpointedby}{\mathrel{\mapsfrom}}
+\newcommand{\rcvpointedby}{\mathrel{\mapsfrom}}
+\newcommand{\rcvfpointedby}[1]{\mathrel{\mapsfrom}_{#1}}
+\newcommand{\nmaster}{m}
+\newcommand{\nv}{n}
+% Central invariant
+\newcommand{\centralinvariant}{I}
+
+% Fonts.
+\newcommand{\kw}[1]{\mathsf{#1}}
+
+% Metavariables:
+
+% Locations.
+\newcommand{\Loc}{\mathcal{L}}
+\newcommand{\loc}{\ell}
+% Formal parameters.
+\newcommand{\xs}{\mathit{xs}}
+% Blocks.
+\newcommand{\blk}{b}
+% Assertions.
+\newcommand{\pre}{\Phi}
+\newcommand{\post}{\Psi}
+\newcommand{\midpoint}{\chi}
+% Fractions.
+\newcommand{\ql}{p}
+\newcommand{\qv}{q}
+\newcommand{\qw}{q'}
+% A multiset of locations.
+\newcommand{\lsv}{L}
+\newcommand{\lsw}{L'}
+% A set of locations.
+\newcommand{\locs}{D}
+\newcommand{\antecedents}{P}
+
+% Metalevel conditional.
+% \newcommand{\metaif}[3]{\text{\it if $#1$ then $#2$ else $#3$}}
+\newcommand{\metaif}[3]{#1 \mathrel{?} #2 : #3}
+
+% Values.
+\newcommand{\val}{v}
+\newcommand{\vals}{\vec\val}
+\newcommand{\wal}{v'}
+\newcommand{\vunit}{()}
+\newcommand{\vk}{k}
+\newcommand{\vcode}[2]{\lambda#1.#2}
+\newcommand{\vars}{\vec\var}
+
+% LValues.
+\newcommand{\lval}{\varrho}
+\newcommand{\var}{x}
+\newcommand{\sloc}{c}
+\newcommand{\src}{r}
+\newcommand{\dst}{s}
+\newcommand{\dsts}{\vec\dst}
+\newcommand{\lvals}{\vec\lval}
+
+% Integer constants.
+\newcommand{\allocsize}{n}
+\newcommand{\ofs}{\mathit{o}}
+
+% Instructions.
+\newcommand{\deref}{\mathord{*}}
+\newcommand{\assign}{=}
+\newcommand{\instr}{i}
+\newcommand{\instrs}{\vec\instr}
+\newcommand{\iskip}{\kw{skip}}
+\newcommand{\iseq}[2]{#1; #2}
+\newcommand{\iif}[3]{\kw{if}\,\deref#1\,\kw{then}\,#2\,\kw{else}\,#3}
+\newcommand{\icall}[2]{\deref#1(#2)}
+\newcommand{\ialloc}[2]{\deref#1 \assign \kw{alloc}\;#2}
+\newcommand{\iload}[3]{\deref#1 \assign [\deref#2+#3]}
+\newcommand{\istore}[3]{[\deref#1+#2] \assign \deref#3}
+\newcommand{\iloceq}[3]{\deref#1 \assign (\deref#2 == \deref#3)}
+\newcommand{\iconst}[2]{\deref#1 \assign #2}
+\newcommand{\imove}[2]{\deref#1 \assign \deref#2}
+\newcommand{\ialloca}[2]{\kw{alloca}\,#1\,\kw{in}\,#2}
+\let\iallocaactive\ialloca
+\newcommand{\ifork}[3]{\kw{fork}\,\deref#1\,\kw{as}\,#2\,\kw{in}\,#3}
+
+% Blocks.
+\newcommand{\btuple}[1]{#1}
+\newcommand{\bcell}[1]{\langle#1\rangle}
+\newcommand{\bdeallocated}{\text{\normalfont\footnotesize\faBolt}}
+\newcommand{\sz}[1]{\mathit{size}(#1)}
+\newcommand{\replicate}[2]{#2^{#1}}
+\newcommand{\pointers}[1]{\mathit{pointers}(#1)}
+
+% Stores.
+\newcommand{\store}{\sigma}
+\newcommand{\logicalstore}{\theta}
+\newcommand{\maxsize}{S}
+% \newcommand{\valid}[1]{\text{$#1$ is valid}}
+\newcommand{\valid}[1]{\sz{#1}\leq\maxsize}
+\newcommand{\available}[1]{\mathit{available}(#1)}
+\newcommand{\closed}[1]{\text{$#1$ is closed}}
+\newcommand{\related}[2]{#1\approx#2}
+\newcommand{\freed}[1]{\mathit{freed}(#1)}
+\newcommand{\successors}[2]{\mathit{successors}(#1, #2)}
+
+% Predecessor maps (\pi).
+\newcommand{\predstore}{\pi}
+\newcommand{\predecessors}[2]{\mathit{predecessors}(#1, #2)}
+\newcommand{\phinvariant}[2]{#1\bowtie#2}
+
+% Evaluation contexts.
+\newcommand{\ectx}{K}
+\newcommand{\hole}{[]}
+\newcommand{\efill}[2]{#1[#2]}
+
+% Semantics.
+\newcommand{\subst}[2]{[#2/#1]}
+\newcommand{\readlval}[3]{#2(#1)=\bcell{#3}}
+\newcommand{\writelvalsidecondition}[4]{
+  #3(#1) = \bcell{\_}
+}
+\newcommand{\writelvalmaincondition}[4]{
+  #4 = \mupd{#1}{\bcell{#2}}{#3}
+}
+% fp: I would like to hide the side condition in \writelval,
+%     for greater clarity, but the reviewers want to see it.
+% fp: let me invent a notation to indicate that we overwrite
+%     a stack cell with a stack cell.
+\newcommand{\writelval}[4]{
+  #4 = \langle #1 := #2 \rangle #3
+}
+
+\newcommand{\headstep}{\longrightarrow}
+\newcommand{\cfg}[2]{#1\;/\;#2}
+\newcommand{\hs}[4]{\cfg{#1}{#2}\headstep\cfg{#3}{#4}}
+\newcommand{\hsfork}[5]{\cfg{#1}{#2}\headstep\cfg{#3}{#4}\mathrel{\textit{spawning}}#5}
+\newcommand{\hsforknl}[5]{\begin{array}{@{}r@{}}\cfg{#1}{#2}\headstep\cfg{#3}{#4}\\\textit{spawning}\;#5\end{array}}
+\newcommand{\hsnostore}[2]{\hs{#1}\store{#2}\store}
+% \newcommand{\gc}[2]{#1\mathrel{\smash{\stackrel{\mathit{gc}}{\longrightarrow}}}#2}
+\newcommand{\gcSymbol}{\text{\normalfont\footnotesize\faTrashO}}
+\newcommand{\gc}[2]{#1\mathrel{\gcSymbol}#2}
+\newcommand{\headstepgc}{\mathrel{\;\gcSymbol\!\!\longrightarrow\,}}
+\newcommand{\hsgc}[4]{\cfg{#1}{#2}\headstepgc\cfg{#3}{#4}}
+\newcommand{\hsgcfork}[5]{\cfg{#1}{#2}\headstepgc\cfg{#3}{#4}\mathrel{\textit{spawning}}#5}
+
+% Length of an array or list.
+\newcommand{\alen}[1]{\mathord\mid#1\mathord\mid}
+
+% Triples.
+\newcommand{\varray}[1]{\begin{array}{@{}c@{}}#1\end{array}}
+\newcommand{\starvarray}[1]{\bgroup\renewcommand{\star}{\\}\varray{#1}\egroup}
+\newcommand{\BRACE}[1]{\left\{#1\right\}}
+\newcommand{\BRACEvarray}[1]{\BRACE{\varray{#1}}}
+\newcommand{\BRACEstarvarray}[1]{\BRACE{\starvarray{#1}}}
+\newcommand{\triple}[3]{\{#1\}\;#2\;\{#3\}}
+\newcommand{\atriple}[3]{\triple{#1}{&#2&}{#3}}
+\newcommand{\vtriple}[3]{\varray{\{#1\}\\#2\\\{#3\}}}
+\newcommand{\bigvtriple}[3]{\varray{\BRACEvarray{#1}\\#2\\\BRACEvarray{#3}}}
+\newcommand{\bightriplehskip}{\;}
+\newcommand{\bightriple}[3]{\BRACEstarvarray{#1}\bightriplehskip#2\bightriplehskip\BRACEstarvarray{#3}}
+\newcommand{\bightriplex}[4]{\BRACEstarvarray{#1}\bightriplehskip#2\bightriplehskip\BRACE{\exists#3.\;\starvarray{#4}}}
+\newcommand{\bigsupd}[2]{\BRACEstarvarray{#1}\supd\BRACEstarvarray{#2}}
+% WP.
+\renewcommand{\wp}[2]{\mathit{wp}\;#1\;#2}
+
+% Iris connectives.
+% \renewcommand{\star}{\ast}
+\let\ordinarystar\star
+\DeclareMathOperator*{\Sep}{\scalerel*{\ast}{\sum}}
+\newcommand{\bigast}[2]{\mathop{\textstyle\Sep}\limits_{#1}\,#2}
+\let\ordinarybigast\bigast
+\newcommand{\later}{\triangleright\;}
+\newcommand{\wand}{\mathrel{-\!\!*}}
+\newcommand{\logequiv}{\;\equiv\;}
+\newcommand{\supd}{\Rrightarrow_\centralinvariant}
+\newcommand{\fupd}{\Rrightarrow}
+\let\ordinarysupd\supd
+\newcommand{\iFalse}{\mathit{False}}
+\newcommand{\iTrue}{\mathit{True}}
+
+% Sets.
+\newcommand{\singleton}[1]{\{#1\}}
+\newcommand{\dom}[1]{\mathit{dom}(#1)}
+
+% Multisets.
+\newcommand{\multiplicity}[2]{#1 \mathop{\text{\small\$}} #2}
+\newcommand{\cardinal}[1]{|#1|}
+% Number of occurrences of a value in a list of values.
+\newcommand{\valoccs}[2]{#1 \mathop{\$} #2}
+
+% Maps.
+\newcommand{\singletonMap}[2]{[#1 := #2]}
+\newcommand{\mupd}[2]{[#1 := #2]} % update at an existing location
+\newcommand{\mext}[2]{[#1 \mathbin{+\!\!=} #2]} % update at a new location
+
+% Names of some reasoning rules.
+\newcommand{\JoinPointsto}{Join$\mapsto$}
+\newcommand{\JoinPointedBy}{Join$\mapsfrom$}
+\newcommand{\CovPointedBy}{Covariance$\mapsfrom$}
+\newcommand{\ConfrontMapstoMapsfrom}{Confront$\mapsto\mapsfrom$}
+\newcommand{\ConfrontDagMapsfrom}{Confront$\ddag\mathord{\mapsfrom}$}
+\newcommand{\ZeroDiams}{Zero$\diamond$}
+\newcommand{\JoinDiams}{Join$\diamond$}
+\newcommand{\ZeroDag}{Zero$\ddag{}$}
+\newcommand{\JoinDag}{Join$\ddag{}$}
+
+\newcommand{\mathsmash}[1]{\ensuremath{\smash{#1}}}
+
+% ------------------------------------------------------------------------------
+
+% Macros for the list copy example.
+
+% Variable names.
+\newcommand{\listcopy}{\textit{copy}}
+\newcommand{\self}{\textit{self}\,}
+\newcommand{\destination}{\textit{dst}}
+\newcommand{\source}{\textit{src}}
+\newcommand{\etiquette}{\textit{tag}}
+\newcommand{\head}{\textit{head}}
+\newcommand{\tail}{\textit{tail}}
+\newcommand{\res}{\destination'}
+\newcommand{\callee}{\textit{f}\,}
+% A logical list of values:
+\newcommand{\logval}{\mathit{v}}
+\newcommand{\loglist}{\mathit{vs}}
+% isList.
+\newcommand{\isListName}{\textit{isList}}
+\newcommand{\isList}[2]{\isListName\;#1\;#2}
+% Logical lists.
+\newcommand{\lognil}{[]}
+\newcommand{\logcons}[2]{#1 :: #2}
+\newcommand{\loglistbrackets}[1]{[#1]}
+
+% ------------------------------------------------------------------------------
+
+% Macros for the stack example.
+
+\newcommand{\stackcreate}{\textit{create}}
+\newcommand{\stackpush}{\textit{push}}
+\newcommand{\stackpop}{\textit{pop}}
+\newcommand{\isStack}[2]{\textit{isStack}\;#1\;#2}
+\newcommand{\stack}{\textit{stack}}
+\newcommand{\elem}{\textit{elem}}
+\newcommand{\vns}{\mathit{vns}}
+\newcommand{\nonreccallee}{\ensuremath{f}}

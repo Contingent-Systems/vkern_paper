@@ -1,0 +1,37 @@
+\begin{figure}[!ht]
+\newcommand{\commentary}[1]{ & \text{\small\it #1} \\}
+\[
+  \begin{array}{r@{\;}c@{\;}l}
+    \loc, \sloc, \src, \dst & \in & \Loc \\
+    \val & ::= & \vunit
+
+\\
+
+    \lval & ::= & \var \mid \sloc \\
+
+    \instr & ::= &
+    \begin{array}[t]{@{}l@{\hspace{10mm}}l@{}}
+    \begin{array}[t]{@{}ll@{}}
+      \iskip
+                   \commentary{no-op}
+      \iseq\instr\instr
+                   \commentary{sequencing}
+    \end{array}
+    %&
+    %\begin{array}[t]{@{}ll@{}}
+     % \ialloc\lval\allocsize
+      %             \commentary{heap allocation}
+    %\end{array}
+    \end{array}
+    \\
+
+    \ectx & ::= &
+      \hole \mid
+      \iseq\ectx\instr 
+    \\
+  \end{array}
+\]
+\caption{Syntax}
+\Description{Syntax}
+\label{fig:syntax}
+\end{figure}
