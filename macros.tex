@@ -15,15 +15,7 @@
 \newcommand{\logical}{logical\xspace}
 \newcommand{\logically}{logically\xspace}
 \newcommand{\Logical}{Logical\xspace}
-\newcommand{\FlawedLogicalFree}{FlawedLogicalFree}
-\newcommand{\BasicLogicalFree}{BasicLogicalFree}
 
-% The name of our system.
-\newcommand{\DIAMS}{\texorpdfstring{SL$\diamond$}{SL♢}\xspace}
-
-% Space credit.
-\newcommand{\SC}[1]{\diamond#1}
-\newcommand{\SCparen}[1]{\SC{(#1)}}
 % Assertions.
 \newcommand{\pointsto}{\mapsto}
 \newcommand{\mystackrel}[2]{#2_{#1}}
@@ -53,12 +45,10 @@
 % Metavariables:
 
 % Locations.
-\newcommand{\Loc}{\mathcal{L}}
-\newcommand{\loc}{\ell}
+\newcommand{\Loc}{\mathcal{W}_n}
+\newcommand{\loc}{\kw{w}_n}
 % Formal parameters.
 \newcommand{\xs}{\mathit{xs}}
-% Blocks.
-\newcommand{\blk}{b}
 % Assertions.
 \newcommand{\pre}{\Phi}
 \newcommand{\post}{\Psi}
@@ -96,18 +86,17 @@
 \newcommand{\dsts}{\vec\dst}
 \newcommand{\lvals}{\vec\lval}
 
-% Integer constants.
-\newcommand{\allocsize}{n}
 \newcommand{\ofs}{\mathit{o}}
 
 % Instructions.
 \newcommand{\deref}{\mathord{*}}
 \newcommand{\assign}{=}
 \newcommand{\instr}{i}
+\newcommand{\instrexpr}{\kw{ie}}
 \newcommand{\instrs}{\vec\instr}
 \newcommand{\iskip}{\kw{skip}}
 \newcommand{\iseq}[2]{#1; #2}
-\newcommand{\iif}[3]{\kw{if}\,\deref#1\,\kw{then}\,#2\,\kw{else}\,#3}
+\newcommand{\ising}[1]{\kw{sexec}\,#1}
 \newcommand{\icall}[2]{\deref#1(#2)}
 \newcommand{\ialloc}[2]{\deref#1 \assign \kw{alloc}\;#2}
 \newcommand{\iload}[3]{\deref#1 \assign [\deref#2+#3]}
@@ -136,12 +125,9 @@
 \newcommand{\available}[1]{\mathit{available}(#1)}
 \newcommand{\closed}[1]{\text{$#1$ is closed}}
 \newcommand{\related}[2]{#1\approx#2}
-\newcommand{\freed}[1]{\mathit{freed}(#1)}
-\newcommand{\successors}[2]{\mathit{successors}(#1, #2)}
 
 % Predecessor maps (\pi).
 \newcommand{\predstore}{\pi}
-\newcommand{\predecessors}[2]{\mathit{predecessors}(#1, #2)}
 \newcommand{\phinvariant}[2]{#1\bowtie#2}
 
 % Evaluation contexts.

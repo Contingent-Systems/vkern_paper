@@ -2,20 +2,19 @@
 \newcommand{\commentary}[1]{ & \text{\small\it #1} \\}
 \[
   \begin{array}{r@{\;}c@{\;}l}
-    \loc, \sloc, \src, \dst & \in & \Loc \\
+    \loc & \in & \Loc \\
     \val & ::= & \vunit
 
 \\
-
-    \lval & ::= & \var \mid \sloc \\
-
-    \instr & ::= &
+    \instrs & ::= &
     \begin{array}[t]{@{}l@{\hspace{10mm}}l@{}}
     \begin{array}[t]{@{}ll@{}}
       \iskip
                    \commentary{no-op}
-      \iseq\instr\instr
+      \iseq\instr\instrs
                    \commentary{sequencing}
+      \ising\instr
+                   \commentary{executing}             
     \end{array}
     %&
     %\begin{array}[t]{@{}ll@{}}
@@ -27,7 +26,7 @@
 
     \ectx & ::= &
       \hole \mid
-      \iseq\ectx\instr 
+      \iseq\ectx\instrs 
     \\
   \end{array}
 \]
