@@ -1,6 +1,22 @@
 \section{Semantics}
 \label{sec:semantics}
-
 \subsection{Instructions}
-Regarding the instructions, we provide asdasdasd asdasdadasdasdasd asdasdasdasd asdasdasd adasdasdasd asdasdasd asdasda asdasdasd adasd asdasdasd asdasdasdasd a asdasdasd asdasda asda asd asd ad asd asd asd asd asd
+\label{sec:instrsemantics}
+The syntax of instructions is given in \fref{fig:syntax}. Their
+small-step operational semantics, a~reduction relation of the form
+$\hsfork{\instr}{\store}{\instr'}{\store'}{\instrs}$,
+is defined in \fref{fig:semantics}.
+%
+The last argument~$\instrs$ is a list of newly-spawned threads;
+when it is empty, we omit it
+and write just $\hs{\instr}{\store}{\instr'}{\store'}$.
+%
+% Also, when it is a singleton, we omit the square brackets (StepFork).
+
+% We briefly review the syntax and reduction rules.
+%
+The no-op ``$\iskip$'' and the sequencing construct
+``$\iseq{\instr_1}{\instr_2}$'' are standard.
+%
+
 \input{fig-semantics}

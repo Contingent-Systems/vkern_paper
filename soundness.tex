@@ -12,8 +12,7 @@ via the following steps:
       to the ghost state;
 \item
   define the \emph{assertions} that an end user of our ... exploits, namely
-  points-to assertions, deallocation witnesses, space credits, and pointed-by
-  assertions; all of these assertions are defined as the ownership
+  points-to assertions that are defined as the ownership
   of a fragment of the ghost state.
 \end{enumerate}
 
@@ -33,7 +32,7 @@ thorough and concise way.
 \subsection{The Soundness Statement}
 \label{def:soundness:statement}
 
-The operational semantics of ...lang guarantees that ... (\sref{sec:valid}). A~program that attempts to ... stuck~(\sref{sec:spacelang:instructions}).
+The operational semantics of ...lang guarantees that ... (\sref{sec:valid}). A~program that attempts to ... stuck~(\sref{sec:instrsemantics}).
 % Thus, the space consumption of every \spacelang program is bounded.
 Thus, in order to prove that ... is sound, all we have to do is prove that
 it rules out the possibility of a runtime failure. This is guaranteed by the
@@ -74,23 +73,10 @@ the reasoning rules of our logic, then the program~$\instrs$ is safe, that is, i
 
 For the definitions that follow, we need some more terminology about stores.
 
-\begin{definition}[More Terminology]
-\label{def:closed}
-
-.............
 Next, we must define the relation that ties the physical store to the
 \logical store, two concepts that we have informally described earlier
 (\sref{sec:logical}). From here on, we write~$\store$ for the physical
 store and~$\logicalstore$ for the \logical store.
-
-\begin{definition}[Relation between Physical and \Logical Stores]
-\label{def:related}
-  Two stores $\store$ and $\logicalstore$ are \emph{related},
-  which we write $\related\store\logicalstore$, when
-  they have the same domain,
-  the same reachable locations,
-  and the same content at every reachable location.
-\end{definition}
 
 Equipped with the above definitions, we are now prepared to enter the realm of
 Iris and perform the three steps described at the beginning of
@@ -125,6 +111,24 @@ there always exists at most one authoritative element
 and the composition of all fragmentary elements in existence is
 contained in the authoritative element, etc.
 \end{comment}
+% The predicate gen_heap_interp.
+\newcommand{\genheapinterp}[1]{\mathit{Heap}\;#1}
+% Our predicate pred (defined in ph.v), expanded.
+\newcommand{\pred}[1]{\ownGhost\gammaPred{\authfull{(\mapone\predstore)}}}
+% A notation for assigning fraction 1 to every element of \predstore.
+\newcommand{\mapone}[1]{1.#1}
+% The predicate mapsfrom_exact, expanded.
+\newcommand{\mapsfromexact}[3]{
+  \ownGhost\gammaPred{\authfrag{\singletonMap{#1}{(#2, #3)}}}
+}
+% A metavariable for a share.
+\newcommand{\sh}{L'}
+% The predicate mapsfrom, expanded.
+\newcommand{\mapsfromdef}[3]{
+  \exists\sh.\;
+  \mapsfromexact{#1}{#2}{\sh} \star \pure{\sh \subseteq #3}
+}
+
 
 \begin{assumption}
 \label{assumption}
@@ -166,11 +170,11 @@ or \emph{state interpretation invariant} \cite[\S7.3]{iris},
 is the following Iris assertion:
 \[
 \centralinvariant\;\store \triangleq
-\exists\logicalstore. \left\{
+\left\{
 \def\arraystretch{1.2}
 \begin{array}{l@{\quad\star\quad}l@{\quad}l}
-  \genheapinterp\logicalstore & \star \\
-   \genheapinterp\logicalstore & \star
+  \genheapinterp\store & \star \\
+   \genheapinterp\store & \star
 \end{array}
 \right.
 \]
