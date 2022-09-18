@@ -18,38 +18,52 @@
   \small
   \begin{mathpar}
 \inferrule[StepMovRR]{
-  \readlval\src\store\val \\\\
-  \writelval\dst\val\store{\store'}
+  \readlval\rgsrc\storereg\rvsrc \\\\
+  \readlval\rgdst\storereg\rvdst\\\\
+  \readlval\rgsrc\storeregprime\rvsrc \\\\
+  \readlval\rgdst\storeregprime\rvsrc
 }{
-  \hs{\imove\dst\src}\store
+  \hs{\imov \mvrr \rgsrc\rgdst}\store
      \iskip{\store'}
 }\qquad
 \inferrule[StepMovRMOff]{
-  \readlval\src\store\val \\\\
-  \writelval\dst\val\store{\store'}
+  \amodeo\imreg \; \readlval\rgsrc\storereg\rvsrc \\\\
+   \readlval\imreg\storeregprime\maddr \; \readlval\imreg\storereg\maddr \\\\
+     \readlval\rgsrc\storeregprime\rvsrc  \\\\
+          \readlval{\plusaddr\maddr\offs}{\storememstar\crval}\locsf \\\\
+         \readlval{\plusaddr\maddr\offs}{\storememprimestar\crval}\rvsrc
 }{
-  \hs{\imove\dst\src}\store
+  \hs{\imov\mvrmo\rgsrc\amodeo}\store
      \iskip{\store'}
 }\qquad
 \inferrule[StepMovRMBase]{
-  \readlval\src\store\val \\\\
-  \writelval\dst\val\store{\store'}
+  \amodeb\imreg \; \readlval\rgsrc\storereg\rvsrc \\\\
+   \readlval\imreg\storeregprime\maddr \; \readlval\imreg\storereg\maddr \\\\
+     \readlval\rgsrc\storeregprime\rvsrc  \\\\
+     \readlval\maddr{\storememstar\crval}\locsf \\\\
+      \readlval\maddr{\storememprimestar\crval}\rvsrc
 }{
-  \hs{\imove\dst\src}\store
+  \hs{\imov\mvrmb\rgsrc\amodeb}\store
      \iskip{\store'}
 }\\
 \inferrule[StepMovMROff]{
-  \readlval\src\store\val \\\\
-  \writelval\dst\val\store{\store'}
+  \amodeo\imreg \; \readlval\rgsrc\storereg\rvsrc \\\\
+   \readlval\imreg\storeregprime\maddr \; \readlval\imreg\storereg\maddr \\\\
+     \readlval\rgsrc\storeregprime\locsf  \\\\
+          \readlval{\plusaddr\maddr\offs}{\storememstar\crval}\locsf \\\\
+         \readlval{\plusaddr\maddr\offs}{\storememprimestar\crval}\locsf
 }{
-  \hs{\imove\dst\src}\store
+  \hs{\imov\mvmro\amodeo\rgsrc}\store
      \iskip{\store'}
 }\qquad
 \inferrule[StepMovMRBase]{
-  \readlval\src\store\val \\\\
-  \writelval\dst\val\store{\store'}
+  \amodeb\imreg \; \readlval\rgsrc\storereg\rvsrc \\\\
+   \readlval\imreg\storeregprime\maddr \; \readlval\imreg\storereg\maddr \\\\
+     \readlval\rgsrc\storeregprime\locsf  \\\\
+          \readlval{\plusaddr\maddr\offs}{\storememstar\crval}\locsf \\\\
+         \readlval{\plusaddr\maddr\offs}{\storememprimestar\crval}\locsf
 }{
-  \hs{\imove\dst\src}\store
+  \hs{\imov\mvmro\amodeb\rgsrc}\store
      \iskip{\store'}
 }
 \end{mathpar}

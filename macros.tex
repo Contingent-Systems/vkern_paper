@@ -45,6 +45,27 @@
 % Metavariables:
 
 % Locations.
+\newcommand{\Loctw}{\mathcal{W}_{12}}
+\newcommand{\loctw}{\kw{w}_{12}}
+\newcommand{\Locsf}{\mathcal{W}_{64}}
+\newcommand{\locsf}{\kw{w}_{64}}
+\newcommand{\Locft}{\mathcal{W}_{52}}
+\newcommand{\locft}{\kw{w}_{52}}
+
+\newcommand{\rvsrc}{\kw{rv}_{\textsf{src}}}
+\newcommand{\rgsrc}{\kw{r}_{\textsf{src}}}
+\newcommand{\rv}{\kw{rv}}
+\newcommand{\rg}{\kw{r}}
+\newcommand{\rvdst}{\kw{rv}_{\textsf{dst}}}
+\newcommand{\rgdst}{\kw{r}_{\textsf{dst}}}
+
+\newcommand{\mvsrc}{\kw{rv}_{\textsf{src}}}
+\newcommand{\mgsrc}{\kw{r}_{\textsf{src}}}
+\newcommand{\mv}{\kw{rv}}
+\newcommand{\mg}{\kw{r}}
+\newcommand{\mvdst}{\kw{rv}_{\textsf{dst}}}
+\newcommand{\mgdst}{\kw{r}_{\textsf{dst}}}
+
 \newcommand{\Loc}{\mathcal{W}_n}
 \newcommand{\loc}{\kw{w}_n}
 \newcommand{\regset}{\kw{greg}}
@@ -91,11 +112,17 @@
 \newcommand{\lvals}{\vec\lval}
 
 \newcommand{\ofs}{\mathit{o}}
-
+\newcommand{\maddr}{\kw{maddr}}
+\newcommand{\offs}{\kw{offset}}
 % Instructions.
 \newcommand{\deref}{\mathord{*}}
 \newcommand{\assign}{=}
 \newcommand{\instr}{i}
+\newcommand{\mvrr}{\kw{mvrr}}
+\newcommand{\mvrmb}{\kw{mvrmb}}
+\newcommand{\mvrmo}{\kw{mvrmo}}
+\newcommand{\mvmrb}{\kw{mvmrb}}
+\newcommand{\mvmro}{\kw{mvmro}}
 \newcommand{\instrexpr}{\kw{ie}}
 \newcommand{\instrs}{\vec\instr}
 \newcommand{\iskip}{\kw{skip}}
@@ -112,6 +139,11 @@
 \let\iallocaactive\ialloca
 \newcommand{\ifork}[3]{\kw{fork}\,\deref#1\,\kw{as}\,#2\,\kw{in}\,#3}
 
+%mov instructions
+\newcommand{\imreg}{\kw{imreg}}
+\newcommand{\amodeb}[1]{\kw{amode} = #1}
+\newcommand{\amodeo}[2]{\kw{amode} = #1 + #2}
+\newcommand{\imov}[3]{#1 \; #2 \; #3}
 % Blocks.
 \newcommand{\blk}{b}
 \newcommand{\btuple}[1]{#1}
@@ -122,7 +154,16 @@
 \newcommand{\pointers}[1]{\mathit{pointers}(#1)}
 
 % Stores.
+\newcommand{\storereg}{\sigma.\mathcal{R}}
+\newcommand{\storemem}{\sigma.\mathcal{M}}
+\newcommand{\storememstar}[1]{\sigma.\mathcal{M}^{*[#1]}}
 \newcommand{\store}{\sigma}
+\newcommand{\storeregprime}{\sigma'.\mathcal{R}}
+\newcommand{\storememprime}{\sigma'.\mathcal{M}}
+\newcommand{\storememprimestar}[1]{\sigma'.\mathcal{M}^{*[#1]}}
+
+\newcommand{\storeprime}{\sigma'}
+
 \newcommand{\logicalstore}{\theta}
 \newcommand{\maxsize}{S}
 % \newcommand{\valid}[1]{\text{$#1$ is valid}}
@@ -236,7 +277,8 @@
 % ------------------------------------------------------------------------------
 
 % Macros for the list copy example.
-
+\newcommand{\crval}{\kw{cr3val}}
+\newcommand{\plusaddr}[2]{#1 + #2}
 % Variable names.
 \newcommand{\listcopy}{\textit{copy}}
 \newcommand{\self}{\textit{self}\,}
