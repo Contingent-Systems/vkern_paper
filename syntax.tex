@@ -1,7 +1,7 @@
 \section{Syntax}
 \label{sec:syntax}
 \subsection{Registers, Memory Indices}
-There exist two pieces of resources we access in our model: registers and memory. A register identifier, $\reg$, is chosen from a fixed finite set of register identifiers,$\regset$. We use these identifiers to access the register values, $\regval \in \regvaltype$. Unlike registers, we do not abstract the memory indices as a special type but instead, for the sake of clarity and ease of representation, we show differently masked machine words, $\loc \in \Loc$, with the subscripts showing the length of a 64-bit machine word after masking, e.g. $\kw{w}_{12}$ is a 12-bit resource which can be obtained after masking 52-bit of a 64-bit word.
+Programs we demonstrate in this paper requires accessing two types of computer resource: registers and memory. A register identifier, $\reg$, is chosen from a fixed finite set of register identifiers,$\regset$. We use these identifiers to access the register values, $\regval \in \regvaltype$. Unlike registers, we do not abstract the memory indices as a special type but instead, for the sake of clarity and ease of representation, we show differently masked machine words, $\loc \in \Loc$, with the subscripts showing the length of a 64-bit machine word after masking, e.g. $\kw{w}_{12}$ is a 12-bit resource which can be obtained after masking 52-bit of a 64-bit word.
 This simple syntax in \ref{fig:syntax} includes a simple syntax for values because our language is purely \textit{imperative}, i.e. an instruction does not return a value. Intentionally, we restrict any stream of instruction, $\instrs$, to eventually reduce to $\iskip$ instruction which is injected into unit.
 \input{fig-syntax}
 \subsection{State}
