@@ -1,0 +1,132 @@
+\begin{figure*}
+\small
+\begin{mathpar}
+\inferrule[Skip]{}{
+  \triple\post\iskip\post
+}
+
+\inferrule[Seq]{
+  \triple\pre{\instr_1}\midpoint \\
+  \triple\midpoint{\instr_2}\post
+}{
+  \triple\pre{(\iseq{\instr_1}{\instr_2})}\post
+}
+
+\inferrule[MovRR]{}{
+  % Cheat on spacing so that Move and Alloca fit on a single line.
+  \renewcommand{\bightriplehskip}{}
+  \bightriple
+    {
+      \dst\pointsto\bcell\val \star
+      \src\pointsto\bcell\wal \star
+      \val\vfpointedby\qv\lsv \star
+      \wal\vfpointedby\qw\lsw
+    }
+    {\imove\dst\src}
+    {
+      \dst\pointsto\bcell\wal \star
+      \src\pointsto\bcell\wal \star
+      \val\vfpointedby\qv\lsv\setminus\singleton\dst \star
+      \wal\vfpointedby\qw\lsw\uplus\singleton\dst
+    }
+}
+
+\inferrule[MovRR]{}{
+  % Cheat on spacing so that Move and Alloca fit on a single line.
+  \renewcommand{\bightriplehskip}{}
+  \bightriple
+    {
+      \dst\pointsto\bcell\val \star
+      \src\pointsto\bcell\wal \star
+      \val\vfpointedby\qv\lsv \star
+      \wal\vfpointedby\qw\lsw
+    }
+    {\imove\dst\src}
+    {
+      \dst\pointsto\bcell\wal \star
+      \src\pointsto\bcell\wal \star
+      \val\vfpointedby\qv\lsv\setminus\singleton\dst \star
+      \wal\vfpointedby\qw\lsw\uplus\singleton\dst
+    }
+}
+
+\inferrule[MovMRBase]{}{
+  % Cheat on spacing so that Move and Alloca fit on a single line.
+  \renewcommand{\bightriplehskip}{}
+  \bightriple
+    {
+      \dst\pointsto\bcell\val \star
+      \src\pointsto\bcell\wal \star
+      \val\vfpointedby\qv\lsv \star
+      \wal\vfpointedby\qw\lsw
+    }
+    {\imove\dst\src}
+    {
+      \dst\pointsto\bcell\wal \star
+      \src\pointsto\bcell\wal \star
+      \val\vfpointedby\qv\lsv\setminus\singleton\dst \star
+      \wal\vfpointedby\qw\lsw\uplus\singleton\dst
+    }
+}
+
+\inferrule[MovMROff]{}{
+  % Cheat on spacing so that Move and Alloca fit on a single line.
+  \renewcommand{\bightriplehskip}{}
+  \bightriple
+    {
+      \dst\pointsto\bcell\val \star
+      \src\pointsto\bcell\wal \star
+      \val\vfpointedby\qv\lsv \star
+      \wal\vfpointedby\qw\lsw
+    }
+    {\imove\dst\src}
+    {
+      \dst\pointsto\bcell\wal \star
+      \src\pointsto\bcell\wal \star
+      \val\vfpointedby\qv\lsv\setminus\singleton\dst \star
+      \wal\vfpointedby\qw\lsw\uplus\singleton\dst
+    }
+}
+
+\inferrule[MovRMBase]{}{
+  % Cheat on spacing so that Move and Alloca fit on a single line.
+  \renewcommand{\bightriplehskip}{}
+  \bightriple
+    {
+      \dst\pointsto\bcell\val \star
+      \src\pointsto\bcell\wal \star
+      \val\vfpointedby\qv\lsv \star
+      \wal\vfpointedby\qw\lsw
+    }
+    {\imove\dst\src}
+    {
+      \dst\pointsto\bcell\wal \star
+      \src\pointsto\bcell\wal \star
+      \val\vfpointedby\qv\lsv\setminus\singleton\dst \star
+      \wal\vfpointedby\qw\lsw\uplus\singleton\dst
+    }
+}
+
+\inferrule[MovRMOff]{}{
+  % Cheat on spacing so that Move and Alloca fit on a single line.
+  \renewcommand{\bightriplehskip}{}
+  \bightriple
+    {
+      \dst\pointsto\bcell\val \star
+      \src\pointsto\bcell\wal \star
+      \val\vfpointedby\qv\lsv \star
+      \wal\vfpointedby\qw\lsw
+    }
+    {\imove\dst\src}
+    {
+      \dst\pointsto\bcell\wal \star
+      \src\pointsto\bcell\wal \star
+      \val\vfpointedby\qv\lsv\setminus\singleton\dst \star
+      \wal\vfpointedby\qw\lsw\uplus\singleton\dst
+    }
+}
+\end{mathpar}
+\caption{Reasoning Rules}
+\Description{Reasoning Rules}
+\label{fig:reasoning}
+\end{figure*}

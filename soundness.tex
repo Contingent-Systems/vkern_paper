@@ -1,0 +1,210 @@
+\section{Soundness}
+\label{sec:soundness}
+
+Our ... is an instance of Iris~\cite{iris}. This means that our logic ... is set up
+via the following steps:
+
+\begin{enumerate}
+\item define a certain amount of \emph{ghost state}
+      that is needed in the next two steps;
+\item define a central \emph{invariant}
+      that ties the machine's physical state
+      to the ghost state;
+\item
+  define the \emph{assertions} that an end user of our ... exploits, namely
+  points-to assertions, deallocation witnesses, space credits, and pointed-by
+  assertions; all of these assertions are defined as the ownership
+  of a fragment of the ghost state.
+\end{enumerate}
+
+Once these steps have been carried out, Iris provides a semantic definition of
+the Hoare triple $\triple\pre\instr\post$. We can then use Hoare triples to
+state the reasoning rules of ...., to prove that
+these rules are valid, and to state and prove the fact that ... is sound.
+This is the topic of the next subsection (\sref{def:soundness:statement}).
+%
+After presenting these results, in \sref{sec:invariant}, we come back to the
+three steps listed above and describe them at an informal level, without
+diving into the concepts of Iris, which would be difficult to explain in a
+thorough and concise way.
+% For more information on Iris, the reader is referred to Jung \etal.'s
+% paper~(\citeyear{iris}).
+
+\subsection{The Soundness Statement}
+\label{def:soundness:statement}
+
+The operational semantics of ...lang guarantees that ... (\sref{sec:valid}). A~program that attempts to ... stuck~(\sref{sec:spacelang:instructions}).
+% Thus, the space consumption of every \spacelang program is bounded.
+Thus, in order to prove that ... is sound, all we have to do is prove that
+it rules out the possibility of a runtime failure. This is guaranteed by the
+following theorem:
+
+\begin{theorem}[Soundness of the Logic ...]
+\label{th:adequacy}
+ The execution of the instruction~$\instrs$, beginning in an initial state, cannot result in a configuration where a thread is stuck.
+\end{theorem}
+
+This theorem states that if the program~$\instr$ satisfies a semantic Hoare
+triple, then this program cannot crash. In
+particular, it cannot reach a situation where DOING X ....
+%
+The proof of this theorem is short: it is a direct consequence of Iris's
+adequacy theorem~\cite[\S6.4]{iris}.
+
+Separately, we prove that the reasoning rules of~our logic are valid, that is,
+each rule is a valid lemma:
+
+\begin{theorem}[Validity of the Reasoning Rules]
+\label{th:validity}
+  Each of the rules in Figures~\ref{fig:laws}
+  and~\ref{fig:reasoning} is valid.
+\end{theorem}
+
+The proof of this theorem represents more work: one lemma per reasoning rule
+is required, not to mention a large number of auxiliary lemmas. The proofs of
+these lemmas are fairly uninteresting; the key insights lie in the definitions
+presented in the next subsection (\sref{sec:invariant}).
+
+Together, Theorems~\ref{th:adequacy} and~\ref{th:validity} guarantee that, if
+the Hoare triple $\iTrue\instrs\iTrue$ can be obtained by applying
+the reasoning rules of our logic, then the program~$\instrs$ is safe, that is, it cannot crash ....
+
+\subsection{Key Definitions and Invariants}
+\label{sec:invariant}
+
+For the definitions that follow, we need some more terminology about stores.
+
+\begin{definition}[More Terminology]
+\label{def:closed}
+
+.............
+Next, we must define the relation that ties the physical store to the
+\logical store, two concepts that we have informally described earlier
+(\sref{sec:logical}). From here on, we write~$\store$ for the physical
+store and~$\logicalstore$ for the \logical store.
+
+\begin{definition}[Relation between Physical and \Logical Stores]
+\label{def:related}
+  Two stores $\store$ and $\logicalstore$ are \emph{related},
+  which we write $\related\store\logicalstore$, when
+  they have the same domain,
+  the same reachable locations,
+  and the same content at every reachable location.
+\end{definition}
+
+Equipped with the above definitions, we are now prepared to enter the realm of
+Iris and perform the three steps described at the beginning of
+\sref{sec:soundness}, that is, define the ghost state, the central invariant,
+and the assertions of our .. . We give the definitions first and explain them
+afterwards.
+
+\begin{comment}
+% fp: this is the beginning of an explanation of ghost state in Iris
+%     but it quickly grows too long, even though many aspects are missing.
+A ghost memory cell in Iris is a memory cell that does not exist at runtime.
+The ownership and the content of a physical memory cell are described via a
+points-to predicate such as $\loc\pointsto\val$. Similarly, the ownership and
+content of a ghost cell are described by an Iris assertion, usually written
+$\ownGhost\gamma{a}$, where $\gamma$ is the name of the ghost cell and $a$ is
+its content. Whereas the content of a physical memory cell is a
+programming-language value~$\val$, the content of a ghost cell inhabits a
+mathematical structure, a \emph{camera}~\cite[\S4.4]{iris}, which the user
+chooses when the ghost cell is created. A camera is equipped with a
+composition operation~$\cdot$ and the ghost state assertion satisfies the law
+$\ownGhost\gamma{a\cdot b} \equiv \ownGhost\gamma{a} \star
+\ownGhost\gamma{b}$. Thus, the choice of a suitable camera determines in what
+ways the ghost state can be split.
+
+A key Iris idiom involves the use of the \emph{authoritative
+  camera}~\cite[\S6.3.3]{iris} together with an Iris invariant.
+The elements of the authoritative camera include
+\emph{authoritative elements} $\authfull{c}$ and
+\emph{fragmentary elements} $\authfrag{b}$.
+The composition law is defined in such a way that
+there always exists at most one authoritative element
+and the composition of all fragmentary elements in existence is
+contained in the authoritative element, etc.
+\end{comment}
+
+\begin{assumption}
+\label{assumption}
+  Iris defines a certain piece of ghost state,
+  defines a predicate $\genheapinterp\store$
+  that ties a store~$\store$ to this ghost state,
+  and defines the points-to assertion $\loc\fpointsto\qv\blk$
+  in terms of this ghost state.
+  This is visible in the paper~\cite[\S6.3.2]{iris}
+  and in Iris's \texttt{gen\_heap} library~\cite{genheap}.
+  %
+  We re-use this machinery without change,
+  so we do not repeat these definitions.
+  We mention the predicate $\genheapinterp\!$
+  in our own invariant (Definition~\ref{def:invariant}),
+  where it is applied to the \logical store~$\logicalstore$.
+\end{assumption}
+
+\begin{definition}[Ghost State]
+...
+stores an element of the monoid
+\newcommand\fpfn{\rightarrow_{\textrm{fin}}}
+\(
+  \authm(\;
+    \Loc \;\fpfn\;
+    (\textsc{Frac}, \mathord{+})
+    \times
+    (\textsc{Multiset}(\Loc), \mathord\uplus)
+  \;)
+\)
+% \emph{authoritative camera}
+\cite[\S6.3.3]{iris}.
+\end{definition}
+
+\begin{definition}[Central Invariant]
+\label{def:invariant}
+The central invariant of our logic,
+or \emph{state interpretation invariant} \cite[\S7.3]{iris},
+is the following Iris assertion:
+\[
+\centralinvariant\;\store \triangleq
+\exists\logicalstore. \left\{
+\def\arraystretch{1.2}
+\begin{array}{l@{\quad\star\quad}l@{\quad}l}
+  \genheapinterp\logicalstore & \star \\
+   \genheapinterp\logicalstore & \star
+\end{array}
+\right.
+\]
+\end{definition}
+
+\begin{definition}[Assertions]
+\label{def:assertions}
+  The assertions of our ... are defined as follows:
+  \begin{enumerate}
+  \item
+  % The definition of the points-to predicate is inherited from gen_heap.
+  % It is implicitly parameterized by a ghost cell that holds the heap.
+  The \emph{points-to assertion} ..
+  is inherited from Iris (Assumption~\ref{assumption}).
+  \item
+  The \emph{map-of-map} for a single physical memory location,
+  
+  \item
+  The \emph{location-virtualization-modal}
+  \item
+  The \emph{pointed-by assertion} .
+  \end{enumerate}
+\end{definition}
+
+% What do these definitions mean?
+
+Let us try and explain the most important aspects of these definitions.
+
+In Iris, the state interpretation invariant~$\centralinvariant\;\store$ is an assertion that
+holds of the \emph{physical store}~$\store$ in between every two steps of
+computation. It is used by Iris in the definition of Hoare triples; we inherit
+this definition from Iris.
+
+Our definition of $\centralinvariant\;\store$ begins with an existential quantification over
+a \emph{\logical store}~$\logicalstore$.
+..........
+%.......
