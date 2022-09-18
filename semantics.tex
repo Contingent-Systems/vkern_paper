@@ -23,5 +23,6 @@ when it is empty, we omit it
 and write just $\hs{\instr}{\store}{\instr'}{\store'}$.
 \subsection{A Set of Selected Instructions Changing the Machine State}
 \label{sec:selectedinstrsemantics}
+In addition to the reduction rules in Figure \fref{fig:reductionsemantics} for the light-weight integration of our machine model to our simple language, and, finally, to our reasoning principles, we think that it is worth building the intuition on the way some of the instructions -- specifically the ones used in the examples contained in this paper -- change the machine state when reduced with \RULE{StepContext}. \RULE{StepMovRR} in \fref{fig:instrsemantics} shows how machine state change when we copy the source register's value ($\rvsrc$) referenced by the register name ($\rgsrc$) to the destination register ($\rgdst$). 
 
 \input{fig-semantics}
