@@ -26,7 +26,7 @@
      \iskip{\store'}
 }\qquad
 \inferrule[StepMovRMOff]{
-  \amodeo\imreg \; \readlval\rgsrc\storereg\rvsrc \\\\
+  \amodeo\imreg\offs \; \readlval\rgsrc\storereg\rvsrc \\\\
  \readlval\imreg\storereg\maddr \\\\
           \readlval{\plusaddr\maddr\offs}{\storememstar\crval}\locsf \\\\
          \readlval{\plusaddr\maddr\offs}{\storememprimestar\crval}\rvsrc
@@ -44,7 +44,7 @@
      \iskip{\store'}
 }\\
 \inferrule[StepMovMROff]{
-  \amodeo\imreg \; \readlval\rgsrc\storereg\rvsrc \\\\
+  \amodeo\imreg\offs \; \readlval\rgsrc\storereg\rvsrc \\\\
  \readlval\imreg\storereg\maddr \\\\
      \readlval\rgsrc\storeregprime\locsf  \\\\
           \readlval{\plusaddr\maddr\offs}{\storememstar\crval}\locsf 
