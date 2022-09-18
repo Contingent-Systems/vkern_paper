@@ -17,6 +17,15 @@
 \newcommand{\Logical}{Logical\xspace}
 
 % Assertions.
+\newcommand{\qfrac}{\kw{q}}
+\newcommand{\vaddr}{\kw{va}}
+\newcommand{\vpts}{\kw{v}}
+\newcommand{\ppts}{\kw{p}}
+\newcommand{\rpts}{\kw{r}}
+\newcommand{\pfpointsto}[4]{#1\mapsto_{#4}{#2}#3}
+\newcommand{\ppointsto}[3]{#1\mapsto_{#3}#2}
+
+
 \newcommand{\pointsto}{\mapsto}
 \newcommand{\mystackrel}[2]{#2_{#1}}
 \newcommand{\fpointsto}[1]{\mathrel{\mystackrel{#1}{\mapsto}}}
@@ -142,7 +151,7 @@
 %mov instructions
 \newcommand{\imreg}{\kw{imreg}}
 \newcommand{\amode}{\kw{amode}}
-\newcommand{\amodeb}[1]{\kw{amode} = #1}
+\newcommand{\amodeb}[1]{\kw{amode}  #1}
 \newcommand{\amodeo}[2]{\kw{amode} = #1 + #2}
 \newcommand{\imov}[3]{#1 \; #2 \; #3}
 % Blocks.

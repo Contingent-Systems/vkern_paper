@@ -1,13 +1,14 @@
 \section{Program Logic for Location Virtualization}
 \label{sec:logic}
-
+In this section, we describe our high-level reasoning principles for location virtualization whose detailed justification is shown in \sref{sec:soundness}. 
 \subsection{Points-To Assertions}
 \label{sec:pointsto}
-We present three main points-to relations used in our program logic:
+
+We present three main points-to relations as part of utilization of separation logic \ref{} as an ambient logic:
 \begin{enumerate}
-\item Physical address points-to
-\item Register points-to
-\item Virtual memory address points-to
+\item Physical address points-to, $\ppointsto\locsf\locsf\ppts$
+\item Register points-to, $\ppointsto\rg\rv\rpts$
+\item Virtual memory address points-to, $\ppointsto\vaddr\locsf\vpts$
 \end{enumerate}
 
 \input{fig-laws}
