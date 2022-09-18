@@ -1,5 +1,17 @@
 \section{Semantics}
 \label{sec:semantics}
+\subsection{State}
+\label{sec:state}
+We represent the machine state mainly as a finite map of registers to register values and a map of masked physical memory addresses to 64-bit physical memory values. Together with default def\textsf{CPU} instantiation, we end up having our state with following pieces:
+\begin{itemize}
+\item A constant cpu initialized with default value: $\sigma.\mathcal{C}$
+\item A register map: $\sigma.\mathcal{R}: \kw{greg} \rightarrow_{\textrm{fin}} \kw{regval} $
+\item A memory map: $\sigma.\mathcal{M}: \Loc \rightharpoonup_{\textrm{fin}} (\rightharpoonup_{\textrm{fin}} )$
+\end{itemize}
+
+\subsection{Indexed Memory \& Register References}
+\label{sec:}
+As one might have already anticipated from the syntax we introduce, we do not bind any value of an evaluated expression. All the indices and accessed values are treated as globally referenced. In align with this design choice, our expression is a stream of instructions, which is not evaluated to a value to be bound, but changes the machine state through the indices (e.g. $\kw{r}\in\kw{greg}$) -- to the global maps. 
 \subsection{Instructions}
 \label{sec:instrsemantics}
 The syntax of instructions is given in \fref{fig:syntax}. Their
@@ -14,9 +26,6 @@ and write just $\hs{\instr}{\store}{\instr'}{\store'}$.
 % Also, when it is a singleton, we omit the square brackets (StepFork).
 
 % We briefly review the syntax and reduction rules.
-%
-The no-op ``$\iskip$'' and the sequencing construct
-``$\iseq{\instr_1}{\instr_2}$'' are standard.
 %
 
 \input{fig-semantics}
