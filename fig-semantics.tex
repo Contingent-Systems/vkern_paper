@@ -33,7 +33,7 @@
           \readlval{\plusaddr\maddr\offs}{\storememstar\crval}\locsf \\\\
          \readlval{\plusaddr\maddr\offs}{\storememprimestar\crval}\rvsrc
 }{
-  \hs{\imov\mvrmo\rgsrc\amodeo}\store
+  \hs{\imov\mvrmo\rgsrc\amode}\store
      \iskip{\store'}
 }\qquad
 \inferrule[StepMovRMBase]{
@@ -43,7 +43,7 @@
      \readlval\maddr{\storememstar\crval}\locsf \\\\
       \readlval\maddr{\storememprimestar\crval}\rvsrc
 }{
-  \hs{\imov\mvrmb\rgsrc\amodeb}\store
+  \hs{\imov\mvrmb\rgsrc\amode}\store
      \iskip{\store'}
 }\\
 \inferrule[StepMovMROff]{
@@ -53,7 +53,7 @@
           \readlval{\plusaddr\maddr\offs}{\storememstar\crval}\locsf \\\\
          \readlval{\plusaddr\maddr\offs}{\storememprimestar\crval}\locsf
 }{
-  \hs{\imov\mvmro\amodeo\rgsrc}\store
+  \hs{\imov\mvmro\amode\rgsrc}\store
      \iskip{\store'}
 }\qquad
 \inferrule[StepMovMRBase]{
@@ -63,7 +63,7 @@
           \readlval{\plusaddr\maddr\offs}{\storememstar\crval}\locsf \\\\
          \readlval{\plusaddr\maddr\offs}{\storememprimestar\crval}\locsf
 }{
-  \hs{\imov\mvmro\amodeb\rgsrc}\store
+  \hs{\imov\mvmro\amode\rgsrc}\store
      \iskip{\store'}
 }
 \end{mathpar}
