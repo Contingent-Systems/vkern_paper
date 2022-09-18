@@ -4,14 +4,56 @@
 \inferrule[StepSeqSkip]{}{
   \hsnostore{\iseq\iskip\instr}{\instr}
 }
-
 \inferrule[StepContext]{
   \hsforknl{\instr}{\store}{\instr'}{\store'}{\instrs}
 }{
   \hsforknl{\efill\ectx\instr}{\store}{\efill\ectx{\instr'}}{\store'}{\instrs}
 }
 \end{mathpar}
-\caption{Small-Step Operational Semantics}
-\Description{Small-Step Operational Semantics}
-\label{fig:semantics}
+\caption{Small-Step Operational Reduction Rules for Light-Weight Integration of \textsf{AMD64} Machine Model}
+\label{fig:reductionsemantics}
 \end{figure}
+
+\begin{figure*}[!ht]
+  \small
+  \begin{mathpar}
+\inferrule[StepMovRR]{
+  \readlval\src\store\val \\\\
+  \writelval\dst\val\store{\store'}
+}{
+  \hs{\imove\dst\src}\store
+     \iskip{\store'}
+}\qquad
+\inferrule[StepMovRMOff]{
+  \readlval\src\store\val \\\\
+  \writelval\dst\val\store{\store'}
+}{
+  \hs{\imove\dst\src}\store
+     \iskip{\store'}
+}\qquad
+\inferrule[StepMovRMBase]{
+  \readlval\src\store\val \\\\
+  \writelval\dst\val\store{\store'}
+}{
+  \hs{\imove\dst\src}\store
+     \iskip{\store'}
+}\\
+\inferrule[StepMovMROff]{
+  \readlval\src\store\val \\\\
+  \writelval\dst\val\store{\store'}
+}{
+  \hs{\imove\dst\src}\store
+     \iskip{\store'}
+}\qquad
+\inferrule[StepMovMRBase]{
+  \readlval\src\store\val \\\\
+  \writelval\dst\val\store{\store'}
+}{
+  \hs{\imove\dst\src}\store
+     \iskip{\store'}
+}
+\end{mathpar}
+\caption{Small-Step Relations for Chosen Instructions in \textsf{AMD64} Model}
+\Description{Small-Step Relations for Chosen Instructions in \textsf{AMD64} Model}
+\label{fig:instrsemantics}
+\end{figure*}
