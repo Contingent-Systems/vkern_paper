@@ -7,10 +7,16 @@
 && \TirNameStyle{ModalLocVirt}
 \\
 
-\Phi \vdash \Theta & \rightarrow & \modaldef\ell\Phi \vdash \modaldef\ell\Theta&& \TirNameStyle{ModalLocVirtMono}
+\modalP \vdash \modalQ & \rightarrow & \modaldef\ell\modalP \vdash \modaldef\ell\modalQ && \TirNameStyle{ModalLocVirtMono}
+\\
+
+\modaldef\ell{\modalstar\modalP\modalQ} & \logequiv & \modaldef\ell\modalP \star \modaldef\ell\modalQ &&\TirNameStyle{ModalLocVirtSep}
+\\
+
+   \bigast{\modalP \in \modalPs\modalP} { \modaldef\ell\modalP } & \vdash &
+          \modaldef\ell{\bigast{\modalP \in \modalPs\modalP} {\modalP}} && \TirNameStyle{ModalLocVirtSepL}
   \end{array}
   \]
-
 \caption{Selected Logical Implications, Equivalences, and Updates}
 \Description{Selected Logical Implications, Equivalences, and Updates}
 \label{fig:laws}
