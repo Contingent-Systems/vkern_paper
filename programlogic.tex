@@ -18,8 +18,13 @@ We present three main points-to relations as part of utilization of separation l
 \end{array}
 \]
 where we simply abstract the generation of hierarchical mapping of a physical address ($\locsf$) through the different masks of the address ($\locsf|^{12}$ and $\locsf|^{52}$) as nested map resources.
-\paragraph{Virtual-Memory points-to}
-\subsection{Modal Abstraction for Virtual Memory}
+\paragraph{Virtual-Memory points-to} As we see in Figure \fref{fig:}, virtual address mapping is obtained via traversal of page table, i.e. indirection provided by physical memory lookups. As expected, we define the virtual-points to relation, ($\pfpointsto\vaddr\locsf\vpts\qfrac$), in terms of multiple physical memory mappings representing the indirection shown in Figure \fref{fig:}
+\[
+\begin{array}{cl}
+\pfpointsto\locsf\locsf\ppts\qfrac \stackrel{def}{=} & \nfpointsto{\mask\locsf\tw}{\mask\locsf\ft}\locsf\qfrac\naddr
+\end{array}
+\]
+\subsection{Modal Abstraction for Virtualizing Memory Locations}
 \label{sec:credits}
 \input{fig-laws}
 
