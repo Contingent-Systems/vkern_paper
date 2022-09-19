@@ -14,58 +14,40 @@
 
 \inferrule[MovRR]{}{
   % Cheat on spacing so that Move and Alloca fit on a single line.
+  %(▷ (ir rsrc) ↦ᵣ{q} rv) ∗
+  %(▷ (ir rdst) ↦ᵣ rvsome)
   \renewcommand{\bightriplehskip}{}
   \bightriple
     {
-      \dst\pointsto\bcell\val \star
-      \src\pointsto\bcell\wal \star
-      \val\vfpointedby\qv\lsv \star
-      \wal\vfpointedby\qw\lsw
+      \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
+      \pfpointsto\rgdst\rvdst\rpts\qfrac
+      \ppointsto\vaddr\locsf\vpts
     }
-    {\imove\dst\src}
+    {\ising{\imov\mvrr\rgsrc\rgdst}}
     {
-      \dst\pointsto\bcell\wal \star
-      \src\pointsto\bcell\wal \star
-      \val\vfpointedby\qv\lsv\setminus\singleton\dst \star
-      \wal\vfpointedby\qw\lsw\uplus\singleton\dst
-    }
-}
-
-\inferrule[MovRR]{}{
-  % Cheat on spacing so that Move and Alloca fit on a single line.
-  \renewcommand{\bightriplehskip}{}
-  \bightriple
-    {
-      \dst\pointsto\bcell\val \star
-      \src\pointsto\bcell\wal \star
-      \val\vfpointedby\qv\lsv \star
-      \wal\vfpointedby\qw\lsw
-    }
-    {\imove\dst\src}
-    {
-      \dst\pointsto\bcell\wal \star
-      \src\pointsto\bcell\wal \star
-      \val\vfpointedby\qv\lsv\setminus\singleton\dst \star
-      \wal\vfpointedby\qw\lsw\uplus\singleton\dst
+      \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
+      \pfpointsto\rgdst\rvdst\rpts\qfrac
+      \ppointsto\vaddr\locsf\vpts
     }
 }
 
 \inferrule[MovMRBase]{}{
   % Cheat on spacing so that Move and Alloca fit on a single line.
+ %   (▷ (ir r) ↦ᵣ{q} (num rv)) ∗
+  %    (▷ (ir imreg) ↦ᵣ{q} (num maddr)) ∗
+   %   (▷ (virt_mapsto maddr  mv  1 ) cr3val)
   \renewcommand{\bightriplehskip}{}
   \bightriple
     {
-      \dst\pointsto\bcell\val \star
-      \src\pointsto\bcell\wal \star
-      \val\vfpointedby\qv\lsv \star
-      \wal\vfpointedby\qw\lsw
+      \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
+      \pfpointsto\rgdst\rvdst\rpts\qfrac
+      \ppointsto\vaddr\locsf\vpts
     }
-    {\imove\dst\src}
+    {\ising{\imov\mvmro\amode\rgsrc}}
     {
-      \dst\pointsto\bcell\wal \star
-      \src\pointsto\bcell\wal \star
-      \val\vfpointedby\qv\lsv\setminus\singleton\dst \star
-      \wal\vfpointedby\qw\lsw\uplus\singleton\dst
+      \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
+      \pfpointsto\rgdst\rvdst\rpts\qfrac
+      \ppointsto\vaddr\locsf\vpts
     }
 }
 
@@ -74,17 +56,15 @@
   \renewcommand{\bightriplehskip}{}
   \bightriple
     {
-      \dst\pointsto\bcell\val \star
-      \src\pointsto\bcell\wal \star
-      \val\vfpointedby\qv\lsv \star
-      \wal\vfpointedby\qw\lsw
+      \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
+      \pfpointsto\rgdst\rvdst\rpts\qfrac
+      \ppointsto\vaddr\locsf\vpts
     }
-    {\imove\dst\src}
+    {\ising{\imov\mvmro\amode\rgsrc}}
     {
-      \dst\pointsto\bcell\wal \star
-      \src\pointsto\bcell\wal \star
-      \val\vfpointedby\qv\lsv\setminus\singleton\dst \star
-      \wal\vfpointedby\qw\lsw\uplus\singleton\dst
+      \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
+      \pfpointsto\rgdst\rvdst\rpts\qfrac
+      \ppointsto\vaddr\locsf\vpts
     }
 }
 
@@ -93,17 +73,15 @@
   \renewcommand{\bightriplehskip}{}
   \bightriple
     {
-      \dst\pointsto\bcell\val \star
-      \src\pointsto\bcell\wal \star
-      \val\vfpointedby\qv\lsv \star
-      \wal\vfpointedby\qw\lsw
+      \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
+      \pfpointsto\rgdst\rvdst\rpts\qfrac
+      \ppointsto\vaddr\locsf\vpts
     }
-    {\imove\dst\src}
+    {\ising{\imov\mvrmb\rgsrc\amode}}
     {
-      \dst\pointsto\bcell\wal \star
-      \src\pointsto\bcell\wal \star
-      \val\vfpointedby\qv\lsv\setminus\singleton\dst \star
-      \wal\vfpointedby\qw\lsw\uplus\singleton\dst
+      \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
+      \pfpointsto\rgdst\rvdst\rpts\qfrac
+      \ppointsto\vaddr\locsf\vpts
     }
 }
 
@@ -112,17 +90,15 @@
   \renewcommand{\bightriplehskip}{}
   \bightriple
     {
-      \dst\pointsto\bcell\val \star
-      \src\pointsto\bcell\wal \star
-      \val\vfpointedby\qv\lsv \star
-      \wal\vfpointedby\qw\lsw
+      \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
+      \pfpointsto\rgdst\rvdst\rpts\qfrac
+      \ppointsto\vaddr\locsf\vpts
     }
-    {\imove\dst\src}
+    {\ising{\imov\mvrmo\rgsrc\amode}}
     {
-      \dst\pointsto\bcell\wal \star
-      \src\pointsto\bcell\wal \star
-      \val\vfpointedby\qv\lsv\setminus\singleton\dst \star
-      \wal\vfpointedby\qw\lsw\uplus\singleton\dst
+      \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
+      \pfpointsto\rgdst\rvdst\rpts\qfrac
+      \ppointsto\vaddr\locsf\vpts
     }
 }
 \end{mathpar}

@@ -26,26 +26,25 @@ where we simply abstract the generation of hierarchical mapping of a physical ad
 \begin{figure*}
 \[
 \begin{array}{cl}
-  \ppointsto\locsf\locsf'\vpts \stackrel{def}{=} \lambda \tlf\Loc.
+  \ppointsto\vaddr\locsf\vpts \stackrel{def}{=} \lambda \tlf\Loc.
   & \exists_{\tlfoff\Locn \;, \tltoff\Locn \;, \tltwoff\Locn \;, \tlooff\Locn \;, \tpgoff\Loctw \;, \tlt\Loc \;, \tltw\Loc \;, \tlo\Loc \tpg\Loc}\\
-  & \textsf{aligned } \locsf \\
-  & \locsf = \locsx ++ \lfoff ++ \ltoff ++ \ltwoff ++ \looff ++ \pgoff \\
+  & \textsf{aligned } \vaddr \\
+  & \vaddr = \locsx ++ \lfoff ++ \ltoff ++ \ltwoff ++ \looff ++ \pgoff \\
   &  \pfpointsto{\lvlsum\crt\lfoff}{\lvlbor\lt}\qfrac\ppts \\
   &  \pfpointsto{\lvlsum\lt\ltoff}{\lvlbor\ltw}\qfrac\ppts \\
   & \pfpointsto{\lvlsum\ltw\ltwoff}{\lvlbor\lo}\qfrac\ppts \\
   & \pfpointsto{\lvlsum\lo\looff}{\lvlbor\pg}\qfrac\ppts \\
-  & \ppointsto{\pageptstosum\pg\pgoff}\locsf'\ppts \\
+  & \ppointsto{\pageptstosum\pg\pgoff}\locsf\ppts \\
 
 \end{array}
 \]
 \caption{Virtual Points-to Relation}
   \label{fig:virtualpointsto}
 \end{figure*}
-
+\todo{iso todo: stress fractions and aligment}
 \subsection{Modal Abstraction for Virtualizing Memory Locations}
 \label{sec:modallocationvirtualization}
 \input{fig-laws}
-
 \subsection{Reasoning Rules for Selected Instructions}
 \label{sec:reasoning}
 \input{fig-reasoning}
@@ -58,5 +57,5 @@ correctness: the assertion $\triple\pre\instr\post$ means that, in a state
 where $\pre$ holds, it is safe to execute the instruction~$\instr$, and if
 this execution terminates, then it leads to a final state where $\post$ holds.
 A more precise statement is given in the next section (\sref{sec:soundness}).
+\mytodo{iso todo: talk about each rule and change the intro to this subsection}
 
-\mytodo{iso todo: talk about each rule}

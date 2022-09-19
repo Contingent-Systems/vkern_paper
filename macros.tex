@@ -39,16 +39,17 @@
 
 
 % Assertions.
+
 \newcommand{\qfrac}{\kw{q}}
 \newcommand{\naddr}{\kw{a}}
 \newcommand{\vaddr}{\kw{va}}
 \newcommand{\vpts}{\kw{v}}
 \newcommand{\ppts}{\kw{p}}
 \newcommand{\rpts}{\kw{r}}
-\newcommand{\pfpointsto}[4]{#1\mapsto_{#4}\{#2\}#3}
-\newcommand{\ppointsto}[3]{#1\mapsto_{#3}#2}
-\newcommand{\npointsto}[4]{#1 / #2 \mapsto_{#4}#3}
-\newcommand{\nfpointsto}[5]{#1 / #2 \mapsto_{#5}\{#4\}#3}
+\newcommand{\pfpointsto}[4]{#1\mapsto_{#4}\{#3\}\;#2}
+\newcommand{\ppointsto}[3]{#1\mapsto_{#3}\;#2}
+\newcommand{\npointsto}[4]{#1 / #2 \mapsto_{#4}\;#3}
+\newcommand{\nfpointsto}[5]{#1 / #2 \mapsto_{#5}\{#4\}\;#3}
 \newcommand{\mask}[2]{#1|^{#2}}
 \newcommand{\ft}{52}
 \newcommand{\tw}{12}
@@ -82,7 +83,7 @@
 % Locations.
 \newcommand{\pageptstosum}[2]{(#1+#2)}
 \newcommand{\lvlsum}[2]{(#1+8*#2)}
-\newcommand{\lvlbor}[1]{(#1 | \kw{w3}_{64})}
+\newcommand{\lvlbor}[1]{(#1 | \kw{w0}_{3})}
 \newcommand{\Locsx}{\mathcal{W}_{16}}
 \newcommand{\locsx}{\kw{w}_{16}}
 \newcommand{\Locsz}{\mathcal{W0}_{16}}
