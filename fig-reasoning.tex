@@ -13,21 +13,16 @@
 }
 
 \inferrule[MovRR]{}{
-  % Cheat on spacing so that Move and Alloca fit on a single line.
-  %(▷ (ir rsrc) ↦ᵣ{q} rv) ∗
-  %(▷ (ir rdst) ↦ᵣ rvsome)
   \renewcommand{\bightriplehskip}{}
   \bightriple
     {
       \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
-      \pfpointsto\rgdst\rvdst\rpts\qfrac
-      \ppointsto\vaddr\locsf\vpts
+      \ppointsto\rgdst\rvdst\rpts
     }
     {\ising{\imov\mvrr\rgsrc\rgdst}}
     {
       \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
-      \pfpointsto\rgdst\rvdst\rpts\qfrac
-      \ppointsto\vaddr\locsf\vpts
+      \ppointsto\rgdst\rvsrc\rpts
     }
 }
 
@@ -39,15 +34,15 @@
   \renewcommand{\bightriplehskip}{}
   \bightriple
     {
-      \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
-      \pfpointsto\rgdst\rvdst\rpts\qfrac
-      \ppointsto\vaddr\locsf\vpts
+      \pfpointsto\imreg\maddr\rpts\qfrac \star
+      \ppointsto\rgdst\rvdst\rpts \star
+      \pfpointsto\maddr\locsf\vpts\qfrac \star
     }
-    {\ising{\imov\mvmro\amode\rgsrc}}
+    {\ising{\imov\mvmro\amode\rgdst}}
     {
-      \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
-      \pfpointsto\rgdst\rvdst\rpts\qfrac
-      \ppointsto\vaddr\locsf\vpts
+      \pfpointsto\imreg\maddr\rpts\qfrac \star
+      \ppointsto\rgdst\locsf\rpts \star
+      \pfpointsto\maddr\locsf\vpts\qfrac \star
     }
 }
 
@@ -56,15 +51,16 @@
   \renewcommand{\bightriplehskip}{}
   \bightriple
     {
-      \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
-      \pfpointsto\rgdst\rvdst\rpts\qfrac
-      \ppointsto\vaddr\locsf\vpts
+      \ulcorner \amodeo\maddr\offs \urcorner \star 
+      \pfpointsto\imreg\maddr\rpts\qfrac \star
+      \ppointsto\rgdst\rvdst\rpts \star
+      \pfpointsto{\plusaddr\maddr\offs}\locsf\vpts\qfrac \star
     }
-    {\ising{\imov\mvmro\amode\rgsrc}}
+    {\ising{\imov\mvmro\amode\rgdst}}
     {
-      \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
-      \pfpointsto\rgdst\rvdst\rpts\qfrac
-      \ppointsto\vaddr\locsf\vpts
+      \pfpointsto\imreg\maddr\rpts\qfrac \star
+      \ppointsto\rgdst\locsf\rpts \star
+      \pfpointsto{\plusaddr\maddr\offs}\locsf\vpts\qfrac \star
     }
 }
 
@@ -73,15 +69,15 @@
   \renewcommand{\bightriplehskip}{}
   \bightriple
     {
+      \pfpointsto\imreg\maddr\rpts\qfrac \star
       \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
-      \pfpointsto\rgdst\rvdst\rpts\qfrac
-      \ppointsto\vaddr\locsf\vpts
+      \ppointsto\maddr\locsf\vpts \star
     }
     {\ising{\imov\mvrmb\rgsrc\amode}}
     {
+      \pfpointsto\imreg\maddr\rpts\qfrac \star
       \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
-      \pfpointsto\rgdst\rvdst\rpts\qfrac
-      \ppointsto\vaddr\locsf\vpts
+      \ppointsto\maddr\rvsrc\vpts \star
     }
 }
 
@@ -89,16 +85,17 @@
   % Cheat on spacing so that Move and Alloca fit on a single line.
   \renewcommand{\bightriplehskip}{}
   \bightriple
-    {
+      {
+      \ulcorner \amodeo\maddr\offs \urcorner \star
+      \pfpointsto\imreg\maddr\rpts\qfrac \star
       \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
-      \pfpointsto\rgdst\rvdst\rpts\qfrac
-      \ppointsto\vaddr\locsf\vpts
+      \ppointsto{\plusaddr\maddr\offs}\locsf\vpts \star
     }
     {\ising{\imov\mvrmo\rgsrc\amode}}
-    {
+    { 
+      \pfpointsto\imreg\maddr\rpts\qfrac \star
       \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
-      \pfpointsto\rgdst\rvdst\rpts\qfrac
-      \ppointsto\vaddr\locsf\vpts
+      \ppointsto{\plusaddr\maddr\offs}\rvsrc\vpts \star
     }
 }
 \end{mathpar}
