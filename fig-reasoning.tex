@@ -16,12 +16,12 @@
   \renewcommand{\bightriplehskip}{}
   \bightriple
     {
-      \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
+      \pfpointsto\rgsrc\rvsrc\qfrac\rpts \star
       \ppointsto\rgdst\rvdst\rpts
     }
     {\ising{\imov\mvrr\rgsrc\rgdst}}
     {
-      \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
+      \pfpointsto\rgsrc\rvsrc\qfrac\rpts \star
       \ppointsto\rgdst\rvsrc\rpts
     }
 }
@@ -34,15 +34,15 @@
   \renewcommand{\bightriplehskip}{}
   \bightriple
     {
-      \pfpointsto\imreg\maddr\rpts\qfrac \star
+      \pfpointsto\imreg\maddr\qfrac\rpts \star
       \ppointsto\rgdst\rvdst\rpts \star
-      \pfpointsto\maddr\locsf\vpts\qfrac \star
+      \pfpointsto\maddr\locsf\qfrac\vpts \star
     }
     {\ising{\imov\mvmro\amode\rgdst}}
     {
-      \pfpointsto\imreg\maddr\rpts\qfrac \star
+      \pfpointsto\imreg\maddr\qfrac\rpts \star
       \ppointsto\rgdst\locsf\rpts \star
-      \pfpointsto\maddr\locsf\vpts\qfrac \star
+      \pfpointsto\maddr\locsf\qfrac\vpts \star
     }
 }
 
@@ -52,15 +52,15 @@
   \bightriple
     {
       \ulcorner \amodeo\imreg\offs \urcorner \star 
-      \pfpointsto\imreg\maddr\rpts\qfrac \star
+      \pfpointsto\imreg\maddr\qfrac\rpts \star
       \ppointsto\rgdst\rvdst\rpts \star
-      \pfpointsto{\plusaddr\maddr\offs}\locsf\vpts\qfrac \star
+      \pfpointsto{\plusaddr\maddr\offs}\locsf\qfrac\vpts \star
     }
     {\ising{\imov\mvmro\amode\rgdst}}
     {
-      \pfpointsto\imreg\maddr\rpts\qfrac \star
+      \pfpointsto\imreg\maddr\qfrac\rpts \star
       \ppointsto\rgdst\locsf\rpts \star
-      \pfpointsto{\plusaddr\maddr\offs}\locsf\vpts\qfrac \star
+      \pfpointsto{\plusaddr\maddr\offs}\locsf\qfrac\vpts \star
     }
 }
 
@@ -69,14 +69,14 @@
   \renewcommand{\bightriplehskip}{}
   \bightriple
     {
-      \pfpointsto\imreg\maddr\rpts\qfrac \star
-      \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
+      \pfpointsto\imreg\maddr\qfrac\rpts \star
+      \pfpointsto\rgsrc\rvsrc\qfrac\rpts \star
       \ppointsto\maddr\locsf\vpts \star
     }
     {\ising{\imov\mvrmb\rgsrc\amode}}
     {
-      \pfpointsto\imreg\maddr\rpts\qfrac \star
-      \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
+      \pfpointsto\imreg\maddr\qfrac\rpts \star
+      \pfpointsto\rgsrc\rvsrc\qfrac\rpts \star
       \ppointsto\maddr\rvsrc\vpts \star
     }
 }
@@ -87,14 +87,14 @@
   \bightriple
       {
       \ulcorner \amodeo\imreg\offs \urcorner \star
-      \pfpointsto\imreg\maddr\rpts\qfrac \star
-      \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
+      \pfpointsto\imreg\maddr\qfrac\rpts \star
+      \pfpointsto\rgsrc\rvsrc\qfrac\rpts \star
       \ppointsto{\plusaddr\maddr\offs}\locsf\vpts \star
     }
     {\ising{\imov\mvrmo\rgsrc\amode}}
     { 
-      \pfpointsto\imreg\maddr\rpts\qfrac \star
-      \pfpointsto\rgsrc\rvsrc\rpts\qfrac \star
+      \pfpointsto\imreg\maddr\qfrac\rpts \star
+      \pfpointsto\rgsrc\rvsrc\qfrac\rpts \star
       \ppointsto{\plusaddr\maddr\offs}\rvsrc\vpts \star
     }
 }
