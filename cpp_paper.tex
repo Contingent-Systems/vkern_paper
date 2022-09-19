@@ -41,6 +41,16 @@
 \usepackage{todonotes}
 \usepackage{blindtext}
 
+% Hack for Colin to edit in low light: https://tex.stackexchange.com/questions/40495/invert-background-and-text-colours-across-whole-document-with-pdflatex
+%Commands definitions
+\newcommand{\setbackgroundcolour}{\pagecolor[rgb]{0.19,0.19,0.19}}  
+\newcommand{\settextcolour}{\color[rgb]{0.77,0.77,0.77}}    
+\newcommand{\invertbackgroundtext}{\setbackgroundcolour\settextcolour}
+%Command execution. 
+%If this line is commented, then the appearance remains as usual.
+\invertbackgroundtext
+
+
 % Packages.
 \usepackage{amsmath}
 % If we need multiple references to a footnote, via \cref:
@@ -225,7 +235,7 @@ switches between address spaces. All definitions and theorems mentioned in this 
 }
 
 \input{intro.tex}
-\input{motivation.tex}
+%\input{motivation.tex}
 \input{background.tex}
 \input{syntax.tex}
 \input{semantics.tex}
