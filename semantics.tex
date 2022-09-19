@@ -8,7 +8,7 @@ We represent the machine state mainly as a finite map of registers to register v
 \item A register map: $\sigma.\mathcal{R}: \kw{greg} \rightarrow_{\textrm{fin}} \kw{regval} $
 \item A memory map: $\sigma.\mathcal{M}: \Locft \rightharpoonup_{\textrm{fin}} (\Loctw \rightharpoonup_{\textrm{fin}} \Locsf )$
 \end{itemize}
-\subsection{Indexed Memory \& Register by References}
+\subsection{Memory Addresses \& Naming Registers}
 \label{sec:}
 As one might have already anticipated from the syntax we introduce, we do not bind any value of an evaluated expression. All the indices and accessed values are treated as globally referenced. In align with this design choice, our expression is a stream of instructions, which is not evaluated to a value to be bound, but changes the machine state through the indices (e.g. $\kw{r}\in\kw{greg}$) -- to the global maps. 
 \subsection{Instructions}
