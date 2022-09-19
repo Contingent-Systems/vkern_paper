@@ -31,9 +31,9 @@ where we simply abstract the generation of hierarchical mapping of a physical ad
   & \textsf{aligned } \vaddr \\
   & \vaddr = \locsx ++ \lfoff ++ \ltoff ++ \ltwoff ++ \looff ++ \pgoff \\
   &  \pfpointsto{\lvlsum\crt\lfoff}{\lvlbor\lt}\qfrac\ppts \\
-  &  \pfpointsto{\lvlsum\lt\ltoff}{\lvlbor\ltw}\qfrac\ppts \\
-  & \pfpointsto{\lvlsum\ltw\ltwoff}{\lvlbor\lo}\qfrac\ppts \\
-  & \pfpointsto{\lvlsum\lo\looff}{\lvlbor\pg}\qfrac\ppts \\
+  &  \pfpointsto{\lvlsum\lt\ltoff}{\lvlbor\ltw}\qfractw\ppts \\
+  & \pfpointsto{\lvlsum\ltw\ltwoff}{\lvlbor\lo}\qfract\ppts \\
+  & \pfpointsto{\lvlsum\lo\looff}{\lvlbor\pg}\qfracf\ppts \\
   & \ppointsto{\pageptstosum\pg\pgoff}\locsf\ppts \\
 
 \end{array}

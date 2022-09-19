@@ -41,6 +41,9 @@
 % Assertions.
 
 \newcommand{\qfrac}{\kw{q}}
+\newcommand{\qfractw}{\kw{q}/2}
+\newcommand{\qfract}{\kw{q}/3}
+\newcommand{\qfracf}{\kw{q}/4}
 \newcommand{\naddr}{\kw{a}}
 \newcommand{\vaddr}{\kw{va}}
 \newcommand{\vpts}{\kw{v}}
@@ -215,7 +218,7 @@
 \newcommand{\logicalstore}{\theta}
 \newcommand{\maxsize}{S}
 % \newcommand{\valid}[1]{\text{$#1$ is valid}}
-\newcommand{\valid}[1]{\sz{#1}\leq\maxsize}
+\newcommand{\valid}[1]{\sz{#1}\leqmaxsize}
 \newcommand{\available}[1]{\mathit{available}(#1)}
 \newcommand{\closed}[1]{\text{$#1$ is closed}}
 \newcommand{\related}[2]{#1\approx#2}
