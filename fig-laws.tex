@@ -1,10 +1,16 @@
 \begin{figure}
-\[\begin{array}{r@{\;}c@{\;}lll}
-\modaldef
+  \[
+  \begin{array}{r@{\;}c@{\;}lll}
+\modaldef\ell\Phi
 & \logequiv &
-\modaldefunfold
+\modaldefunfold\ell\Phi
 && \TirNameStyle{ModalLocVirt}
-\end{array}\]
+\\
+
+\Phi \vdash \Theta & \rightarrow & \modaldef\ell\Phi \vdash \modaldef\ell\Theta&& \TirNameStyle{ModalLocVirtMono}
+  \end{array}
+  \]
+
 \caption{Selected Logical Implications, Equivalences, and Updates}
 \Description{Selected Logical Implications, Equivalences, and Updates}
 \label{fig:laws}
