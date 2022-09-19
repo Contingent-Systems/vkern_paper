@@ -1,6 +1,6 @@
 \section{Program Logic for Location Virtualization}
 \label{sec:logic}
-In this section, we describe our high-level reasoning principles for location virtualization whose detailed justification is shown in \sref{sec:soundness}. 
+In this section, we describe our high-level reasoning principles for location virtualization whose detailed justification is shown in \sref{sec:soundness}. Here we present our reasoning principle shaped around understanding the virtual address space, specifially the opeations using virtual points-to mappings.
 \subsection{Points-To Assertions}
 \label{sec:pointsto}
 
@@ -51,7 +51,13 @@ The most essential part of our reasoning principles is shaped around abstraction
 \item the shared indirection levels abstracted as mappings with fractional permissions
 \item through partially owned set of resource mappings grants the eventual uniquely ownable single resource, i.e. page address 
 \end{itemize}
-which we think can be well-summarized with the modal abstraction \RULE{ModalLocVirt}.
+which we think can be well-summarized with the modal abstraction shown in \RULE{ModalLocVirt} which allows us to have
+\begin{itemize}
+  \item \textbf{contingency}: the fact $\modalP$ holds \textit{at} on the resrouces \textit{hidden-under} the physical location $\ell$ (e.g. $\crt$)
+  \item \textbf{hiding states}: hide the indirection abstracted as page-table mappings through the local-state modality
+  \item \textbf{composing local-states}: allows c
+\end{itemize}
+
 \subsection{Reasoning Rules for Selected Instructions}
 \label{sec:reasoning}
 \input{fig-reasoning}
