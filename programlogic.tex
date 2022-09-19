@@ -45,6 +45,12 @@ where we simply abstract the generation of hierarchical mapping of a physical ad
 \subsection{Modal Abstraction for Virtualizing Memory Locations}
 \label{sec:modallocationvirtualization}
 \input{fig-laws}
+The most essential part of our reasoning principles is shaped around abstractions for location virtualization, more concretely virtual memory points-to relation in Figure \fref{fig:virtualpointsto}. One might have already noticed that the resource represented by the virtual-points to is not only a simple immediately mapped singly resource but also
+\begin{itemize}
+\item a tree-like structured resrouce rooted at the certain physical memory address ($\crt$) -- not a single resource mapping abstraction 
+\item the shared indirection levels abstracted as mappings with fractional permissions
+\item through partially owned set of resource mappings grants the eventual uniquely ownable single resource, i.e. page address 
+\end{itemize}
 
 \subsection{Reasoning Rules for Selected Instructions}
 \label{sec:reasoning}
