@@ -6,21 +6,32 @@ In this section, we describe our high-level reasoning principles for location vi
 
 We present three main points-to relations as part of utilization of separation logic \ref{} as an ambient logic:
 \begin{enumerate}
-\item Physical address points-to, $\ppointsto\locsf\locsf\ppts$
-\item Register points-to, $\ppointsto\rg\rv\rpts$
-\item Virtual memory address points-to, $\ppointsto\vaddr\locsf\vpts$
+\item Physical address points-to, $\pfpointsto\locsf\locsf\ppts\qfrac$
+\item Register points-to, $\pfpointsto\rg\rv\rpts\qfrac$
+\item Virtual memory address points-to, $\pfpointsto\vaddr\locsf\vpts\qfrac$
 \end{enumerate}
-
-\input{fig-laws}
-
-\subsection{Modal Abstraction for Virtual Memory}
+\paragraph{Register points-to} The assertion $\pfpointsto\rg\rv\rpts\qfrac$ ensures the ownership of the register $\rg$ naming the register value $\rv$. The fraction $\qfrac$ with value 1 asserts the unique ownership of the register mapping, and grants update permission on it, otherwise, any value $0 < \qfrac <1$ represents partial ownership granting readonly permission on the mapping.
+\paragraph{Physical-Memory points-to} The our physical memory points-to relation ($\pfpointsto\locsf\locsf\ppts\qfrac$) exhibits nested-mappings due to masking applied on the indexing address ($\locsf$). The unfolded definition of the physical mapsto 
+\[
+\begin{array}{cl}
+\pfpointsto\locsf\locsf\ppts\qfrac \stackrel{def}{=} & \nfpointsto{\mask\locsf\tw}{\mask\locsf\ft}\locsf\qfrac\naddr
+\end{array}
+\]
+where we simply abstract the generation of hierarchical mapping of a physical address ($\locsf$) through the different masks of the address ($\locsf|^{12}$ and $\locsf|^{52}$) as nested map resources.
+\paragraph{Virtual-Memory points-to} As we see in Figure \fref{fig:}, virtual address mapping is obtained via traversal of page table, i.e. indirection provided by physical memory lookups. As expected, we define the virtual-points to relation, ($\pfpointsto\vaddr\locsf\vpts\qfrac$), in terms of multiple physical memory mappings representing the indirection shown in Figure \fref{fig:}
+\[
+\begin{array}{cl}
+\pfpointsto\locsf\locsf\ppts\qfrac \stackrel{def}{=} & \nfpointsto{\mask\locsf\tw}{\mask\locsf\ft}\locsf\qfrac\naddr
+\end{array}
+\]
+\subsection{Modal Abstraction for Virtualizing Memory Locations}
 \label{sec:credits}
+\input{fig-laws}
 
 \subsection{Memory Deallocation as a Ghost Operation}
 \label{sec:free}
 
 \subsection{Reasoning Rules for Selected Instructions}
 \label{sec:reasoning}
-
 \input{fig-reasoning}
 
