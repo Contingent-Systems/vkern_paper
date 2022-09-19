@@ -18,14 +18,18 @@
 
 % Assertions.
 \newcommand{\qfrac}{\kw{q}}
+\newcommand{\naddr}{\kw{a}}
 \newcommand{\vaddr}{\kw{va}}
 \newcommand{\vpts}{\kw{v}}
 \newcommand{\ppts}{\kw{p}}
 \newcommand{\rpts}{\kw{r}}
 \newcommand{\pfpointsto}[4]{#1\mapsto_{#4}{#2}#3}
 \newcommand{\ppointsto}[3]{#1\mapsto_{#3}#2}
-
-
+\newcommand{\npointsto}[4]{#1 / #2 \mapsto_{#4}#3}
+\newcommand{\nfpointsto}[5]{#1 / #2 \mapsto_{#5}{#4}#3}
+\newcommand{\mask}[2]{#1|^{#2}}
+\newcommand{\ft}{52}
+\newcommand{\tw}{12}
 \newcommand{\pointsto}{\mapsto}
 \newcommand{\mystackrel}[2]{#2_{#1}}
 \newcommand{\fpointsto}[1]{\mathrel{\mystackrel{#1}{\mapsto}}}
