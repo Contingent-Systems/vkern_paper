@@ -26,26 +26,21 @@ where we simply abstract the generation of hierarchical mapping of a physical ad
 \begin{figure*}
 \[
 \begin{array}{cl}
-  \pfpointsto\locsf\locsf\ppts\qfrac \stackrel{def}{=} \lambda \tlf\Loc.
-  & \exists_{ \tlfoff\Locn \;, \tltoff\Locn \;, \tltwoff\Locn \;, \tlooff\Locn \;, \tpgoff\Loctw \;, \tlt\Loc \;, \tltw\Loc \;, \tlo\Loc \tpg\Loc   }
+  \ppointsto\locsf\locsf'\vpts \stackrel{def}{=} \lambda \tlf\Loc.
+  & \exists_{\tlfoff\Locn \;, \tltoff\Locn \;, \tltwoff\Locn \;, \tlooff\Locn \;, \tpgoff\Loctw \;, \tlt\Loc \;, \tltw\Loc \;, \tlo\Loc \tpg\Loc}\\
+  & \textsf{aligned } \locsf \\
+  & \locsf = \locsx ++ \lfoff ++ \ltoff ++ \ltwoff ++ \looff ++ \pgoff \\
+  &  \pfpointsto{\lvlsum\crt\lfoff}{\lvlbor\lt}\ppts\qfrac \\
+  &  \pfpointsto{\lvlsum\lt\ltoff}{\lvlbor\ltw}\ppts\qfrac \\
+  & \pfpointsto{\lvlsum\ltw\ltwoff}{\lvlbor\lo}\ppts\qfrac \\
+  & \pfpointsto{\lvlsum\lo\looff}{\lvlbor\pg}\ppts\qfrac \\
+  & \ppointsto{\pageptstosum\pg\pgoff}\locsf'\ppts \\
+
 \end{array}
 \]
 \caption{Virtual Points-to Relation}
   \label{fig:virtualpointsto}
 \end{figure*}
-
-\begin{comment}
-   Definition virt_mapsto (a:word 64) (v:word 64) (q:Qp) : word 64 -> iProp Σ :=
-λ (cr:word 64) ,
-     ( ⌜ aligned a ⌝ ∗
-         ∃ (l3 l2 l1 page w :word 64) (pageoff:word 12) (l4off l3off l2off l1off:word 9) ,
-           ⌜ (WordImpl.concat (wzero 16) (WordImpl.concat l4off (WordImpl.concat l3off (WordImpl.concat l2off (WordImpl.concat l1off pageoff))))) = a ⌝ ∗
-                          (natToWord 64 ((wordToNat l4)+(8*(wordToNat l4off)))) ↦p{q} (l3  ^|  (natToWord 64 3)) ∗
-                          (natToWord 64 ((wordToNat l3)+(8*(wordToNat l3off)))) ↦p{q} (l2  ^|  (natToWord 64 3)) ∗
-                          (natToWord 64 ((wordToNat l2)+(8*(wordToNat l2off)))) ↦p{q} ( l1  ^|  (natToWord 64 3)) ∗
-                          (natToWord 64 ((wordToNat l2)+(8*(wordToNat l1off)))) ↦p{q} ( page  ^|  (natToWord 64 3)) ∗
-                          (natToWord 64 ((wordToNat page) +(wordToNat pageoff))) ↦p v )%I.
-\end{comment}
 
 \subsection{Modal Abstraction for Virtualizing Memory Locations}
 \label{sec:modallocationvirtualization}
@@ -54,4 +49,14 @@ where we simply abstract the generation of hierarchical mapping of a physical ad
 \subsection{Reasoning Rules for Selected Instructions}
 \label{sec:reasoning}
 \input{fig-reasoning}
+As is usual in \SL, the reasoning rules of the program logic allow deriving
+Hoare triples of the form $\triple\pre\instr\post$, where the
+precondition~$\pre$ and the postcondition~$\post$ are assertions,
+and where $i$ is an instruction.
+Such a triple receives a standard interpretation as a statement of partial
+correctness: the assertion $\triple\pre\instr\post$ means that, in a state
+where $\pre$ holds, it is safe to execute the instruction~$\instr$, and if
+this execution terminates, then it leads to a final state where $\post$ holds.
+A more precise statement is given in the next section (\sref{sec:soundness}).
 
+\mytodo{iso todo: talk about each rule}
