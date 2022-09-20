@@ -1,3 +1,82 @@
 \section{Experiment}
 \label{sec:experiment}
 \mytodo{Mechanization is Ismail's Part -- Discussing and putting in here is Colin's}
+
+To both validate and demonstrate the value of the modal approach to reasoning about virtual memory management, we study several distillations of real concerns of virtual memory managers.
+Recall from Section \ref{sec:logic} that virtual points-to assertions work just like regular points-to assertions, by design.
+
+\subsection{Identity Mappings}
+\todo[inline]{need to describe this}
+
+\subsection{Mapping a New Page}
+One of the key tasks of a page fault handler in a general-purpose OS kernel is to map new pages into an address space by writing into an existing page table.
+\todo[inline]{Ismail, see notes about intermediate assertions on the Notion page}
+\begin{figure}
+\begin{lstlisting}
+;; Assume the faulting address f is in r12,
+;; a callee-save register, and f with the 
+;; lower 12 bits zeroed out (so, the virtual
+;; page containing f) is in r13 (also callee-save)
+
+;; Ensure there's a place to put the L1 mapping
+mov %rdi, r13
+call ensure_L1_page
+;; Returns the virtual address of the L1 entry in rax
+mov %r14, %rax ;; Save that before another call
+call alloc_phys_page_or_panic
+;; Calculate new PTE by setting the low-order bits
+;; of the physical page
+add %rax, 3
+;; update the page table entry, mapping the page
+mov (%rcx), %rax
+;; memset the newly-mapped page
+mov %rdi, r13
+mov %rsi, 0
+mov %rdx, 4096
+call memset
+;; The newly mapped page is full of 0s
+\end{lstlisting}
+\caption{Distilled code for mapping a new page}
+\label{fig:mapping_code}
+\todo[inline]{this is terribly ugly, should switch to minted}
+\end{figure}
+
+\todo[inline]{emphasize the write to the L1 page table is validated by the fact that the identity mapping exists}
+
+\subsection{Unmapping a Page}
+The reverse operation, unmapping a designated page that is currently mapped, is pleasingly the reverse: by flipping the entry back to an invalid entry, full ownership of the updated entry reverts back to the now-invalid cell of the L1 table.
+
+\subsection{Change of Address Space}
+A critical piece of \emph{trusted} code in verified OS kernels is the assembly code to change the current address space; current verified OS kernels currently lack effective ways to specify and reason about this low-level operation, for resaons outlined in Section \ref{sec:relwork}.
+
+\todo[inline]{probably not much more than just the cr3 update, but could be extended to a full context switch since the instruction pointer isn't updated in a swtch}
+
+\begin{lstlisting}
+;; Assume the save-space is in rdi,
+;; load-space in rsi
+;; No need to save/restore caller-save regs
+;; Save yielding context
+mov 0[%rdi], %rbx
+mov 8[%rdi], %rsp
+mov 16[%rdi], %rbp
+mov 24[%rdi], %r12
+mov 32[%rdi], %r13
+mov 40[%rdi], %r14
+mov 48[%rdi], %r15
+mov 56[%rdi], %cr3
+;; Restore target context
+mov %rbx, 0[%rsi] 
+;; This switches to a new stack
+;; This stack may not be mapped in the
+;; current address space!
+mov %rsp, 8[%rsi] 
+mov %rbp, 16[%rsi]
+mov %r12, 24[%rsi]
+mov %r13, 32[%rsi]
+mov %r14, 40[%rsi]
+mov %r15, 48[%rsi]
+;; Switch to the new address space
+mov %cr3, 56[%rsi]
+\end{lstlisting}
+\todo[inline]{technically we weren't planning to prove reads of cr3...}
+\todo[inline]{need to figure out the right pre/post condition to highlight the change in address space, beyond the vpoints-to of the two structures}
