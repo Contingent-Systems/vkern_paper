@@ -49,6 +49,7 @@ with a complicated logical relations that ties the physical store to the
 We already have the physical and logical stores and a simple invariant between them. Now, we can rely on the following Assumption \ref{assumption} from Iris to utilize its logical constructions.
 % The predicate gen_heap_interp.
 \newcommand{\genheapinterp}[1]{\mathit{Heap}\;#1}
+\newcommand{\genmemheapinterp}[1]{\mathit{MemHeap}\;#1}
 % Our predicate pred (defined in ph.v), expanded.
 \newcommand{\pred}[1]{\ownGhost\gammaPred{\authfull{(\mapone\predstore)}}}
 % A notation for assigning fraction 1 to every element of \predstore.
@@ -65,13 +66,13 @@ We already have the physical and logical stores and a simple invariant between t
   \mapsfromexact{#1}{#2}{\sh} \star \pure{\sh \subseteq #3}
 }
 
-
 \begin{assumption}
 \label{assumption}
-  Iris defines a certain piece of ghost state,
-  defines a predicate $\genheapinterp\store$
-  that ties a store~$\store$ to this ghost state,
-  and defines the points-to assertion $\loc\fpointsto\qv\blk$
+Iris defines two pieces of ghost state
+\begin{enumerate}
+\item  defines a predicate $\genheapinterp\store.\mathcal{R}$
+  that ties a store~$\store.\mathcal{R}$ to this ghost state,
+  and defines the points-to assertion $\ppointsto\rg\rv\qfrac\rpts$
   in terms of this ghost state.
   This is visible in the paper~\cite[\S6.3.2]{iris}
   and in Iris's \texttt{gen\_heap} library~\cite{genheap}.
@@ -81,18 +82,34 @@ We already have the physical and logical stores and a simple invariant between t
   We mention the predicate $\genheapinterp\!$
   in our own invariant (Definition~\ref{def:invariant}),
   where it is applied to the \logical store~$\store$.
+\item unlike the points-to relation obtained by direct interpretion of $\genheapinterp\store.\mathcal{R}$ using Iris existing \textsf{gen\_heap\_interp},
+  we define a new algebra (\textsf{gen\_mem\_UR}) for abstracting the nested maps due to different levels of masking in memory mappings. 
+\end{enumerate}
 \end{assumption}
 
-\begin{definition}[Ghost State]
-...
-stores an element of the monoid
+\begin{definition}[Ghost State - Memory with Nested Mappings]
+We define our custom-tailored algebra 
+\newcommand\fpfn{\rightarrow_{\textrm{fin}}}
+\( \textsf{gen\_memUR} \stackrel{def}{=}
+  \authm(\;
+  \Locft \;\fpfn\;
+  (\Loctw \;\fpfn\;  (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \Loc,\mathord{=}) )
+  \)
+  for our nested memory mapping abstracting two different machine word masking. Then, we register our \emph{authoritative camera} \cite[\S6.3.3]{iris} from this algebra
+\[\textsf{inG } \Sigma \textsf{ gen\_memUR} \]
+As a final step, we allocate an empty ghost cell $\gamma$ at the beggining of a program execution to store the element of the monoid $\textsf{inG } \Sigma \textsf{ gen\_memUR}$.
+\end{definition}
+
+\begin{definition}[Ghost State - Register Mappings]
+We allocate $\theta$ ghost cell which stores an
+element of the monoid 
 \newcommand\fpfn{\rightarrow_{\textrm{fin}}}
 \(
   \authm(\;
-    \Loc \;\fpfn\;
+    \regset \;\fpfn\;
     (\textsc{Frac}, \mathord{+})
     \times
-    (\textsc{Multiset}(\Loc), \mathord\uplus)
+    (\regvaltype, \mathord{=})
   \;)
 \)
 % \emph{authoritative camera}
@@ -101,50 +118,24 @@ stores an element of the monoid
 
 \begin{definition}[Central Invariant]
 \label{def:invariant}
-The central invariant of our logic,
-or \emph{state interpretation invariant} \cite[\S7.3]{iris},
-is the following Iris assertion:
+The central invariant of our logic is, due to lack of need for augmenting the machine state, simply the state interpretation \cite[\S7.3]{iris} : 
 \[
 \centralinvariant\;\store \triangleq
 \left\{
 \def\arraystretch{1.2}
 \begin{array}{l@{\quad\star\quad}l@{\quad}l}
   \genheapinterp\store & \star \\
-   \genheapinterp\store & \star
+   \genmemheapinterp\store
 \end{array}
 \right.
 \]
 \end{definition}
 
-\begin{definition}[Assertions]
-\label{def:assertions}
-  The assertions of our ... are defined as follows:
-  \begin{enumerate}
-  \item
-  % The definition of the points-to predicate is inherited from gen_heap.
-  % It is implicitly parameterized by a ghost cell that holds the heap.
-  The \emph{points-to assertion} ..
-  is inherited from Iris (Assumption~\ref{assumption}).
-  \item
-  The \emph{map-of-map} for a single physical memory location,
-  
-  \item
-  The \emph{location-virtualization-modal}
-  \item
-  The \emph{pointed-by assertion} .
-  \end{enumerate}
-\end{definition}
+As noted earlier (Assumption~\ref{assumption}), the predicate
+$\genheapinterp\!$ and the points-to assertion for register mappings is inherited from Iris. What
+this means, as far as we are concerned, is that the points-to assertion is
+defined in a standard manner: $\genheapinterp\!$ is applied to the physical store~$\store$, as is usually the case~\cite[\S6.3.2]{iris}.
+Likewise, we define nested interpretation $\genmemheapinterp\!$ in terms of $\genheapinterp\!$ to obtain physical memory points-to relation.
 
-% What do these definitions mean?
+In fact, long story short, all assertions in our logic, i.e. points-to assertions for registers and memory, really about the logical store, which is in our case identical to the physical store, so that we can reason about the physical store.
 
-Let us try and explain the most important aspects of these definitions.
-
-In Iris, the state interpretation invariant~$\centralinvariant\;\store$ is an assertion that
-holds of the \emph{physical store}~$\store$ in between every two steps of
-computation. It is used by Iris in the definition of Hoare triples; we inherit
-this definition from Iris.
-
-Our definition of $\centralinvariant\;\store$ begins with an existential quantification over
-a \emph{\logical store}~$\logicalstore$.
-..........
-%.......
