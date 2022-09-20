@@ -14,7 +14,7 @@
 
 \inferrule[MovRR]{}{
   \renewcommand{\bightriplehskip}{}
-  \bightriple
+  \bigvtriple
     {
       \pfpointsto\rgsrc\rvsrc\qfrac\rpts \star
       \ppointsto\rgdst\rvdst\rpts
@@ -32,7 +32,7 @@
   %    (▷ (ir imreg) ↦ᵣ{q} (num maddr)) ∗
    %   (▷ (virt_mapsto maddr  mv  1 ) cr3val)
   \renewcommand{\bightriplehskip}{}
-  \bightriple
+  \bigvtriple
     {
       \pfpointsto\imreg\maddr\qfrac\rpts \star
       \ppointsto\rgdst\rvdst\rpts \star
@@ -49,7 +49,7 @@
 \inferrule[MovMROff]{}{
   % Cheat on spacing so that Move and Alloca fit on a single line.
   \renewcommand{\bightriplehskip}{}
-  \bightriple
+  \bigvtriple
     {
       \ulcorner \amodeo\imreg\offs \urcorner \star 
       \pfpointsto\imreg\maddr\qfrac\rpts \star
@@ -67,7 +67,7 @@
 \inferrule[MovRMBase]{}{
   % Cheat on spacing so that Move and Alloca fit on a single line.
   \renewcommand{\bightriplehskip}{}
-  \bightriple
+  \bigvtriple
     {
       \pfpointsto\imreg\maddr\qfrac\rpts \star
       \pfpointsto\rgsrc\rvsrc\qfrac\rpts \star
@@ -84,7 +84,7 @@
 \inferrule[MovRMOff]{}{
   % Cheat on spacing so that Move and Alloca fit on a single line.
   \renewcommand{\bightriplehskip}{}
-  \bightriple
+  \bigvtriple
       {
       \ulcorner \amodeo\imreg\offs \urcorner \star
       \pfpointsto\imreg\maddr\qfrac\rpts \star
