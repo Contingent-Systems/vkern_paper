@@ -40,7 +40,12 @@
 \usepackage[utf8]{inputenc}
 \usepackage{todonotes}
 \usepackage{blindtext}
-
+\usepackage{listings}
+\lstset{
+  columns=fullflexible,
+  numbers=left,
+  basicstyle=\ttfamily
+}
 % Hack for Colin to edit in low light: https://tex.stackexchange.com/questions/40495/invert-background-and-text-colours-across-whole-document-with-pdflatex
 %Commands definitions
 \newcommand{\setbackgroundcolour}{\pagecolor[rgb]{0.19,0.19,0.19}}  
