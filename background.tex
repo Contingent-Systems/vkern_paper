@@ -42,7 +42,7 @@ The problem of needing to keep track of things being true in some contexts and n
 
 Most modal logics use unary operators on propositions to express that a logical claim $P$ is \emph{contingently} true in certain other circumstances, such as in other times~\cite{pnueli1977} or places~\cite{gordon2019modal}. That is, for different modal operators $M$, $M(P)$ may mean that $P$ is true in another time or place (which may be a physical place like another network node~\cite{murphy,gordon2019modal} or a conceptual place like a person's mind~\cite{hintikka1962knowledge}). A unifying concept across any modality is that they behave as applicative functors, typically satisfying (directly, or as a derived law):
 \[ (P\rightarrow Q) \rightarrow M(P) \rightarrow M(Q)\]
-\mytodo{Ismail, I think this means we have pure intro, $\square P \mathrel{-\ast} [r](\square P)$ if I'm using the right symbol for pure assertions }
+\todo[inline]{Ismail, I think this means we have pure intro, $\square P \mathrel{-\ast} [r](\square P)$ if I'm using the right symbol for pure assertions }
 Many modalities, so-called \emph{normal} modalities also possess introduction rules of the form $P\rightarrow M(P)$, the classic example being that if $P$ is true, then $P$ is \emph{necessarily} true ($\square P$)
 
 Of particular interest for reasoning about virtual memory are modalities that permit \emph{naming} the alternate circumstances, prominently \emph{hybrid} modal logics~\cite{blackburn1995hybrid,areces2001hybrid}, which come equipped with assertions of the form $@_\ell(P)$ indicating that $P$ is true in the specific alternate circumstance (Kripke world) named by the \emph{nominal} $\ell$.
