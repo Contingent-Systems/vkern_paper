@@ -72,6 +72,6 @@ which we think can be well-summarized with the modal abstraction shown in \RULE{
   \item \textbf{interaction with ambient logic for a local-state}: \mytodo{talk about this issue's vitality in this paper with Colin}
 \end{itemize}
 
-To concretize the understanding of these principles achieved with the modal abstraction for address-space, $\modaldef\ell\modalP$, let us first investigate the specification of the instruction ($\textsf{movctl\_instr}$) switching address spaces. Assume that our CPU keeps the current address space based on its page table register CR3, as we see in Figure \fref{fig:addressspaceswitching}
+To concretize the understanding of these principles achieved with the modal abstraction for address-space, $\modaldef\ell\modalP$, let us first investigate the specification of the instruction ($\textsf{movctl\_instr}$) switching address spaces. Assume that our CPU keeps the current address space based on its page table register CR3, as we see in Figure \fref{fig:addressspaceswitching}.
 \input{fig-ctlreasoning}
-
+Thinking of $\modalP$ and $\modalQ$ as resources representing the indirection mappings ($\mapsto_{\kw{p}}$) in the address spaces rooted at $\rvsrc$ and $\rvdst$ respectively, the rule interacts with the ambient logic, \SL, via pulls local state out of the address-space modality rooted at $\rvdst$, and make it the observable view of the memory.
