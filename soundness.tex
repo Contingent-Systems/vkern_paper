@@ -36,46 +36,18 @@ the reasoning rules of our logic, then the program~$\instrs$ is safe.
 \subsection{Logical Constructions}
 \label{sec:invariant}
 
-For the definitions that follow, we need some more terminology about stores.
+Since our semantics operates right on top of the x86-64 machine state (with Iris terminology, physical store),
+we do not need to augment the physical store for more abstract reasoning, consequently, we do not need to come up
+with a complicated logical relations that ties the physical store to the
+\logical store. 
+\begin{definition}[Relation between Physical and \Logical Stores]
+\label{def:related}
+  Two stores $\store$ and $\logicalstore$ are \emph{related},
+  which we write $\related\store\logicalstore$, when
+  they have the same domain.
+\end{definition}
 
-Next, we must define the relation that ties the physical store to the
-\logical store, two concepts that we have informally described earlier
-(\sref{sec:logical}). From here on, we write~$\store$ for the physical
-store and~$\logicalstore$ for the \logical store.
-
-Equipped with the above definitions, we are now prepared to enter the realm of
-Iris and perform the three steps described at the beginning of
-\sref{sec:soundness}, that is, define the ghost state, the central invariant,
-and the assertions of our .. . We give the definitions first and explain them
-afterwards.
-
-\begin{comment}
-% fp: this is the beginning of an explanation of ghost state in Iris
-%     but it quickly grows too long, even though many aspects are missing.
-A ghost memory cell in Iris is a memory cell that does not exist at runtime.
-The ownership and the content of a physical memory cell are described via a
-points-to predicate such as $\loc\pointsto\val$. Similarly, the ownership and
-content of a ghost cell are described by an Iris assertion, usually written
-$\ownGhost\gamma{a}$, where $\gamma$ is the name of the ghost cell and $a$ is
-its content. Whereas the content of a physical memory cell is a
-programming-language value~$\val$, the content of a ghost cell inhabits a
-mathematical structure, a \emph{camera}~\cite[\S4.4]{iris}, which the user
-chooses when the ghost cell is created. A camera is equipped with a
-composition operation~$\cdot$ and the ghost state assertion satisfies the law
-$\ownGhost\gamma{a\cdot b} \equiv \ownGhost\gamma{a} \star
-\ownGhost\gamma{b}$. Thus, the choice of a suitable camera determines in what
-ways the ghost state can be split.
-
-A key Iris idiom involves the use of the \emph{authoritative
-  camera}~\cite[\S6.3.3]{iris} together with an Iris invariant.
-The elements of the authoritative camera include
-\emph{authoritative elements} $\authfull{c}$ and
-\emph{fragmentary elements} $\authfrag{b}$.
-The composition law is defined in such a way that
-there always exists at most one authoritative element
-and the composition of all fragmentary elements in existence is
-contained in the authoritative element, etc.
-\end{comment}
+We already have the physical and logical stores and a simple invariant between them. Now, we can rely on the following Assumption \ref{assumption} from Iris to utilize its logical constructions.
 % The predicate gen_heap_interp.
 \newcommand{\genheapinterp}[1]{\mathit{Heap}\;#1}
 % Our predicate pred (defined in ph.v), expanded.
