@@ -1,0 +1,28 @@
+\begin{figure}
+\renewcommand{\bigast}[2]{\ordinarybigast{#1}{\hspace{-0.7em}#2}}
+\begin{mathpar}
+  \inferrule[MovCtl]{}{
+     \renewcommand{\bightriplehskip}{}
+\bigvtriple
+    { \modalP \; \rvsrc \star
+      \pfpointsto\rgdst\rvdst\qfrac\rpts \star
+      \ppointsto\crt\rvsrc\rpts \star
+      \modaldef\rvdst\modalQ 
+    }
+{
+%    \begin{array}{@{}r@{}}
+    \ising{\imov\movctl\rgdst\crt}
+%    \end{array}
+  }
+  { % LATER vertical alignment of \exists\loc' is not great
+    \modalQ \; \rvdst \star
+      \pfpointsto\rgdst\rvdst\qfrac\rpts \star
+      \ppointsto\crt\rvdst\rpts \star
+      \modaldef\rvsrc\modalP 
+  }
+}
+\end{mathpar}
+\caption{A Specification of Address-Space Switching}
+\Description{A Specification Address Space switching}
+\label{fig:addressspaceswitching}
+\end{figure}
