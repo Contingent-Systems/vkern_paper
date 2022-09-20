@@ -2,6 +2,7 @@
 \label{sec:semantics}
 \subsection{State}
 \label{sec:state}
+\todo[inline]{I don't think we need or want to describe the operational semantics in detail in the submission. It adds a lot of formalization that doen'st necessarily contribute to reader understanding. We should describe the runtime \emph{state} $\sigma$ of memory and registers, since that is directly used in interpreting assertions. But the reduction rules will mostly add mental overhead here.}
 We represent the machine state mainly as a finite map of registers to register values and a map of masked physical memory addresses to 64-bit physical memory values. Together with default def\textsf{CPU} instantiation, we end up having our state with following pieces:
 \begin{itemize}
 \item A constant cpu initialized with default value: $\sigma.\mathcal{C}$
