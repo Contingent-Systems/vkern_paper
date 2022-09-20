@@ -30,7 +30,7 @@ Due to the space limits in this paper, we do not mention each proof for these ru
 but the definitions and constructions used requires explanation.
 
 Together, Theorems~\ref{th:adequacy} and~\ref{th:validity} guarantee that, if
-the Hoare triple $\textsf{valid\_init}\instrs\iTrue$ can be obtained by applying
+the Hoare triple $\textsf{valid\_init }\instrs\;\iTrue$ can be obtained by applying
 the reasoning rules of our logic, then the program~$\instrs$ is safe.
 
 \subsection{Logical Constructions}
@@ -41,10 +41,9 @@ we do not need to augment the physical store for more abstract reasoning, conseq
 with a complicated logical relations that ties the physical store to the
 \logical store. 
 \begin{definition}[Relation between Physical and \Logical Stores]
-\label{def:related}
-  Two stores $\store$ and $\logicalstore$ are \emph{related},
-  which we write $\related\store\logicalstore$, when
-  they have the same domain.
+  \label{def:related}
+  Since we pick the logical store exactly same with physical store,  
+  two stores are \emph{related}, identical.
 \end{definition}
 
 We already have the physical and logical stores and a simple invariant between them. Now, we can rely on the following Assumption \ref{assumption} from Iris to utilize its logical constructions.
