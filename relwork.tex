@@ -1,0 +1,41 @@
+\section{Related Work}
+\label{sec:relwork}
+
+There has been relatively little prior work on formal verification of virtual memory.
+Instead, much OS verification work has focused on minimizing reasoning about virtual memory management.
+The original Verisoft project~\cite{alkassar2008verisoft,alkassar2010pervasive,alkassar2008formal,dalinger2005verification,hillebrand2005address,alkassar2008formal,starostin2010formal} relied on custom hardware which, among other things, always ran kernel code with virtual memory disabled, removing the circularity that is a key challenge of verifying actual virtual memory code: at that point page tables become a basic partial map data structure to represent user program address translations.
+Other work on OS verification either never progressed far enough to address VMM verification (Verisoft XT~\cite{cohen2009vcc,cohen2010local,dahlweid2009vcc,cohen2013SOFSEM}), or uses memory-safe languages to enable safe co-habitation of a single address space by all processes (Singularity~\cite{Fahndrich2006language,Hunt2007singularity,Hunt2007sealing,Barnett2011specsharp}, Verve~\cite{Yang2010Verve}, and Tock~\cite{levy2017multiprogramming}).
+
+The work that does address the core challenges of VMM verification is all associated with either \textsc{seL4} or \textsc{CertiKOS}.
+
+\textsc{CertiKOS}~\cite{gu15,gu2016certikos,gu2018certikos,chen2016interrupts} is a microkernel intended for use as a hypervisor, and its papers do not explicitly detail verification of the VMM, so we do not know the full space of which VMM functionality is verified (e.g., we do not know if it includes lazy page loading or copy-on-write behavior, or is a minimalistic VMM that eagerly maps address ranges for guessts). The overall approach in that body of work is many layers of refinement proofs, using a proliferation of layers with small differences to keep most individual refinements tractable. In keeping with precursor work on the project from the same group~\cite{vaynberg2012compositional}, the purpose of some layers is to abstract away from virtual memory, so the proof is essentially a simulation proof covering for example a proof that execution with page-in on page faults is a valid refinement of an execution model where.
+Another key aspect of their approach is that the OS is written in Clight and compiled with \textsc{CompCert}~\cite{blazy2006formal,leroy2009formally,leroy2008formal}.
+CompCert's memory abstraction~\cite{leroy2008formal} assumes
+memory is a set of disjoint chunks of bytes with no overlap, so the lowest levels of CertiKOS must provide a matching machine model as a layer. This prohibits virtual address aliasing, so CertiKOS cannot support simultaneous memory-mapped (\texttt{mmap}) and stream-oriented (\texttt{read}/\texttt{write}) IO to a single file\todo{should we go into this detail?}, and cannot use
+the common kernel design choice of mapping all physical memory into the bottom of the kernel's address space for direct access while the kernel code is simultaneously mapped (and executed) at higher virtual addresses.
+This is not necessary for \textsc{CertiKOS}'s intended primary use case (a hypervisor), but means that \textsc{CertiKOS}'s approach cannot be used to support this functionality in other systems, without major surgery to \textsc{CompCert}.
+
+\textsc{seL4}~\cite{Klein2009seL4,seL4TOCS,Sewell2013translation} is a formally verified L4 microkernel~\cite{Liedtke1995,Liedtke1996} (and the first verified OS kernel to run on real-world hardware), verified with a mix of refinement proofs and program logic reasoning down to the assembly level.
+Because \textsc{seL4} is a microkernel, most VMM functionality actually lives in usermode and is unverified, and moreover, their hardware model omits address translation entirely and the MMU entirely~\cite{Klein2009seL4,seL4TOCS}. As a result, the limited page table management present in the microkernel treats page tables as idiosyncratic tree-maps, ignoring the risks posed by even transient inconsistencies that would crash the kernel on real hardware (like ``temporarily'' unmapping the kernel). This is mitigated primarily by manually identifying some trusted invariants (e.g., that the address range designated for the kernel is appropriately mapped) and setting up the proof to ensure those invariants are maintained (i.e., as an extra proof obligation not required by their hardware model).
+
+\todo[inline]{Need to come back and ack common weaknesses of above work and this work, like skipping the TLB (though there's newer stuff not integrated into seL4), and not treating the relationship between memory and instructions precisely.}
+
+One important outgrowth of the \textsc{seL4} project, not integrated into the main project's proof, was work by Kolanski and Klein which studied verification of code against a hardware model that \emph{did} include address translation --- the only work aside from ours to do so --- initially in terms of basic memory~\cite{kolanski08vstte} and subsequently integrating source-level types into the interpretation~\cite{kolanski09tphols}. 
+They were the first work to model physical and virtual points-to assertions separately, defining virtual points-to assertions in terms of physical points-to assertions mimicking page table walks, and defining all of their assertions as predicates on a pair of (physical) machine memory and a page table root, an approach we improve on.
+
+Kolanski and Klein's points-to assertions do not model that page table entries for nearby addresses typically \emph{share} entries in higher layers of the page tables,\todo{actually, not sure, need to confirm} a key limitation that our definitions avoid.
+They do not consider virtuallv address aliasing (another source of sharing physical resources), which we\todo{todo!} support.
+They verify only one address space manipulation: mapping a single unmapped page into the current address space (in both papers).
+The mapping write is verified in an ad hoc way by unfolding the machine semantics, because the logic lacks proper reusable rules for
+updating page tables.  
+Critically, they do not consider
+manipulating \emph{other} address spaces besides the one in use (essential for managing
+processes).
+So their means for sharing access to intermediate page table levels does not extend across address spaces, and there is no way to share data pages between address spaces.  But every major OS includes widely-used facilities for sharing pages between processes (e.g., UNIX/POSIX \texttt{MAP\_SHARED}), and until the recent Spectre~\cite{kocher2018spectre} and Meltdown~\cite{lipp2018meltdown} attacks, FreeBSD, Solaris, and others shared the kernel mapping across processes~\cite{mckusick2014design,mcdougall2006solaris,wininternals6a,wininternals6b} (they still do so for performance on unaffected hardware; e.g., Meltdown affects Intel but not AMD~\cite{amdmeltdown}).
+
+Our approach in this paper uses modalities to distinguish virtual address based assertions that hold only in specific address spaces, making it possible to manipulate other address spaces, and equally critically, to \emph{change} address spaces while reasoning about correctness. In addition, while Kolanski and Klein work in a traditional Hoare logic, we work in a separation logic, inheriting its modularity gains at the cost of working out some interactions between modalities and substructural logics.
+
+Unlike our work, Kolanski and Klein prove very useful embedding theorems stating that code that does not modify page table entries can be verified in a VM-ignorant program logic, and that proofs in that logic can be embedded into the VM-aware logic (essentially by interpreting ``normal'' points-to relations as virtual points-to facts). While we have not proven such a result, an analagous result \emph{should} hold of our work: consider that the triples for the \texttt{mov} instruction that access memory behave just as one would expect for a VM-ignorant logic~\todo{cite some example logic}.
+With our general approach to virtual points-to assertions being inspired by Kolanski and Klein, \emph{both} of our approaches could in principle be extended to account for pageable points-to assertions by adding additional disjunctions to an extended points-to definition.
+
+\todo[inline]{discuss hybrid+substructural logics}
