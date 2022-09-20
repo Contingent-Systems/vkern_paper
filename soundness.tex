@@ -7,60 +7,33 @@ We instantiate our program logic, $[@]$, as an instantiation of Iris~\cite{iris}
 \label{sec:soundness}
 Our logic, $[@]$, operates on the machine state, which means we do not need to augment the machine state, i.e. our logical state is exact logical representation of our machine state. Consequently, we do not require an invariant, $\mathcal{I}$, except from the fact that logical/physical associated maps representing the register/memory mappings have the same domain. This ensures the correct lifting of mappings in the machine state to the \emph{assertions} that the client of our logic uses, i.e. points-to assertions that are defined as the ownership of a fragment of the logical state.
 
-The crucial pragmatic aspect of instantiating Iris for your reasoning principles \todo{Tired stop here.} 
-Once these steps have been carried out, Iris provides a semantic definition of
-the Hoare triple $\triple\pre\instr\post$. We can then use Hoare triples to
-state the reasoning rules of ...., to prove that
-these rules are valid, and to state and prove the fact that ... is sound.
-This is the topic of the next subsection (\sref{def:soundness:statement}).
-%
-After presenting these results, in \sref{sec:invariant}, we come back to the
-three steps listed above and describe them at an informal level, without
-diving into the concepts of Iris, which would be difficult to explain in a
-thorough and concise way.
-% For more information on Iris, the reader is referred to Jung \etal.'s
-% paper~(\citeyear{iris}).
+Iris instantiation comes with the semantic definition for the weakest-precondition which we can refactor into Hoare triples, $\triple\pre\instr\post$, to specify actions using our reasoning principles, show that these triples are sound.
 
 \subsection{The Soundness Statement}
 \label{def:soundness:statement}
-
-The operational semantics of ...lang guarantees that ... (\sref{sec:valid}). A~program that attempts to ... stuck~(\sref{sec:instrsemantics}).
-% Thus, the space consumption of every \spacelang program is bounded.
-Thus, in order to prove that ... is sound, all we have to do is prove that
-it rules out the possibility of a runtime failure. This is guaranteed by the
-following theorem:
-
-\begin{theorem}[Soundness of the Logic ...]
-\label{th:adequacy}
+The operational semantics of our simple lang just executes the instruction of our x86-64 model. Therefore, our soundness argument is to show that any execution composed of actions in our machine model (some of which are shown in Figure \sref{sec:semantics}) does not end-up in a invalid state.guarantees that  (\sref{sec:valid}). A~program that attempts to ... stuck~(\sref{sec:instrsemantics}).
+\begin{theorem}[Soundness of the Logic]
+  \label{th:adequacy}
+  Assuming that  Suppose $\triple{\textsf{valid\_init}}\instr\iTrue$ holds.
  The execution of the instruction~$\instrs$, beginning in an initial state, cannot result in a configuration where a thread is stuck.
 \end{theorem}
+which states that if the program~$\instr$, with the given \textsf{valid\_init} asserting a valid state initialization, satisfies a semantic Hoare
+triple, then this program cannot crash: by a direct consequence of Iris's adequacy theorem~\cite[\S6.4]{iris}.
 
-This theorem states that if the program~$\instr$ satisfies a semantic Hoare
-triple, then this program cannot crash. In
-particular, it cannot reach a situation where DOING X ....
-%
-The proof of this theorem is short: it is a direct consequence of Iris's
-adequacy theorem~\cite[\S6.4]{iris}.
-
-Separately, we prove that the reasoning rules of~our logic are valid, that is,
-each rule is a valid lemma:
-
+Moreover we need to show the validity of each rules in Figures \fref{fig:reasoning} and \fref{fig:laws}.
 \begin{theorem}[Validity of the Reasoning Rules]
 \label{th:validity}
   Each of the rules in Figures~\ref{fig:laws}
   and~\ref{fig:reasoning} is valid.
 \end{theorem}
-
-The proof of this theorem represents more work: one lemma per reasoning rule
-is required, not to mention a large number of auxiliary lemmas. The proofs of
-these lemmas are fairly uninteresting; the key insights lie in the definitions
-presented in the next subsection (\sref{sec:invariant}).
+Due to the space limits in this paper, we do not mention each proof for these rules explicitly (which are already mechanized in Coq),
+but the definitions and constructions used requires explanation.
 
 Together, Theorems~\ref{th:adequacy} and~\ref{th:validity} guarantee that, if
-the Hoare triple $\iTrue\instrs\iTrue$ can be obtained by applying
-the reasoning rules of our logic, then the program~$\instrs$ is safe, that is, it cannot crash ....
+the Hoare triple $\textsf{valid\_init}\instrs\iTrue$ can be obtained by applying
+the reasoning rules of our logic, then the program~$\instrs$ is safe.
 
-\subsection{Key Definitions and Invariants}
+\subsection{Logical Constructions}
 \label{sec:invariant}
 
 For the definitions that follow, we need some more terminology about stores.
