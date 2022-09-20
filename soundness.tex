@@ -1,21 +1,13 @@
-\section{Soundness}
+\section{Implementing Logical Machinery \& Soundness}
+We instantiate our program logic, $[@]$, as an instantiation of Iris~\cite{iris}, and build our modal abstractions on top of it. 
+\subsection{BI-Lifting for Address Space Modality}
+\label{sec:bilifting}
+\mytodo{we should put some stuff here}
+\subsection{Soundness}
 \label{sec:soundness}
+Our logic, $[@]$, operates on the machine state, which means we do not need to augment the machine state, i.e. our logical state is exact logical representation of our machine state. Consequently, we do not require an invariant, $\mathcal{I}$, except from the fact that logical/physical associated maps representing the register/memory mappings have the same domain. This ensures the correct lifting of mappings in the machine state to the \emph{assertions} that the client of our logic uses, i.e. points-to assertions that are defined as the ownership of a fragment of the logical state.
 
-Our ... is an instance of Iris~\cite{iris}. This means that our logic ... is set up
-via the following steps:
-
-\begin{enumerate}
-\item define a certain amount of \emph{ghost state}
-      that is needed in the next two steps;
-\item define a central \emph{invariant}
-      that ties the machine's physical state
-      to the ghost state;
-\item
-  define the \emph{assertions} that an end user of our ... exploits, namely
-  points-to assertions that are defined as the ownership
-  of a fragment of the ghost state.
-\end{enumerate}
-
+The crucial pragmatic aspect of instantiating Iris for your reasoning principles \todo{Tired stop here.} 
 Once these steps have been carried out, Iris provides a semantic definition of
 the Hoare triple $\triple\pre\instr\post$. We can then use Hoare triples to
 state the reasoning rules of ...., to prove that
