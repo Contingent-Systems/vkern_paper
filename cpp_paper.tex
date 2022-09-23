@@ -60,7 +60,7 @@
 \newcommand{\invertbackgroundtext}{\setbackgroundcolour\settextcolour}
 %Command execution. 
 %If this line is commented, then the appearance remains as usual.
-\invertbackgroundtext
+%\invertbackgroundtext
 
 
 % Packages.
@@ -244,6 +244,10 @@ switches between address spaces. All definitions and theorems mentioned in this 
 {
 \theoremstyle{acmdefinition}
 \newtheorem{assumption}[theorem]{Assumption}
+}
+
+\todo[inline]{Colin think through instruction pointer updates vs logic,
+think about framing plus cr3 update and modality shifts
 }
 
 \input{intro.tex}
