@@ -23,26 +23,25 @@ We present three main points-to relations as part of utilization of separation l
 \end{figure}
 where we simply abstract the generation of hierarchical mapping of a physical address ($\locsf$) through the different masks of the address ($\locsf|^{12}$ and $\locsf|^{52}$) as nested map resources.
 \paragraph{Virtual-Memory points-to} As we see in Figure \fref{fig:}, virtual address mapping is obtained via traversal of page table, i.e. indirection provided by physical memory lookups. As expected, we define the virtual-points to relation, ($\pfpointsto\vaddr\locsf\qfrac\vpts$), in terms of multiple physical memory mappings representing the indirection shown in Figure \fref{fig:}
-\begin{figure}
+\begin{figure*}
 \[
 \begin{array}{l}
   \ppointsto\vaddr\locsf\vpts \stackrel{def}{=} \lambda \tlf\Loc.\\
-  \quad \exists_{\tlfoff\Locn \;, \tltoff\Locn \;, \tltwoff\Locn \;,} \\
-  \quad \exists_{\tlooff\Locn \;, \tpgoff\Loctw \;, \tlt\Loc \;, \tltw\Loc \;, \tlo\Loc \tpg\Loc} \ldotp\\
-  \quad \ulcorner \textsf{aligned } \vaddr \urcorner \star\\
-  \quad \ulcorner \vaddr = \locsx ++ \lfoff ++ \ltoff ++ \\
-  \qquad\qquad \qquad \ltwoff ++ \looff ++ \pgoff \urcorner \star\\
-  \quad  \pfpointsto{\lvlsum\crt\lfoff}{\lvlbor\lt}\qfrac\ppts \star \\
-  \quad  \pfpointsto{\lvlsum\lt\ltoff}{\lvlbor\ltw}\qfractw\ppts \star \\
-  \quad \pfpointsto{\lvlsum\ltw\ltwoff}{\lvlbor\lo}\qfract\ppts \star \\
-  \quad \pfpointsto{\lvlsum\lo\looff}{\lvlbor\pg}\qfracf\ppts \star \\
-  \quad \ppointsto{\pageptstosum\pg\pgoff}\locsf\ppts 
+  \exists_{\tlfoff\Locn \;, \tltoff\Locn \;, \tltwoff\Locn \;,\tlooff\Locn \;, \tpgoff\Loctw \;, \tlt\Loc \;, \tltw\Loc \;, \tlo\Loc \tpg\Loc} \ldotp \\
+  \ulcorner \textsf{aligned } \vaddr \urcorner \star 
+   \ulcorner \vaddr = \locsx :: \lfoff :: \ltoff :: 
+   \ltwoff :: \looff :: \pgoff \urcorner \star\\
+  \pfpointsto{\lvlsum\crt\lfoff}{\lvlbor\lt}\qfracfotsss\ppts \star 
+  \pfpointsto{\lvlsum\lt\ltoff}{\lvlbor\ltw}\qfracfotss\ppts \star \\
+  \pfpointsto{\lvlsum\ltw\ltwoff}{\lvlbor\lo}\qfracfots\ppts \star 
+  \pfpointsto{\lvlsum\lo\looff}{\lvlbor\pg}\qfracfot\ppts \star \\
+  \ppointsto{\pageptstosum\pg\pgoff}\locsf\ppts 
 \end{array}
 \]
 \caption{Virtual Points-to Relation}
 \todo[inline]{These fractions aren't quite right (though I see you added the variance between levels), I can walk you through in our meeting tomorrow.}
   \label{fig:virtualpointsto}
-\end{figure}
+\end{figure*}
 \todo{iso todo: stress fractions and aligment}
 \subsection{Reasoning Rules for Selected Instructions}
 \label{sec:reasoning}
