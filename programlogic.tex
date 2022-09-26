@@ -42,21 +42,9 @@ where we simply abstract the generation of hierarchical mapping of a physical ad
 \todo[inline]{These fractions aren't quite right (though I see you added the variance between levels), I can walk you through in our meeting tomorrow.}
   \label{fig:virtualpointsto}
 \end{figure*}
+\paragraph{Coalescing and Coexistence} \mytodo{Super Huge pages}
 \todo{iso todo: stress fractions and aligment}
-\subsection{Reasoning Rules for Selected Instructions}
-\label{sec:reasoning}
-\input{fig-reasoning}
-As is usual in \SL, the reasoning rules of the program logic allow deriving
-Hoare triples of the form $\triple\pre\instr\post$, where the
-precondition~$\pre$ and the postcondition~$\post$ are assertions,
-and where $i$ is an instruction.
-Such a triple receives a standard interpretation as a statement of partial
-correctness: the assertion $\triple\pre\instr\post$ means that, in a state
-where $\pre$ holds, it is safe to execute the instruction~$\instr$, and if
-this execution terminates, then it leads to a final state where $\post$ holds.
-A more precise statement is given in the next section (\sref{sec:soundness}).
-\mytodo{iso todo: talk about each rule and change the intro to this subsection}
-\subsection{Modal Abstraction for Virtualizing Memory Locations}
+\subsection{Reasoning with Modal Abstraction for Virtual Memory Locations}
 \label{sec:modallocationvirtualization}
 \input{fig-laws}
 The most essential part of our reasoning principles is shaped around abstractions for location virtualization, more concretely virtual memory points-to relation in Figure \fref{fig:virtualpointsto}. One might have already noticed that the resource represented by the virtual-points to is not only a simple immediately mapped singly resource but also
@@ -67,15 +55,15 @@ The most essential part of our reasoning principles is shaped around abstraction
 \end{itemize}
 which we think can be well-summarized with the modal abstraction shown in \RULE{ModalLocVirt} which allows us to have
 \begin{itemize}
-  \item \textbf{contingency}: the fact $\modalP$ abstracts the memory address mappings \textit{under} the address space rooted at $\ell$ (e.g. $\crt$)
+  \item \textbf{locality}: the fact $\modalP$ abstracts the memory address mappings \textit{under} the address space rooted \textit{at} $\ell$ (e.g. $\crt$)
   \item \textbf{hiding states}: \textit{controlled-independence} from the indirection abstracted as page-table mappings is achieved through hiding them under the virtual address space modality
-  \item \textbf{interaction with ambient logic for a local-state}: \mytodo{talk about this issue's vitality in this paper with Colin}
 \end{itemize}
 
-To concretize the understanding of these principles achieved with the modal abstraction for address-space, $\modaldef\ell\modalP$, let us first investigate the specification of the instruction ($\textsf{movctl\_instr}$) switching address spaces. Assume that our CPU keeps the current address space based on its page table register CR3, as we see in Figure \fref{fig:addressspaceswitching}.
+\paragraph{Interaction with Ambient Logic for Local State} To concretize the understanding of these principles achieved with the modal abstraction for address-space, $\modaldef\ell\modalP$, let us first investigate the specification of the instruction ($\textsf{movctl\_instr}$) switching address spaces. Assume that our CPU keeps the current address space based on its page table register CR3, as we see in Figure \fref{fig:addressspaceswitching}.
 \input{fig-ctlreasoning}
 Thinking of $\modalP$ and $\modalQ$ as resources representing the indirection mappings ($\mapsto_{\kw{p}}$) in the address spaces rooted at $\rvsrc$ and $\rvdst$ respectively, the rule interacts with the ambient logic, \SL, via pulls local state out of the address-space modality rooted at $\rvdst$, and make it the observable view of the memory.
 
+\paragraph{Copying, Expanding and Shrinking}
 \todo[inline]{We don't need to talk about sexec at all. Let's also talk tomorrow about adjusting the syntax in the paper to mimic actual textual assembly more closely (e.g., all of the instructions are mov, with different argument shapes)}
 
-\mytodo{STOP HERE}
+\paragraph{Self-Mapping Location Virtualization}
