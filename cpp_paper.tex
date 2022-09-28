@@ -384,7 +384,7 @@ This rule captures the intuitive change of address space in a Hoare triple, rath
 Notice that both the precondition and postcondition assert that $a\mapsto_\mathsf{v} x$ in the current address space, but we have no basis for concluding that address translation is preserved by the change of address space. So this derivation clearly leads to an unsound conclusion. This suggestss that the traditional frame rule and the Hoare triple presentation of the change-of-address-space rule cannot soundly coexist in the same system.
 The heart of the problem is that while updating \lstinline|cr3| is \emph{physically} local, it globally changes the interpretation of virtual addresses. So it is simply unsound to frame around \lstinline|cr3| updates.
 
-Switching to Hoare doubles resolves this problem because an under-appreciated subtlety of Hoare doubles is that typically \emph{there is no frame rule}. Instead each verification essentially includes a local frame, giving each overall rule a \emph{global} (rather than local) precondition. For most rules this is not that important, but it does permit rules that have global effects on their preconditions.
+Switching to Hoare doubles resolves this problem because an under-appreciated subtlety of Hoare doubles is that typically \emph{there is no frame rule}. Instead each verification essentially includes a local frame that it passes to the next instructions (think continuation-passing style), giving each overall rule a \emph{global} (rather than local) precondition. For most rules this is not that important, but it does permit rules that have global effects on their preconditions.
 
 This is then how we justify our actual rule for \lstinline|cr3| updates:
 \begin{mathpar}
@@ -396,6 +396,21 @@ This is then how we justify our actual rule for \lstinline|cr3| updates:
   %\lstinline|mov %cr3, r| 
 }
 \end{mathpar}
+Because the precondition on this rule is global, we avoid issues with framing.
+
+If we wanted to consider a frame rule that would work for this logic, we could consider:
+\begin{mathpar}
+  \inferrule[Cr3Frame]{
+    \{P\ast cr3=v\}\;C\;\{ Q \ast cr3=v\}
+  }{
+    \{R\ast P\ast cr3=v\}\;C\;\{ R \ast Q \ast cr3=v\}
+  }
+\end{mathpar}
+By demanding that \lstinline|cr3| be held constant (or rather, at least restored to its original value) we could frame almost traditionally. In particular, this rule would work with framing around calls that might lead to address space switches, such as calling blocking operations in the kernel.
+
+Readers familiar with dynamic frames~\cite{parkinson2011relationship} might find it useful to notice that a different perspective on this matter is that virtual points-to assertions are self-stable \emph{except} for changes in \lstinline|cr3|, so framing would then naturally require other means of holding \lstinline|cr3| constant (or saving and restoring it).
+Virtual points-to assertions could be made self-stable by also giving them partial ownership over \lstinline|cr3| assertions, but this would require explicitly plumbing that ownership from \emph{all} assertions back to any place an address space change might occur; this would seem to be a far graver loss of modularity than this extra quirk in framing discussions.
+
 
 \end{appendix}
 
