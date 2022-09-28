@@ -36,7 +36,7 @@ call alloc_phys_page_or_panic
 ;; of the physical page
 add %rax, 3
 ;; update the page table entry, mapping the page
-mov (%rcx), %rax
+mov (%r14), %rax
 ;; memset the newly-mapped page
 mov %rdi, %r13
 mov %rsi, 0
