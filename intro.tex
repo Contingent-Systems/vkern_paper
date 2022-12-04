@@ -10,7 +10,7 @@ But this is complicated by the fact that the OS and hardware can also enable, sh
 
 Further complicating matters is that addresses themselves bear no information about which address space they originate from. For user processes this is of little concern, as these have access to only their own address space. But the kernel has access to all address spaces. Mixing up addresses from different address spaces leads to severe bugs. More concerning, keeping track of which \emph{assertions} hold in different address spaces during kernel verification is difficult: some assertions should hold across all address spaces, while others hold in only one, and others may hold in multiple but still not all.
 
-This kind of context-dependent assertion, where a fact may be true in one address space but not others, has a modal flavor.
+This kind of context-dependent assertion, where a fact may be true in one address space but not others, has a modal flavor%., and manifets itself at many other verification challenges besides the one, virtual-memory-management, we take as a challenge in this paper. For example, Monie et.al. ~\cite{}, introduces a theory for heap management under the existence of garbage collection where  which relies on two pillars: 1. a predicate 
 %Despite its modal flavor, up until now, program logic have taken the contingency to be asserted as a qualified-predicate, e.g. \textit{Stackable} ~\cite{}, and built a mechanism, a decorated weakest-precondition, to operated on these certain type predicates. On the other, we, in this paper, propose
 %\begin{itemize}
 %\item {more light-weight} such that
