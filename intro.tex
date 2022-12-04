@@ -15,24 +15,24 @@ This kind of context-dependent assertion, where a fact may be true in one addres
 \item a custom-tailored weakest-precondition modality defined to operate with \textit{Stackable} assertion.
 \item a set of logical rules defined over this modality allows us
   \begin{itemize}
-  \item  a light-weight reasoning by the replacement of explicit root tracking ~\cite{} with a set of \textit{stackable} bookkeeps already \textit{iterated} (logically \textit{framed-out} in the pre/post condition)  
+  \item  a light-weight reasoning by the replacement of explicit root tracking ~\cite{} with a set of \textit{stackable} bookkeeps already \textit{iterated} (logically \textit{framed-out} in the pre/post condition). 
   \item  an intuitive reasoning over the data structure (a set of roots), e.g. \textit{allocation} as introduction (expansion of \textit{Stackable} set), and binding of a variable to a value as \textit{elimination} of individual \textit{stackable} assertion for a single memory location into its modal weakest-precondition
   \end{itemize}
 \end{itemize}
+Despite its modal flavor, and the abstraction of \texit{already iterated stackable memory locations} set enabling a good summarization of resources to be framed out, we think that it is worth raising attention on the methodology followed for bringing the logic Madiot et.al ~\cite{} the the \textit{higher-level} version from Moine et.al. ~\cite{} around
+\begin{itemize}
+\item {more light-weight} such that
+  \begin{itemize}
+  \item modal abstractions remove the burden of carrying the resource that ---
+  \item >>>contingency as a modal abstractions
+  \item 
+  \item we do no
+  \end{itemize}
+\item {more intuitive} modal abstraction definition, together with relations defined
+\begin{itemized}
+  \end{itemize}
+\end{itemize}
 
-%Despite its modal flavor, up until now, program logic have taken the contingency to be asserted as a qualified-predicate, e.g. \textit{Stackable} ~\cite{}, and built a mechanism, a decorated weakest-precondition, to operated on these certain type predicates. On the other, we, in this paper, propose
-%\begin{itemize}
-%\item {more light-weight} such that
-%  \begin{itemize}
-%  \item modal abstractions remove the burden of carrying the resource that ---
-%  \item >>>contingency as a modal abstractions
-%  \item 
-%  \item we do no
-%  \end{itemize}
-%\item {more intuitive} modal abstraction definition, together with relations defined
-%\begin{itemized}
-%  \end{itemize}
-%\end{itemize}
 We propose tackling the verification of virtual memory subsystems (and kernels more broadly) by adapting ideas from hybrid modal logic, which can label assertions true under \emph{other} circumstances (i.e., in another address space) with a modality indexed by a name for that space (in our case, the root of the page tables for an address space). This offers a convenient and powerful way to modularly (1) isolate assertions specific to a particular address space, (2) explicitly state when an assertion is true across address spaces, (3) manipulate address spaces from within other address spaces, and (4) reason about change in address spaces. These advantages make this approach to reasoning about virtual memory more flexible than prior program logic techniques~\cite{kolanski08vstte,kolanski09tphols}, which was only able to work with a single address space (the current address space on the CPU).
 
 We develop these ideas in an Iris-based\mytodo{cite JFP} separation logic, and verify simplified versions of several critical virtual-memory-related pieces of OS functionality, including mapping and unmapping pages, and describing the self-referential identity maps used in most kernels to allow convenient access to physical memory. Our contributions are as the following:
