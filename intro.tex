@@ -10,13 +10,28 @@ But this is complicated by the fact that the OS and hardware can also enable, sh
 
 Further complicating matters is that addresses themselves bear no information about which address space they originate from. For user processes this is of little concern, as these have access to only their own address space. But the kernel has access to all address spaces. Mixing up addresses from different address spaces leads to severe bugs. More concerning, keeping track of which \emph{assertions} hold in different address spaces during kernel verification is difficult: some assertions should hold across all address spaces, while others hold in only one, and others may hold in multiple but still not all.
 
-This kind of context-dependent assertion, where a fact may be true in one address space but not others, has a modal flavor. We propose tackling the verification of virtual memory subsystems (and kernels more broadly) by adapting ideas from hybrid modal logic, which can label assertions true under \emph{other} circumstances (i.e., in another address space) with a modality indexed by a name for that space (in our case, the root of the page tables for an address space). This offers a convenient and powerful way to modularly (1) isolate assertions specific to a particular address space, (2) explicitly state when an assertion is true across address spaces, (3) manipulate address spaces from within other address spaces, and (4) reason about change in address spaces. These advantages make this approach to reasoning about virtual memory more flexible than prior program logic techniques~\cite{kolanski08vstte,kolanski09tphols}, which was only able to work with a single address space (the current address space on the CPU).
+This kind of context-dependent assertion, where a fact may be true in one address space but not others, has a modal flavor.
+%Despite its modal flavor, up until now, program logic have taken the contingency to be asserted as a qualified-predicate, e.g. \textit{Stackable} ~\cite{}, and built a mechanism, a decorated weakest-precondition, to operated on these certain type predicates. On the other, we, in this paper, propose
+%\begin{itemize}
+%\item {more light-weight} such that
+%  \begin{itemize}
+%  \item modal abstractions remove the burden of carrying the resource that ---
+%  \item >>>contingency as a modal abstractions
+%  \item 
+%  \item we do no
+%  \end{itemize}
+%\item {more intuitive} modal abstraction definition, together with relations defined
+%\begin{itemized}
+%  \end{itemize}
+%\end{itemize}
+We propose tackling the verification of virtual memory subsystems (and kernels more broadly) by adapting ideas from hybrid modal logic, which can label assertions true under \emph{other} circumstances (i.e., in another address space) with a modality indexed by a name for that space (in our case, the root of the page tables for an address space). This offers a convenient and powerful way to modularly (1) isolate assertions specific to a particular address space, (2) explicitly state when an assertion is true across address spaces, (3) manipulate address spaces from within other address spaces, and (4) reason about change in address spaces. These advantages make this approach to reasoning about virtual memory more flexible than prior program logic techniques~\cite{kolanski08vstte,kolanski09tphols}, which was only able to work with a single address space (the current address space on the CPU).
 
-We develop these ideas in an Iris-based\mytodo{cite JFP} separation logic, and verify simplified versions of several critical virtual-memory-related pieces of OS functionality, including mapping and unmapping pages, and describing the self-referential identity maps used in most kernels to allow convenient access to physical memory. Our contributions are:
+We develop these ideas in an Iris-based\mytodo{cite JFP} separation logic, and verify simplified versions of several critical virtual-memory-related pieces of OS functionality, including mapping and unmapping pages, and describing the self-referential identity maps used in most kernels to allow convenient access to physical memory. Our contributions are as the following:
 \begin{itemize}
 \item We present the first Separatoin Logic for reasoning about address-space management including mapping and unmapping pages, and describing the self-referential identity maps used in most kernels to allow convenient access to physical memory 
 \item We develop a novel high-level modal abstraction for address-space management which allows us to assert certain facts whose validity are indexed by the address of a certain address-space.
 \item We define logical relations, such as introduction and elimination, to capture the logical facts about address-space operations, e.g. context-switch
-\item We discuss how our methodology is a high-level, light-weight mechanism that differ from defining contingent truth as predicate qualifier, e.g. \textit{Stackable} ~\cite{}, and build a mechanism, a custom-tailored weakest-precondition, to operated on these certain type predicates.  
+\item We verified X,Y,Z
  \end{itemize}
+
 
