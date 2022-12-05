@@ -10,31 +10,7 @@ But this is complicated by the fact that the OS and hardware can also enable, sh
 
 Further complicating matters is that addresses themselves bear no information about which address space they originate from. For user processes this is of little concern, as these have access to only their own address space. But the kernel has access to all address spaces. Mixing up addresses from different address spaces leads to severe bugs. More concerning, keeping track of which \emph{assertions} hold in different address spaces during kernel verification is difficult: some assertions should hold across all address spaces, while others hold in only one, and others may hold in multiple but still not all.
 
-This kind of context-dependent assertion, where a fact may be true in one address space but not others, has a modal flavor. Up until now, program logics ~\cite{} has already approached some verification challenges manifesting itself in this (or similar) forms ~\cite{}. One of the most recent ones introduces reasoning principles for heap management under garbage collection ~\cite{}. In this work, a set of \textit{already iterated} memory locations (\textit{roots}) identified based on their \textit{stackability}, i.e. a metric determines a memory location is safe to allocate/reclaim or not, more specifically implemented as an abstraction holding mappings from memory locations to factions where a complete fraction (1) asserts the fact that the relevant memory location is safe for allocation. This work, in fact, distinguishes itself as \textit{"High Level"} from its predecessor fundamentally by its new logical constructions that remove the burden of keeping explicit roots of each memory location, and it is achieved through ~\cite{}
-\begin{itemize}
-\item a custom-tailored weakest-precondition modality defined to operate with \textit{Stackable} assertion.
-\item a set of logical rules defined over this modality allows us
-  \begin{itemize}
-  \item  a light-weight reasoning by the replacement of explicit root tracking ~\cite{} with a set of \textit{stackable} bookkeeps already \textit{iterated} (logically \textit{framed-out} in the pre/post condition). 
-  \item  an intuitive reasoning over the data structure (a set of roots), e.g. \textit{allocation} as introduction (expansion of \textit{Stackable} set), and binding of a variable to a value as \textit{elimination} of individual \textit{stackable} assertion for a single memory location into its modal weakest-precondition
-  \end{itemize}
-\end{itemize}
-Despite its modal flavor, and the abstraction of \textit{already iterated stackable memory locations} set enabling a good summarization of resources to be framed out, we think that it is worth raising attention on the methodology followed for bringing the logic Madiot et.al ~\cite{} the the \textit{higher-level} version from Moine et.al. ~\cite{} around the following issues.
-\begin{remark}[Hiding What is Stackable in a Modal Context?] 
-\end{remark}
-\begin{remark}[Custom-Tailored Modal Abstractions for a Each Stackable Data-Structure]
-\end{remark}
-\begin{remark}[Not only Being Stackable But How?]
-\end{remark}
-
+This kind of context-dependent assertion, where a fact may be true in one address space but not others, has a modal flavor. 
 We propose tackling the verification of virtual memory subsystems (and kernels more broadly) by adapting ideas from hybrid modal logic, which can label assertions true under \emph{other} circumstances (i.e., in another address space) with a modality indexed by a name for that space (in our case, the root of the page tables for an address space). This offers a convenient and powerful way to modularly (1) isolate assertions specific to a particular address space, (2) explicitly state when an assertion is true across address spaces, (3) manipulate address spaces from within other address spaces, and (4) reason about change in address spaces. These advantages make this approach to reasoning about virtual memory more flexible than prior program logic techniques~\cite{kolanski08vstte,kolanski09tphols}, which was only able to work with a single address space (the current address space on the CPU).
 
-We develop these ideas in an Iris-based\mytodo{cite JFP} separation logic, and verify simplified versions of several critical virtual-memory-related pieces of OS functionality, including mapping and unmapping pages, and describing the self-referential identity maps used in most kernels to allow convenient access to physical memory. Our contributions are as the following:
-\begin{itemize}
-\item We present the first Separatoin Logic for reasoning about address-space management including mapping and unmapping pages, and describing the self-referential identity maps used in most kernels to allow convenient access to physical memory 
-\item We develop a novel high-level modal abstraction for address-space management which allows us to assert certain facts whose validity are indexed by the address of a certain address-space.
-\item We define logical relations, such as introduction and elimination, to capture the logical facts about address-space operations, e.g. context-switch
-\item We verified X,Y,Z
- \end{itemize}
-
-
+We develop these ideas in an Iris-based\mytodo{cite JFP} separation logic, and verify simplified versions of several critical virtual-memory-related pieces of OS functionality, including mapping and unmapping pages, and describing the self-referential identity maps used in most kernels to allow convenient access to physical memory. 
