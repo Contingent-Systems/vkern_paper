@@ -42,28 +42,55 @@ where we simply abstract the generation of hierarchical mapping of a physical ad
 \todo[inline]{These fractions aren't quite right (though I see you added the variance between levels), I can walk you through in our meeting tomorrow.}
   \label{fig:virtualpointsto}
 \end{figure*}
-\paragraph{Coalescing and Coexistence} \mytodo{Super Huge pages}
-\todo{iso todo: stress fractions and aligment}
-\subsection{Reasoning with Modal Abstraction for Virtual Memory Locations}
-\label{sec:modallocationvirtualization}
-\input{fig-laws}
-The most essential part of our reasoning principles is shaped around abstractions for location virtualization, more concretely virtual memory points-to relation in Figure \fref{fig:virtualpointsto}. One might have already noticed that the resource represented by the virtual-points to is not only a simple immediately mapped singly resource but also
-\begin{itemize}
-\item a tree-like structured resrouce rooted at the certain physical memory address ($\crt$) -- not a single resource mapping abstraction 
-\item the shared indirection levels abstracted as mappings with fractional permissions
-\item through partially owned set of resource mappings grants the eventual uniquely ownable single resource, i.e. page address 
-\end{itemize}
-which we think can be well-summarized with the modal abstraction shown in \RULE{ModalLocVirt} which allows us to have
-\begin{itemize}
-  \item \textbf{locality}: the fact $\modalP$ abstracts the memory address mappings \textit{under} the address space rooted \textit{at} $\ell$ (e.g. $\crt$)
-  \item \textbf{hiding states}: \textit{controlled-independence} from the indirection abstracted as page-table mappings is achieved through hiding them under the virtual address space modality
-\end{itemize}
+\section{Considering Hoare Doubles in the Context of Switching Address-Space}
+An important subtlety arises with supporting \lstinline|mov|s into \lstinline|%cr3|. Consider the hypothetical rule:
+\begin{mathpar}
+\inferrule[Broken]{ }{
+  \{P \ast cr3=r_1 \ast r=r_2 \ast [r_2](Q)\}
+  \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
+  \{[r_1](P) \ast cr3=r_2 \ast r = r_2 \ast Q\}
+}
+\end{mathpar}
+This rule captures the intuitive change of address space in a Hoare triple, rather than double, form. The problem with this is that it interacts quite poorly with the traditional frame rule and the modal flavor of virtual points-to assertions:
+\begin{mathpar}
+  \inferrule*[right=Frame]{
+    \inferrule*[right=Broken]{ }{
+    \{\mathsf{emp} \ast cr3=r_1 \ast r=r_2 \ast [r_2](Q)\}
+    \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
+    \{[r_1](\mathsf{emp}) \ast cr3=r_1 \ast r=r_2 \ast Q\}
+    }
+  }{
+    \{a\mapsto_\mathsf{v} x \ast \mathsf{emp} \ast cr3=r_1 \ast r=r_2 \ast [r_2](Q)\}
+    \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
+    \{a\mapsto_\mathsf{v} x \ast [r_1](\mathsf{emp}) \ast cr3=r_1 \ast r=r_2 \ast Q\}
+  }
+\end{mathpar}
+Notice that both the precondition and postcondition assert that $a\mapsto_\mathsf{v} x$ in the current address space, but we have no basis for concluding that address translation is preserved by the change of address space. So this derivation clearly leads to an unsound conclusion. This suggestss that the traditional frame rule and the Hoare triple presentation of the change-of-address-space rule cannot soundly coexist in the same system.
+The heart of the problem is that while updating \lstinline|cr3| is \emph{physically} local, it globally changes the interpretation of virtual addresses. So it is simply unsound to frame around \lstinline|cr3| updates.
 
-\paragraph{Interaction with Ambient Logic for Local State} To concretize the understanding of these principles achieved with the modal abstraction for address-space, $\modaldef\ell\modalP$, let us first investigate the specification of the instruction ($\textsf{movctl\_instr}$) switching address spaces. Assume that our CPU keeps the current address space based on its page table register CR3, as we see in Figure \fref{fig:addressspaceswitching}.
-\input{fig-ctlreasoning}
-Thinking of $\modalP$ and $\modalQ$ as resources representing the indirection mappings ($\mapsto_{\kw{p}}$) in the address spaces rooted at $\rvsrc$ and $\rvdst$ respectively, the rule interacts with the ambient logic, \SL, via pulls local state out of the address-space modality rooted at $\rvdst$, and make it the observable view of the memory.
+Switching to Hoare doubles resolves this problem because an under-appreciated subtlety of Hoare doubles is that typically \emph{there is no frame rule}. Instead each verification essentially includes a local frame that it passes to the next instructions (think continuation-passing style), giving each overall rule a \emph{global} (rather than local) precondition. For most rules this is not that important, but it does permit rules that have global effects on their preconditions.
 
-\paragraph{Copying, Expanding and Shrinking}
-\todo[inline]{We don't need to talk about sexec at all. Let's also talk tomorrow about adjusting the syntax in the paper to mimic actual textual assembly more closely (e.g., all of the instructions are mov, with different argument shapes)}
+This is then how we justify our actual rule for \lstinline|cr3| updates:
+\begin{mathpar}
+\inferrule[ChangeAddressSpace]{
+  \{[r_1](P) \ast cr3=r_2 \ast r = r_2 \ast Q\}\overline{is}
+}{
+  \{P \ast cr3=r_1 \ast r=r_2 \ast [r_2](Q)\}
+  \texttt{mov}~\texttt{\%cr3},~r;\;\overline{is}
+  %\lstinline|mov %cr3, r| 
+}
+\end{mathpar}
+Because the precondition on this rule is global, we avoid issues with framing.
 
-\paragraph{Self-Mapping Location Virtualization}
+If we wanted to consider a frame rule that would work for this logic, we could consider:
+\begin{mathpar}
+  \inferrule[Cr3Frame]{
+    \{P\ast cr3=v\}\;C\;\{ Q \ast cr3=v\}
+  }{
+    \{R\ast P\ast cr3=v\}\;C\;\{ R \ast Q \ast cr3=v\}
+  }
+\end{mathpar}
+By demanding that \lstinline|cr3| be held constant (or rather, at least restored to its original value) we could frame almost traditionally. In particular, this rule would work with framing around calls that might lead to address space switches, such as calling blocking operations in the kernel.
+
+Readers familiar with dynamic frames~\cite{parkinson2011relationship} might find it useful to notice that a different perspective on this matter is that virtual points-to assertions are self-stable \emph{except} for changes in \lstinline|cr3|, so framing would then naturally require other means of holding \lstinline|cr3| constant (or saving and restoring it).
+Virtual points-to assertions could be made self-stable by also giving them partial ownership over \lstinline|cr3| assertions, but this would require explicitly plumbing that ownership from \emph{all} assertions back to any place an address space change might occur; this would seem to be a far graver loss of modularity than this extra quirk in framing discussions.
