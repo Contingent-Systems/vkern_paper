@@ -1,29 +1,14 @@
 \section{Program Logic for Location Virtualization}
 \label{sec:logic}
-In this section, we describe our high-level reasoning principles for location virtualization whose detailed justification is shown in \sref{sec:soundness}. The principles shown here are mainly shaped around understanding and expressing the fact related the virtual address space, most specifically virtualization and translation of memory locations .
-\subsection{State}
-\label{sec:state}
-\todo[inline]{I don't think we need or want to describe the operational semantics in detail in the submission. It adds a lot of formalization that doen'st necessarily contribute to reader understanding. We should describe the runtime \emph{state} $\sigma$ of memory and registers, since that is directly used in interpreting assertions. But the reduction rules will mostly add mental overhead here.}
-We represent the machine state mainly as a finite map of registers to register values and a map of masked physical memory addresses to 64-bit physical memory values. Together with default def\textsf{CPU} instantiation, we end up having our state with following pieces:
-\begin{itemize}
-\item A constant cpu initialized with default value: $\sigma.\mathcal{C}$
-\item A register map: $\sigma.\mathcal{R}: \kw{greg} \rightarrow_{\textrm{fin}} \kw{regval} $
-\item A memory map: $\sigma.\mathcal{M}: \Locft \rightharpoonup_{\textrm{fin}} (\Loctw \rightharpoonup_{\textrm{fin}} \Locsf )$
-\end{itemize}
-\subsection{Memory Addresses \& Naming Registers}
-\label{sec:}
-As one might have already anticipated from the syntax we introduce, we do not bind any value of an evaluated expression. All the indices and accessed values are treated as globally referenced. In align with this design choice, our expression is a stream of instructions, which is not evaluated to a value to be bound, but changes the machine state through the indices (e.g. $\kw{r}\in\kw{greg}$) -- to the global maps. 
-
-\subsection{Machine State under Address Translation}
-\label{sec:selectedinstrsemantics}
-Althought we give the complete set of operational semantics rule in \sref{appendix:movops}, It is worth building the intuition on the the way some of these rules bahave in the context of address translation. In fact $\readlval\maddr{\storememstar\crval}\locsf$ is unfoled into multiple physical memory lookups for the final page address retrieval -- i.e. address translation traversal as shown in Figure \ref{fig:pagetables}:
-\begin{itemize}
-\item top-level-address translation: with the given root address (64-bit $\crval$) of the address space, performs the address translation, handling the first level (to get the PML4 entry) itself. The next level table address is computed with the fetched PML4 offset value which exhibits itself as 9-bit offset in $\kw{maddr}$. \mytodo{iso: put move}
-\item translating from PML4 entry: performs the second level of address translation, to retrieve starting at the PML4 table entry, and interprets the PML4 entry that references a Page-Directory-Pointer Table (PDPT). We obtain the PDPT offset which exhibits itself as 9 bit offset in $\kw{maddr}$ to obtain the address of the next level page directory table (PDT) \mytodo{iso: put move}
-\item translating from PD entry: performs the third level of address translation, to retrieve starting at the PDP table entry, and interprets a PDPTE that references a PD table. Likewise, we obtain the PD offset which exhibits itself as 9 bit offset in $\kw{maddr}$ to obtain the address of the next level page directory table (PT) \mytodo{iso:put move }
-\item translate from PT entry: performs final level of address translation, starting from the PT entry, with a given 12 bit page offset, we can compute the physical address referencing $\locsf$ \mytodo{ismo: put mov}
-\end{itemize}
-
+%\subsection{Machine State under Address Translation}
+%\label{sec:selectedinstrsemantics}
+%Althought we give the complete set of operational semantics rule in \sref{appendix:movops}, It is worth building the intuition on the the way some of these rules bahave in the context of address translation. In fact $\readlval\maddr{\storememstar\crval}\locsf$ is unfoled into multiple physical memory lookups for the final page address retrieval -- i.e. address translation traversal as shown in Figure \ref{fig:pagetables}:
+%\begin{itemize}
+%\item top-level-address translation: with the given root address (64-bit $\crval$) of the address space, performs the address translation, handling the first level (to get the PML4 entry) itself. The next level table address is computed with the fetched PML4 offset value which exhibits itself as 9-bit offset in $\kw{maddr}$. \mytodo{iso: put move}
+%\item translating from PML4 entry: performs the second level of address translation, to retrieve starting at the PML4 table entry, and interprets the PML4 entry that references a Page-Directory-Pointer Table (PDPT). We obtain the PDPT offset which exhibits itself as 9 bit offset in $\kw{maddr}$ to obtain the address of the next level page directory table (PDT) \mytodo{iso: put move}
+%\item translating from PD entry: performs the third level of address translation, to retrieve starting at the PDP table entry, and interprets a PDPTE that references a PD table. Likewise, we obtain the PD offset which exhibits itself as 9 bit offset in $\kw{maddr}$ to obtain the address of the next level page directory table (PT) \mytodo{iso:put move }
+%\item translate from PT entry: performs final level of address translation, starting from the PT entry, with a given 12 bit page offset, we can compute the physical address referencing $\locsf$ \mytodo{ismo: put mov}
+%\end{itemize}
 \subsection{Points-To Assertions}
 \label{sec:pointsto}
 

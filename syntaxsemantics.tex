@@ -1,0 +1,32 @@
+\section{Machine State, Instructions, Naming Registers and Memory Translation}
+\label{sec:syntax}
+To develop our core logical ideas and explain their intepretation, we need only a handful of instructions, and a machine model corresponding to execution of x86-64 assembly instructions with virtual memory enabled on the CPU.
+
+\subsection{Registers and Memory}
+Programs we demonstrate in this paper requires accessing two types of computer resource: registers and memory. A register identifier, $\reg$, is chosen from a fixed finite set of register identifiers,$\regset$. We use these identifiers to access the register values, $\regval \in \regvaltype$.
+
+\input{fig-syntax}
+
+Unlike registers, we do not abstract the memory indices as a special type but instead, for the sake of clarity and ease of representation, we show differently masked machine words, $\loc \in \Loc$, with the subscripts showing the length of a 64-bit machine word after masking, e.g. $\kw{w}_{12}$ is a 12-bit resource which can be obtained after masking 52-bit of a 64-bit word.
+This simple syntax in \ref{fig:syntax} includes a simple syntax for values because our language is purely \textit{imperative}, i.e. an instruction does not return a value. Intentionally, we restrict any stream of instruction, $\instrs$, to eventually reduce to $\iskip$ instruction. Our syntax capture the no-op ``$\iskip$'' and the sequencing construct ``$\iseq{\instr}{\instrs}$'' in their standard forms.
+\todo[inline]{Ismail: this paper is not about the binding of the machine model to Iris. Low-level details like ``injected into unit'' are not really important unless someone asks.}
+\subsection{State}
+\label{sec:state}
+\todo[inline]{I don't think we need or want to describe the operational semantics in detail in the submission. It adds a lot of formalization that doen'st necessarily contribute to reader understanding. We should describe the runtime \emph{state} $\sigma$ of memory and registers, since that is directly used in interpreting assertions. But the reduction rules will mostly add mental overhead here.}
+We represent the machine state mainly as a finite map of registers to register values and a map of masked physical memory addresses to 64-bit physical memory values. Together with default def\textsf{CPU} instantiation, we end up having our state with following pieces:
+\begin{itemize}
+\item A constant cpu initialized with default value: $\sigma.\mathcal{C}$
+\item A register map: $\sigma.\mathcal{R}: \kw{greg} \rightarrow_{\textrm{fin}} \kw{regval} $
+\item A memory map: $\sigma.\mathcal{M}: \Locft \rightharpoonup_{\textrm{fin}} (\Loctw \rightharpoonup_{\textrm{fin}} \Locsf )$
+\end{itemize}
+As one might have already anticipated from the syntax we introduce, we do not bind any value of an evaluated expression. All the indices and accessed values are treated as globally referenced. In align with this design choice, our expression is a stream of instructions, which is not evaluated to a value to be bound, but changes the machine state through the indices (e.g. $\kw{r}\in\kw{greg}$) -- to the global maps. 
+%
+%\subsection{Machine State under Address Translation}
+%\label{sec:selectedinstrsemantics}
+%Althought we give the complete set of operational semantics rule in \sref{appendix:movops}, It is worth building the intuition on the the way some of these rules bahave in the context of address translation. In fact $\readlval\maddr{\storememstar\crval}\locsf$ is unfoled into multiple physical memory lookups for the final page address retrieval -- i.e. address translation traversal as shown in Figure \ref{fig:pagetables}:
+%\begin{itemize}
+%\item top-level-address translation: with the given root address (64-bit $\crval$) of the address space, performs the address translation, handling the first level (to get the PML4 entry) itself. The next level table address is computed with the fetched PML4 offset value which exhibits itself as 9-bit offset in $\kw{maddr}$. \mytodo{iso: put move}
+%\item translating from PML4 entry: performs the second level of address translation, to retrieve starting at the PML4 table entry, and interprets the PML4 entry that references a Page-Directory-Pointer Table (PDPT). We obtain the PDPT offset which exhibits itself as 9 bit offset in $\kw{maddr}$ to obtain the address of the next level page directory table (PDT) \mytodo{iso: put move}
+%\item translating from PD entry: performs the third level of address translation, to retrieve starting at the PDP table entry, and interprets a PDPTE that references a PD table. Likewise, we obtain the PD offset which exhibits itself as 9 bit offset in $\kw{maddr}$ to obtain the address of the next level page directory table (PT) \mytodo{iso:put move }
+%\item translate from PT entry: performs final level of address translation, starting from the PT entry, with a given 12 bit page offset, we can compute the physical address referencing $\locsf$ \mytodo{ismo: put mov}
+%\end{itemize}
