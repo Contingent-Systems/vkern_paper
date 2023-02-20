@@ -196,8 +196,7 @@
 %%
 %% The "title" command has an optional parameter,
 %% allowing the author to define a "short title" to be used in page headers.
-\title{Modalities for Virtualizing Memory Addresses}
-\subtitle{Understanding the Locality with Modals}
+\title{Modal Abstractions for Virtualizing Memory Addresses}
 %%
 %% The "author" command and its associated commands are used to define
 %% the authors and their affiliations.
@@ -312,52 +311,6 @@ think about framing plus cr3 update and modality shifts
 %% the bibliography file.
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{vmm}
-\begin{appendix}
-\section{Complete Syntax}
-\label{appendix:syntax}
-\begin{figure}[!ht]
-\newcommand{\commentary}[1]{ & \text{\small\it #1} \\}
-\[
-  \begin{array}{r@{\;}c@{\;}l}
-    \loc & \in & \Loc \\
-    \reg & \in & \regset \\
-    \regval & \in & \regvaltype \\
-    \val & ::= & \vunit
-
-\\
-    \instrs & ::= &
-    \begin{array}[t]{@{}l@{\hspace{10mm}}l@{}}
-    \begin{array}[t]{@{}ll@{}}
-      \iskip
-                   \commentary{no-op}
-      \iseq\instr\instrs
-                   \commentary{sequencing}
-      \ising\instr
-                   \commentary{executing}             
-    \end{array}
-    %&
-    %\begin{array}[t]{@{}ll@{}}
-     % \ialloc\lval\allocsize
-      %             \commentary{heap allocation}
-    %\end{array}
-    \end{array}
-    \\
-
-    \ectx & ::= &
-      \hole \mid
-      \iseq\ectx\instrs 
-    \\
-  \end{array}
-\]
-\caption{Syntax}
-\Description{Syntax}
-\label{fig:syntax}
-\end{figure}
-\section{Operational Semantics of Selected Mov Instructions}
-\label{appendix:movops}
-\input{fig-semantics}
-
-\end{appendix}
 
 \end{document}
 %%
