@@ -46,35 +46,45 @@ where we simply abstract the generation of hierarchical mapping of a physical ad
 \begin{itemize}
 \item  After a series of masking imposed on the virtual memory address (e.g. \textsf{vaddr} 64bits address [0-64]) :
   \begin{itemize}
-  \item Page Map Level-4 Translation (L4): Calculating the offset to the 4 \textsf{Kbyte Physical Page} table to obtain the  physical address by  which resides in the last 12 bits of the virtual memory address, $\locsf|^{12}$,  shown in Figure \ref{}.  
+  \item Page Map Level-4 Translation (L4): Calculating the offset to the 4 \textsf{Kbyte Physical Page} table to obtain the  physical address by  which resides in the last 12 bits of the virtual memory address, $\locsf|^{12}$,  shown in Figure \ref{}.
+    \[  \pfpointsto{\lvlsum\crt\lfoff}{\lvlbor\lt}\qfracfotsss\ppts \star \]
   \item Page Directory Pointer Level Translation (L3):
+    \[ \pfpointsto{\lvlsum\lt\ltoff}{\lvlbor\ltw}\qfracfotss\ppts \star \]
   \item Page Directory Table Level Translation (L2):  we obtain the address of the page table via \textsf{PDE}$|^{52}$ and picking the offset from the virtual memory address via imposing the mask to obtain page table offset bits (9 bits [20-12] shown in Figure \ref{}) to obtain the page table entry (\textsf{PTE}).
-  \item Page Table Level Translation (L1): 
+    \[  \pfpointsto{\lvlsum\ltw\ltwoff}{\lvlbor\lo}\qfracfots\ppts \star \]
+  \item Page Table Level Translation (L1):
+    \[  \pfpointsto{\lvlsum\lo\looff}{\lvlbor\pg}\qfracfot\ppts \star \]
   \end{itemize}
- \item then after obtainini the physical page address, we obtain the value 
+\item then after obtainini the physical page address, we obtain the value
+  \[  \ppointsto{\pageptstosum\pg\pgoff}\locsf\ppts \]
 \end{itemize}
 
 
-\paragraph{Virtual-Memory points-to} As we see in Figure \fref{fig:}, virtual address mapping is obtained via traversal of page table, i.e. indirection provided by physical memory lookups. As expected, we define the virtual-points to relation, ($\pfpointsto\vaddr\locsf\qfrac\vpts$), in terms of multiple physical memory mappings representing the indirection shown in Figure \fref{fig:}
-\begin{figure*}
-\[
-\begin{array}{l}
-  \ppointsto\vaddr\locsf\vpts \stackrel{def}{=} \lambda \tlf\Loc.\\
-  \exists_{\tlfoff\Locn \;, \tltoff\Locn \;, \tltwoff\Locn \;,\tlooff\Locn \;, \tpgoff\Loctw \;, \tlt\Loc \;, \tltw\Loc \;, \tlo\Loc \tpg\Loc} \ldotp \\
-  \ulcorner \textsf{aligned } \vaddr \urcorner \star 
-   \ulcorner \vaddr = \locsx :: \lfoff :: \ltoff :: 
-   \ltwoff :: \looff :: \pgoff \urcorner \star\\
-  \pfpointsto{\lvlsum\crt\lfoff}{\lvlbor\lt}\qfracfotsss\ppts \star 
-  \pfpointsto{\lvlsum\lt\ltoff}{\lvlbor\ltw}\qfracfotss\ppts \star \\
-  \pfpointsto{\lvlsum\ltw\ltwoff}{\lvlbor\lo}\qfracfots\ppts \star 
-  \pfpointsto{\lvlsum\lo\looff}{\lvlbor\pg}\qfracfot\ppts \star \\
-  \ppointsto{\pageptstosum\pg\pgoff}\locsf\ppts 
-\end{array}
-\]
-\caption{Virtual Points-to Relation}
-\todo[inline]{These fractions aren't quite right (though I see you added the variance between levels), I can walk you through in our meeting tomorrow.}
-  \label{fig:virtualpointsto}
-\end{figure*}
+\subsection{Aliasing/Sharing Physical Pages} As we see in Figure \fref{fig:}, virtual address mapping is obtained via traversal of page table, i.e. indirection provided by physical memory lookups. As expected, we define the virtual-points to relation, ($\pfpointsto\vaddr\locsf\qfrac\vpts$), in terms of multiple physical memory mappings representing the indirection shown in Figure \fref{fig:}
+
+%\begin{figure*}
+%\[
+%\begin{array}{l}
+%  \ppointsto\vaddr\locsf\vpts \stackrel{def}{=} \lambda \tlf\Loc.\\
+%  \exists_{\tlfoff\Locn \;, \tltoff\Locn \;, \tltwoff\Locn \;,\tlooff\Locn \;, \tpgoff\Loctw \;, \tlt\Loc \;, \tltw\Loc \;, \tlo\Loc \tpg\Loc} \ldotp \\
+%  \ulcorner \textsf{aligned } \vaddr \urcorner \star 
+%   \ulcorner \vaddr = \locsx :: \lfoff :: \ltoff :: 
+%   \ltwoff :: \looff :: \pgoff \urcorner \star\\
+%  \pfpointsto{\lvlsum\crt\lfoff}{\lvlbor\lt}\qfracfotsss\ppts \star 
+%  \pfpointsto{\lvlsum\lt\ltoff}{\lvlbor\ltw}\qfracfotss\ppts \star \\
+%  \pfpointsto{\lvlsum\ltw\ltwoff}{\lvlbor\lo}\qfracfots\ppts \star 
+%  \pfpointsto{\lvlsum\lo\looff}{\lvlbor\pg}\qfracfot\ppts \star \\
+%  \ppointsto{\pageptstosum\pg\pgoff}\locsf\ppts 
+%\end{array}
+%\]
+%\caption{Virtual Points-to Relation}
+%\todo[inline]{These fractions aren't quite right (though I see you added the variance between levels), I can walk you through in our meeting tomorrow.}
+%  \label{fig:virtualpointsto}
+%\end{figure*}
+\subsection{Address-Spaces as a Modality}
+\subsubsection{Modal Resource Context}
+\subsubsection{Interaction: address-space switch as a modal-entailment}
+
 \subsection{Considering Hoare Doubles in the Context of Switching Address-Space}
 An important subtlety arises with supporting \lstinline|mov|s into \lstinline|%cr3|. Consider the hypothetical rule:
 \begin{mathpar}
