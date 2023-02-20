@@ -1,20 +1,19 @@
 \section{Implementing Logical Machinery \& Soundness}
-We instantiate our program logic, $[@]$, as an instantiation of Iris~\cite{iris}, and build our modal abstractions on top of it. 
-\subsection{BI-Lifting for Address Space Modality}
-\label{sec:bilifting}
+We build our program logic, as an instantiation of Iris~\cite{iris}, and build our modal abstractions on top of it. 
 \mytodo{we should put some stuff here}
 \subsection{Soundness}
 \label{sec:soundness}
-Our logic, $[@]$, operates on the machine state, which means we do not need to augment the machine state, i.e. our logical state is exact logical representation of our machine state. Consequently, we do not require an invariant, $\mathcal{I}$, except from the fact that logical/physical associated maps representing the register/memory mappings have the same domain. This ensures the correct lifting of mappings in the machine state to the \emph{assertions} that the client of our logic uses, i.e. points-to assertions that are defined as the ownership of a fragment of the logical state.
+Our logic, operates on the machine state, which means we do not need to augment the machine state. The invarian that we pick, \textit{central invariant} ($\mathcal{I}$), is just semantic interpretation of stores in the machine state, $\sigma$.R and $\sigma$.M. This semantic interpratation ensures the correct lifting of mappings in the machine state to the assertions that the client of our logic uses, i.e. points-to assertions that are defined as the ownership of a fragment of the logical state.
 
-Iris instantiation comes with the semantic definition for the weakest-precondition which we can refactor into Hoare triples, $\triple\pre\instr\post$, to specify actions using our reasoning principles, show that these triples are sound.
+
+We prefer to skip explaining the steps used in instantiation of Iris because it is an almost standard procedure, has already been explained for many other logic \ref{}, and we are concerned with the page-count limitation. However, it is worh noting that once you instantiate Iris for your language, it comes with the semantic definition for the weakest-precondition which we can refactor into Hoare triples, $\triple\pre\instr\post$, to specify our  selected \textsf{AMD64} instructions, and show that these triples are sound. 
 
 \subsection{The Soundness Statement}
 \label{def:soundness:statement}
 The operational semantics of our simple lang just executes the instruction of our x86-64 model. Therefore, our soundness argument is to show that any execution composed of actions in our machine model (some of which are shown in Figure \sref{sec:semantics}) does not end-up in a invalid state.guarantees that  (\sref{sec:valid}). A~program that attempts to ... stuck~(\sref{sec:instrsemantics}).
 \begin{theorem}[Soundness of the Logic]
   \label{th:adequacy}
-  Assuming that  Suppose $\triple{\textsf{valid\_init}}\instr\iTrue$ holds.
+  Assuming that $\triple{\textsf{valid\_init}}\instr\iTrue$ holds,
  The execution of the instruction~$\instrs$, beginning in an initial state, cannot result in a configuration where a thread is stuck.
 \end{theorem}
 which states that if the program~$\instr$, with the given \textsf{valid\_init} asserting a valid state initialization, satisfies a semantic Hoare
@@ -32,19 +31,11 @@ but the definitions and constructions used requires explanation.
 Together, Theorems~\ref{th:adequacy} and~\ref{th:validity} guarantee that, if
 the Hoare triple $\textsf{valid\_init }\instrs\;\iTrue$ can be obtained by applying
 the reasoning rules of our logic, then the program~$\instrs$ is safe.
+\subsection{BI-Lifting for Address Space Modality}
+\label{sec:bilifting}
 
 \subsection{Logical Constructions}
 \label{sec:invariant}
-
-Since our semantics operates right on top of the x86-64 machine state (with Iris terminology, physical store),
-we do not need to augment the physical store for more abstract reasoning, consequently, we do not need to come up
-with a complicated logical relations that ties the physical store to the
-\logical store. 
-\begin{definition}[Relation between Physical and \Logical Stores]
-  \label{def:related}
-  Since we pick the logical store exactly same with physical store,  
-  two stores are \emph{related}, identical.
-\end{definition}
 
 We already have the physical and logical stores and a simple invariant between them. Now, we can rely on the following Assumption \ref{assumption} from Iris to utilize its logical constructions.
 % The predicate gen_heap_interp.
@@ -82,8 +73,8 @@ Iris defines two pieces of ghost state
   We mention the predicate $\genheapinterp\!$
   in our own invariant (Definition~\ref{def:invariant}),
   where it is applied to the \logical store~$\store$.
-\item unlike the points-to relation obtained by direct interpretion of $\genheapinterp\store.\mathcal{R}$ using Iris existing \textsf{gen\_heap\_interp},
-  we define a new algebra (\textsf{gen\_mem\_UR}) for abstracting the nested maps due to different levels of masking in memory mappings. 
+\item unlike the points-to relation obtained by direct interpretion of $\genheapinterp\store.\mathcal{R}$ using Iris, the existing \textsf{gen\_heap\_interp},
+  does not directly helps introducing the ghost we define a new algebra (\textsf{gen\_mem\_UR}) for abstracting the nested maps due to different levels of masking in memory mappings. 
 \end{enumerate}
 \end{assumption}
 
@@ -124,7 +115,7 @@ The central invariant of our logic is, due to lack of need for augmenting the ma
 \left\{
 \def\arraystretch{1.2}
 \begin{array}{l@{\quad\star\quad}l@{\quad}l}
-  \genheapinterp\store & \star \\
+  \genheapinterp\store &  \\
    \genmemheapinterp\store
 \end{array}
 \right.
