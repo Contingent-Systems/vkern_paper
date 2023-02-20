@@ -10,15 +10,15 @@ We prefer to skip explaining the steps used in instantiation of Iris because it 
 
 \subsection{The Soundness Statement}
 \label{def:soundness:statement}
-The operational semantics of our simple lang just executes the instruction of our x86-64 model. Therefore, our soundness argument is to show that any execution composed of actions in our machine model (some of which are shown in Figure \sref{sec:semantics}) does not end-up in a invalid state.guarantees that  (\sref{sec:valid}). A~program that attempts to ... stuck~(\sref{sec:instrsemantics}).
+The operational semantics of our simple lang just executes sequences of instructions in our x86-64 model. Therefore, our soundness argument is to show that any execution composed of instructions in our machine model (some of which are shown in Figure \sref{sec:semantics}) does not end-up in a invalid state. In other words, a~program that attempts to ... stuck~(\sref{sec:instrsemantics}).
 \begin{theorem}[Soundness of the Logic]
   \label{th:adequacy}
-  Assuming that $\triple{\textsf{valid\_init}}\instr\iTrue$ holds,
- The execution of the instruction~$\instrs$, beginning in an initial state, cannot result in a configuration where a thread is stuck.
+ Together with the assumptions on the initial state hold,
+ the execution of the instruction~$\instrs$, beginning with this initial state, cannot result in a configuration where the execution is stuck.
 \end{theorem}
 which states that if the program~$\instr$, with the given \textsf{valid\_init} asserting a valid state initialization, satisfies a semantic Hoare
 triple, then this program cannot crash: by a direct consequence of Iris's adequacy theorem~\cite[\S6.4]{iris}.
-
+\todo{ismail, give the real adeq. theorem here}
 Moreover we need to show the validity of each rules in Figures \fref{fig:reasoning} and \fref{fig:laws}.
 \begin{theorem}[Validity of the Reasoning Rules]
 \label{th:validity}
