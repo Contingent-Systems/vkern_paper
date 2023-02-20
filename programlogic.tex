@@ -3,14 +3,15 @@
 Our reasoning principles are shaped around understanding the following issues exhibiting themselves withing the context of vritual-memory-management:
 \begin{enumerate}
 \item abstracting the relation between memory (virtual) addresses and the physical page addresses backing these virtual addresses
-\item regarding the address-space management
+\item regarding the address-space management, we propose reasoning principles for
   \begin{itemize}
-  \item Aliasing/Sharing Physical Pages:
-  \item Abstracting Address-Space as a Modality
+  \item aliasing/sharing Physical Pages:
+  \item abstracting address-space as a modality
     \begin{itemize}
-    \item Resource Context:
-    \item Interaction:
+    \item modal resource context:
+    \item interaction:
     \end{itemize}
+    \item Hoare-Doubles: 
   \end{itemize}
 \end{enumerate}
 %\subsection{Machine State under Address Translation}
@@ -24,25 +25,36 @@ Our reasoning principles are shaped around understanding the following issues ex
 %\end{itemize}
 \subsection{Points-To Assertions}
 \label{sec:pointsto}
-
-We present three main points-to relations as part of utilization of separation logic \ref{} as an ambient logic:
+As part of assertions on our machine state ($\sigma$), we abstract memory addresses and registers naming their relevant values through well-known separation logic assertion \textit{points-to}.
 \begin{enumerate}
 \item Physical address points-to, $\pfpointsto\locsf\locsf\qfrac\ppts$
 \item Register points-to, $\pfpointsto\rg\rv\qfrac\rpts$
-\item Virtual memory address points-to, $\pfpointsto\vaddr\locsf\qfrac\vpts$
 \end{enumerate}
 \paragraph{Register points-to} The assertion $\pfpointsto\rg\rv\rpts\qfrac$ ensures the ownership of the register $\rg$ naming the register value $\rv$. The fraction $\qfrac$ with value 1 asserts the unique ownership of the register mapping, and grants update permission on it, otherwise, any value $0 < \qfrac <1$ represents partial ownership granting readonly permission on the mapping.
 \paragraph{Physical-Memory points-to} The our physical memory points-to relation ($\pfpointsto\locsf\locsf\qfrac\ppts$) exhibits nested-mappings due to masking applied on the indexing address ($\locsf$). The unfolded definition of the physical mapsto 
 \begin{figure}[!ht]
 \[
 \begin{array}{cl}
-\pfpointsto\locsf\locsf\qfrac\ppts \stackrel{def}{=} & \nfpointsto{\mask\locsf\tw}{\mask\locsf\ft}\locsf\qfrac\naddr
+\pfpointsto\locsf\locsf\qfrac\ppts \stackrel{def}{=} & \nfpointsto{\mask\locsf\ft}{\mask\locsf\tw}\locsf\qfrac\naddr
 \end{array}
 \]
 \caption{Physical Points-to with Nested Masking}
   \label{fig:physicalpointsto}
 \end{figure}
-where we simply abstract the generation of hierarchical mapping of a physical address ($\locsf$) through the different masks of the address ($\locsf|^{12}$ and $\locsf|^{52}$) as nested map resources.
+where we simply abstract the generation of hierarchical mapping of a physical address ($\locsf$) through two different levels of masking:
+
+\begin{itemize}
+\item  After a series of masking imposed on the virtual memory address (e.g. \textsf{vaddr} 64bits address [0-64]) :
+  \begin{itemize}
+  \item Page Map Level-4 Translation (L4): Calculating the offset to the 4 \textsf{Kbyte Physical Page} table to obtain the  physical address by  which resides in the last 12 bits of the virtual memory address, $\locsf|^{12}$,  shown in Figure \ref{}.  
+  \item Page Directory Pointer Level Translation (L3):
+  \item Page Directory Table Level Translation (L2):  we obtain the address of the page table via \textsf{PDE}$|^{52}$ and picking the offset from the virtual memory address via imposing the mask to obtain page table offset bits (9 bits [20-12] shown in Figure \ref{}) to obtain the page table entry (\textsf{PTE}).
+  \item Page Table Level Translation (L1): 
+  \end{itemize}
+ \item then after obtainini the physical page address, we obtain the value 
+\end{itemize}
+
+
 \paragraph{Virtual-Memory points-to} As we see in Figure \fref{fig:}, virtual address mapping is obtained via traversal of page table, i.e. indirection provided by physical memory lookups. As expected, we define the virtual-points to relation, ($\pfpointsto\vaddr\locsf\qfrac\vpts$), in terms of multiple physical memory mappings representing the indirection shown in Figure \fref{fig:}
 \begin{figure*}
 \[
