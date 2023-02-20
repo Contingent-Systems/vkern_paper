@@ -1,5 +1,18 @@
 \section{Program Logic for Location Virtualization}
 \label{sec:logic}
+Our reasoning principles are shaped around understanding the following issues exhibiting themselves withing the context of vritual-memory-management:
+\begin{enumerate}
+\item abstracting the relation between memory (virtual) addresses and the physical page addresses backing these virtual addresses
+\item regarding the address-space management
+  \begin{itemize}
+  \item Aliasing/Sharing Physical Pages:
+  \item Abstracting Address-Space as a Modality
+    \begin{itemize}
+    \item Resource Context:
+    \item Interaction:
+    \end{itemize}
+  \end{itemize}
+\end{enumerate}
 %\subsection{Machine State under Address Translation}
 %\label{sec:selectedinstrsemantics}
 %Althought we give the complete set of operational semantics rule in \sref{appendix:movops}, It is worth building the intuition on the the way some of these rules bahave in the context of address translation. In fact $\readlval\maddr{\storememstar\crval}\locsf$ is unfoled into multiple physical memory lookups for the final page address retrieval -- i.e. address translation traversal as shown in Figure \ref{fig:pagetables}:
