@@ -6,6 +6,7 @@ To both validate and demonstrate the value of the modal approach to reasoning ab
 Recall from Section \ref{sec:logic} that virtual points-to assertions work just like regular points-to assertions, by design.
 
 \subsection{Identity Mappings}
+\begin{comment}
 \todo[inline]{Identity mappings are difficult, and our current approach won't quite work. Consider trying to have a virtual pointsto for an actual page table entry (i.e., that one could use to update a page table mapping), while also having a virtual pointsto for an address that entry mapped. With the current (let's call it v1) solution, we can't actually have both of those simultaneously!  That's because the PTE pointsto will assert full ownership of the physical memory cell holding the PTE as its data value, while the virtual pointsto for the data mapped by that entry will \emph{also} assert (fractional) ownership of all entries a page table walk would traverse.
 }
 \todo[inline,color=violet]{This doesn't seem to cause issues with the mapping/unmapping examples, only with changing intermediate page table pointers. The mapping example requires a virtual pointsto for the blank PTE, and once filled in that ownership can be immediately split to create the 512 new virtual pointsto assertions for the newly mapped page. Conversely, for unmapping we'd assume ownership of all the relevant virtual pointsto assertions for the page we're unmapping, at which point we can (with a bit of work) show that they all correspond to the same L1 PTE, and extract the 512 fractional shares of that entry from the pointsto assertions.  But changing intermediate page tables, as one would do for coallescing or splitting a superpage while preserving the virtual-to-physical mappings, couldn't be done without some really complicated separating implication tricks.}
@@ -15,7 +16,7 @@ This still works with the modality, since that invariant is also semantically a 
 Let's call this v2.
 }
 \todo[inline]{the current course of action is to finish the WPs for v1 and try an example that should work with either approach (like the task switch). This is a good basic sanity check on our approaches. Once that's done, then we work out the details of v2, which should require \emph{refactoring} the same sorts of reasoning we had for v1, rather than totally different proofs from v1.}
-
+\end{comment}
 \subsection{Mapping a New Page}
 One of the key tasks of a page fault handler in a general-purpose OS kernel is to map new pages into an address space by writing into an existing page table.
 \todo[inline]{Ismail, see notes about intermediate assertions on the Notion page}
