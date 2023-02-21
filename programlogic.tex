@@ -60,27 +60,31 @@ where we simply abstract the generation of hierarchical mapping of a physical ad
 \end{itemize}
 
 
-\subsection{Aliasing/Sharing Physical Pages} As we see in Figure \fref{fig:}, virtual address mapping is obtained via traversal of page table, i.e. indirection provided by physical memory lookups. As expected, we define the virtual-points to relation, ($\pfpointsto\vaddr\locsf\qfrac\vpts$), in terms of multiple physical memory mappings representing the indirection shown in Figure \fref{fig:}
+\subsection{Aliasing/Sharing Physical Pages}
+As we see in Figure \fref{fig:}, virtual address mapping is obtained simply in two fold: 1. traversing the page tables to reach the page table entry 2. fetch the physical address and the value it is adressing (Section \ref{fig:physicalpointsto}). This two fold access pattern enabling sharing of pages by virtual memory addresses exhibits logically sound representation against virtual memory operations some of which ((e.g. mapping a new page) we explain in detail in Section \ref{}.
 
-%\begin{figure*}
-%\[
-%\begin{array}{l}
-%  \ppointsto\vaddr\locsf\vpts \stackrel{def}{=} \lambda \tlf\Loc.\\
-%  \exists_{\tlfoff\Locn \;, \tltoff\Locn \;, \tltwoff\Locn \;,\tlooff\Locn \;, \tpgoff\Loctw \;, \tlt\Loc \;, \tltw\Loc \;, \tlo\Loc \tpg\Loc} \ldotp \\
-%  \ulcorner \textsf{aligned } \vaddr \urcorner \star 
-%   \ulcorner \vaddr = \locsx :: \lfoff :: \ltoff :: 
-%   \ltwoff :: \looff :: \pgoff \urcorner \star\\
-%  \pfpointsto{\lvlsum\crt\lfoff}{\lvlbor\lt}\qfracfotsss\ppts \star 
-%  \pfpointsto{\lvlsum\lt\ltoff}{\lvlbor\ltw}\qfracfotss\ppts \star \\
-%  \pfpointsto{\lvlsum\ltw\ltwoff}{\lvlbor\lo}\qfracfots\ppts \star 
-%  \pfpointsto{\lvlsum\lo\looff}{\lvlbor\pg}\qfracfot\ppts \star \\
-%  \ppointsto{\pageptstosum\pg\pgoff}\locsf\ppts 
-%\end{array}
-%\]
-%\caption{Virtual Points-to Relation}
-%\todo[inline]{These fractions aren't quite right (though I see you added the variance between levels), I can walk you through in our meeting tomorrow.}
-%  \label{fig:virtualpointsto}
-%\end{figure*}
+The very first assurance our logical constructions need to be able assert is the \textit{existence} of the page table walk. A naive attempt to assert the existence of the page-walk for a certain virtual memory translation would look like the one in Figure \ref{figure:strongvirtualpointsto}, in which we see that a virtual address with a certain fractional permissions at each level of the page-table walk gives us sound assurance of the path existence reaching to a page table entry, consequently, with a full-ownership of page address, we can obtain and update the value mapped value at this physical page address through our virtual memory address. 
+\begin{figure*}
+\[
+\begin{array}{l}
+  \ppointsto\vaddr\locsf\vpts \stackrel{def}{=} \lambda \tlf\Loc.\\
+  \exists_{\tlfoff\Locn \;, \tltoff\Locn \;, \tltwoff\Locn \;,\tlooff\Locn \;, \tpgoff\Loctw \;, \tlt\Loc \;, \tltw\Loc \;, \tlo\Loc \tpg\Loc} \ldotp \\
+  \ulcorner \textsf{aligned } \vaddr \urcorner \star 
+   \ulcorner \vaddr = \locsx :: \lfoff :: \ltoff :: 
+   \ltwoff :: \looff :: \pgoff \urcorner \star\\
+  \pfpointsto{\lvlsum\crt\lfoff}{\lvlbor\lt}\qfracfotsss\ppts \star 
+  \pfpointsto{\lvlsum\lt\ltoff}{\lvlbor\ltw}\qfracfotss\ppts \star \\
+  \pfpointsto{\lvlsum\ltw\ltwoff}{\lvlbor\lo}\qfracfots\ppts \star 
+  \pfpointsto{\lvlsum\lo\looff}{\lvlbor\pg}\qfracfot\ppts \star \\
+  \ppointsto{\pageptstosum\pg\pgoff}\locsf\ppts 
+\end{array}
+\]
+\caption{A Strong Virtual Points-to Relation}
+\todo[inline]{These fractions aren't quite right (though I see you added the variance between levels), I can walk you through in our meeting tomorrow.}
+  \label{fig:strongvirtualpointsto}
+\end{figure*}
+One might have already observed that this virtual points-to definition is too strong to specify any virtual memory operations, some of which we explain within as part of experiement in Section \ref{}, require reasoning of sharing of physicall pages accross virtual memory addresses because this strong virtual points-to relation doesn’t care about owning those fractional resources, it only cares that something ensures the correct page table walk exists. Therefore we need to weaken the virtual-pointsto to capture the acutal sharing accross the virtual addresses. 
+
 \subsection{Address-Spaces as a Modality}
 \subsubsection{Modal Resource Context}
 \subsubsection{Interaction: address-space switch as a modal-entailment}
