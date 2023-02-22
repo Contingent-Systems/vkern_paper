@@ -94,7 +94,17 @@ One possible approach to resolving this is to identify and separate the type of 
 Abstractions we introduce for virtual address spaces are based on two pillars: 1. a global address space invariant asserting the authorative ownership of the ghost map, , summarizing the existence of the page-table walks, and for each physical page address reached by one of these abstract page-table walks we know that there exists concrete physical page-table accesses, i.e. L4-L1 pointsto  2. a modal definition describing the truth of assertions for the resources inside the address space, $[r]P$ indicating that $P$ holds in the virtual address space rooted at $r$.  This is essentially what hybrid logic \ref{} calls a satisfaction operator, which evaluates the truth of a predicate in a named alternative state (here, address space). 
 \subsubsection{Global Per-Addressspace Invariant}
 \label{sec:peraspaceinvariant}
-
+\begin{figure*}
+\[
+\begin{array}{l}
+  \textsf{ASpaceInv}\stackrel{def}{=} \lambda \tlf\Loc.\\
+  \ownGhost\gamma{a}
+\end{array}
+\]
+\caption{Global Address-Space Invarian}
+\todo[inline]{These fractions aren't quite right (though I see you added the variance between levels), I can walk you through in our meeting tomorrow.}
+  \label{fig:strongvirtualpointsto}
+\end{figure*}
 \subsubsection{Address-Space Modality}
 \label{sec:aspacemodalist}
 \paragraph{Modal Resource Context}
