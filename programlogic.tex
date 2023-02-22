@@ -87,7 +87,17 @@ The very first assurance our logical constructions need to be able assert is the
 One might have already observed that this virtual points-to definition is too strong to specify any virtual memory operations, some of which we explain within as part of experiement in Section \ref{}, require reasoning of sharing of physicall pages accross virtual memory addresses because this strong virtual points-to relation doesn’t care about owning those fractional resources, it only cares that something ensures the correct page table walk exists. Therefore we need to weaken the virtual-pointsto to capture the acutal sharing accross the virtual addresses. 
 
 One possible approach to resolving this is to identify and separate the type of ownership within and outside the virtual points-to relation. Iris has a ghost map resource where fragmental-ownership of an individual key-value pair (per-element) can be handled as a resource. We use this mechanism to separate the virtual-to-physical translation from the physical memory involved: virtual points-to assertions can be defined in terms of fragmental ownership (ownership of an element) of these partial ghost map entry assertions, plus sharing an invariant that the current installed page table respects all entries of the mapping as shown in Figure \ref{}. Unmapping collects the authoritative map kvpairs from collecting the assertions, and then can remove them from the ghost map and update the page tables. Critically, physical full ownership of the page tables then lives in the invariant on the current page table, so some virtual pointsto as- sertions can refer to memory in those page tables. This still works with the modality, since that invariant is also semantically a predicate on a page table root.
-
+\begin{figure*}
+\[
+\begin{array}{l}
+  \textsf{VirtPtsTo}\stackrel{def}{=} \lambda \tlf\Loc.\\
+  \ownGhost\gamma{a}
+\end{array}
+\]
+\caption{Virtual-Pointsto for Sharing Pages}
+\todo[inline]{These fractions aren't quite right (though I see you added the variance between levels), I can walk you through in our meeting tomorrow.}
+  \label{fig:virtualpointstosharing}
+\end{figure*}
 \todo[inline,color=green]{ismail, put the fancy Iris figure for this ghost thing and expand the text above}
 \subsection{Address-Space Abstraction}
 \label{sec:aspacemodal}
@@ -103,7 +113,7 @@ Abstractions we introduce for virtual address spaces are based on two pillars: 1
 \]
 \caption{Global Address-Space Invarian}
 \todo[inline]{These fractions aren't quite right (though I see you added the variance between levels), I can walk you through in our meeting tomorrow.}
-  \label{fig:strongvirtualpointsto}
+  \label{fig:peraspaceinvariant}
 \end{figure*}
 \subsubsection{Address-Space Modality}
 \label{sec:aspacemodalist}
