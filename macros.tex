@@ -46,6 +46,7 @@
 \newcommand{\modalstar}[2]{#1 \star #2}
 
 % Assertions.
+\newcommand{\qfracone}{\kw{1}}
 \newcommand{\qfracfot}{\kw{q}/512}
 \newcommand{\qfracfots}{\kw{q}/512^{2}}
 \newcommand{\qfracfotss}{\kw{q}/512^{4}}
@@ -64,7 +65,7 @@
 \newcommand{\ppointsto}[3]{#1\mapsto_{#3}\;#2}
 \newcommand{\npointsto}[4]{#1 / #2 \mapsto_{#4}\;#3}
 \newcommand{\nfpointsto}[5]{#1 / #2 \mapsto_{#5}\{#4\}\;#3}
-\newcommand{\mask}[2]{#1|^{#2}}
+\newcommand{\mask}[3]{#1|^{#2}(#3)}
 \newcommand{\ft}{52}
 \newcommand{\tw}{12}
 \newcommand{\pointsto}{\mapsto}
@@ -88,7 +89,15 @@
 \newcommand{\nv}{n}
 % Central invariant
 \newcommand{\centralinvariant}{I}
-
+\newcommand{\generalentry}{\textsf{ent}}
+\newcommand{\entryf}{\textsf{PML4E}}
+\newcommand{\entrytr}{\textsf{PDPE}}
+\newcommand{\entrytw}{\textsf{PDE}}
+\newcommand{\entryo}{\textsf{PTE}}
+\newcommand{\crthree}{\textsf{CR3}}
+\newcommand{\paddr}{\textsf{pa}}
+\newcommand{\vsome}{\_}
+\newcommand{\vpage}{\textsf{v}}
 % Fonts.
 \newcommand{\kw}[1]{\mathsf{#1}}
 

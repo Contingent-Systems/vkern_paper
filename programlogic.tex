@@ -1,6 +1,6 @@
 \section{Program Logic for Location Virtualization}
 \label{sec:logic}
-Our reasoning principles are shaped around understanding the following two main pillars of vritual-memory-management:
+Our reasoning principles are shaped around understanding the following main pillars of vritual-memory-management:
 \begin{enumerate}
 \item page-table walk: L4-L1 walk on shared page tables to reach a physical page address
 \item allocating/updating a pages backing a virtual address 
@@ -23,40 +23,33 @@ As part of assertions on our machine state ($\sigma$), we abstract memory addres
 \item Register points-to, $\pfpointsto\rg\rv\qfrac\rpts$
 \end{enumerate}
 \paragraph{Register points-to} The assertion $\pfpointsto\rg\rv\rpts\qfrac$ ensures the ownership of the register $\rg$ naming the register value $\rv$. The fraction $\qfrac$ with value 1 asserts the unique ownership of the register mapping, and grants update permission on it, otherwise, any value $0 < \qfrac <1$ represents partial ownership granting readonly permission on the mapping.
-\paragraph{Physical-Memory points-to} The our physical memory points-to relation ($\pfpointsto\locsf\locsf\qfrac\ppts$) exhibits nested-mappings due to masking applied on the indexing address ($\locsf$). The unfolded definition of the physical mapsto 
+\paragraph{Physical-Memory points-to} Our physical memory points-to relation ($\pfpointsto\locsf\locsf\qfrac\ppts$) exhibits nested-mappings abstracting the  masks applied on the indexing virtual address ($\textsf{vaddr}\in\mathcal{W}_{64}$). The unfolded definition of the physical mapsto 
 \begin{figure}[!ht]
 \[
 \begin{array}{cl}
-\pfpointsto\locsf\locsf\qfrac\ppts \stackrel{def}{=} & \nfpointsto{\mask\locsf\ft}{\mask\locsf\tw}\locsf\qfrac\naddr
+\pfpointsto\locsf\locsf\qfrac\ppts \stackrel{def}{=} & \nfpointsto{\mask\locsf\ft\generalentry}{\mask\locsf\tw\generalentry}\locsf\qfrac\naddr
 \end{array}
 \]
 \caption{Physical Points-to with Nested Masking}
   \label{fig:physicalpointsto}
 \end{figure}
-where we simply abstract the generation of hierarchical mapping of a physical address ($\locsf$) through two different levels of masking:
-
+where, for an example virtual address \textsf{va} and given \textsf{CR3} in Figure \ref{}, we can abstract the L4-L1 table traversal as the following:
 \begin{itemize}
-\item  After a series of masking imposed on the virtual memory address (e.g. \textsf{vaddr} 64bits address [0-64]) :
-  \begin{itemize}
   \item Page Map Level-4 Translation (L4): Calculating the offset to the 4 \textsf{Kbyte Physical Page} table to obtain the  physical address by  which resides in the last 12 bits of the virtual memory address, $\locsf|^{12}$,  shown in Figure \ref{}.
-    \[  \pfpointsto{\lvlsum\crt\lfoff}{\lvlbor\lt}\qfracfotsss\ppts \star \]
+    % \pfpointsto{\lvlsum\crt\lfoff}{\lvlbor\lt}\qfracfotsss\ppts \star
+    \[ \nfpointsto{\mask\vaddr\ft\crthree}{\mask\vaddr\tw\crthree}\entryf\qfracfotsss\naddr \]
   \item Page Directory Pointer Level Translation (L3):
-    \[ \pfpointsto{\lvlsum\lt\ltoff}{\lvlbor\ltw}\qfracfotss\ppts \star \]
+    \[ \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qfracfotss\naddr \]
   \item Page Directory Table Level Translation (L2):  we obtain the address of the page table via \textsf{PDE}$|^{52}$ and picking the offset from the virtual memory address via imposing the mask to obtain page table offset bits (9 bits [20-12] shown in Figure \ref{}) to obtain the page table entry (\textsf{PTE}).
-    \[  \pfpointsto{\lvlsum\ltw\ltwoff}{\lvlbor\lo}\qfracfots\ppts \star \]
+    \[ \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qfracfots\naddr \]
   \item Page Table Level Translation (L1):
-    \[  \pfpointsto{\lvlsum\lo\looff}{\lvlbor\pg}\qfracfot\ppts \star \]
-  \end{itemize}
-\item then after obtainini the physical page address, we obtain the value
-  \[  \ppointsto{\pageptstosum\pg\pgoff}\locsf\ppts \]
+    \[ \nfpointsto{\mask\vaddr\ft\entrytw}{\mask\vaddr\tw\entrytw}\entryo\qfracfot\naddr \]
+  \item Page Address Level Translation
+    \[ \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr \]
 \end{itemize}
-
-
-\subsection{Aliasing/Sharing Physical Pages}
-\label{sec:sharingpages}
-As we see in Figure \fref{fig:}, virtual address mapping is obtained simply in two fold: 1. traversing the page tables to reach the page table entry 2. fetch the physical address and the value it is adressing (Section \ref{fig:physicalpointsto}). This two fold access pattern enabling sharing of pages by virtual memory addresses exhibits logically sound representation against virtual memory operations some of which ((e.g. mapping a new page) we explain in detail in Section \ref{}.
-
-The very first assurance our logical constructions need to be able assert is the \textit{existence} of the page table walk. A naive attempt to assert the existence of the page-walk for a certain virtual memory translation would look like the one in Figure \ref{figure:strongvirtualpointsto}, in which we see that a virtual address with a certain fractional permissions at each level of the page-table walk gives us sound assurance of the path existence reaching to a page table entry, consequently, with a full-ownership of page address, we can obtain and update the value mapped value at this physical page address through our virtual memory address. 
+\begin{remark}[A Strong Definition for Virtual Memory Addressing]
+  \label{rem:strongvmem}
+  
 \begin{figure*}
 \[
 \begin{array}{l}
@@ -76,6 +69,15 @@ The very first assurance our logical constructions need to be able assert is the
 \todo[inline]{These fractions aren't quite right (though I see you added the variance between levels), I can walk you through in our meeting tomorrow.}
   \label{fig:strongvirtualpointsto}
 \end{figure*}
+\end{remark}
+%then we reach to a physical page addr (e.g. \textsf{pa}) 
+%\[  \paddr\mapsto_{\textsf{a}}\{1\}\vsome \ast \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfrac\naddr \]
+  \subsection{Aliasing/Sharing Physical Pages}
+\label{sec:sharingpages}
+As we see in Figure \fref{fig:}, virtual address mapping is obtained simply in two fold: 1. traversing the page tables to reach the page table entry 2. fetch the physical address and the value it is adressing (Section \ref{fig:physicalpointsto}). This two fold access pattern enabling sharing of pages by virtual memory addresses exhibits logically sound representation against virtual memory operations some of which ((e.g. mapping a new page) we explain in detail in Section \ref{}.
+
+The very first assurance our logical constructions need to be able assert is the \textit{existence} of the page table walk. A naive attempt to assert the existence of the page-walk for a certain virtual memory translation would look like the one in Figure \ref{figure:strongvirtualpointsto}, in which we see that a virtual address with a certain fractional permissions at each level of the page-table walk gives us sound assurance of the path existence reaching to a page table entry, consequently, with a full-ownership of page address, we can obtain and update the value mapped value at this physical page address through our virtual memory address. 
+
 One might have already observed that this virtual points-to definition is too strong to specify any virtual memory operations, some of which we explain within as part of experiement in Section \ref{}, require reasoning of sharing of physicall pages accross virtual memory addresses because this strong virtual points-to relation doesn’t care about owning those fractional resources, it only cares that something ensures the correct page table walk exists. Therefore we need to weaken the virtual-pointsto to capture the acutal sharing accross the virtual addresses. 
 
 One possible approach to resolving this is to identify and separate the type of ownership within and outside the virtual points-to relation. Iris has a ghost map resource where fragmental-ownership of an individual key-value pair (per-element) can be handled as a resource. We use this mechanism to separate the virtual-to-physical translation from the physical memory involved: virtual points-to assertions can be defined in terms of fragmental ownership (ownership of an element) of these partial ghost map entry assertions, plus sharing an invariant that the current installed page table respects all entries of the mapping as shown in Figure \ref{}. Unmapping collects the authoritative map kvpairs from collecting the assertions, and then can remove them from the ghost map and update the page tables. Critically, physical full ownership of the page tables then lives in the invariant on the current page table, so some virtual pointsto as- sertions can refer to memory in those page tables. This still works with the modality, since that invariant is also semantically a predicate on a page table root.
