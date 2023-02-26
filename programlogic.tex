@@ -43,7 +43,7 @@ where, for an example virtual address \textsf{va} and given \textsf{CR3} in Figu
   \item Page Directory Table Level Translation (L2):  we obtain the address of the page table via \textsf{PDE}$|^{52}$ and picking the offset from the virtual memory address via imposing the mask to obtain page table offset bits (9 bits [20-12] shown in Figure \ref{}) to obtain the page table entry (\textsf{PTE}).
     \[ \textsf{L2translate} \stackrel{\triangle}{=} \exists \entrytw \ldotp \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qfracfots\naddr \]
   \item Page Table Level Translation (L1):
-    \[ \textsf{L1translate} \stackrel{\triangle}{=} \exists \entryo \ldotp \nfpointsto{\mask\vaddr\ft\entrytw}{\mask\vaddr\tw\entrytw}\entryo\qfracfot\naddr \]
+    \[ \textsf{L1translate}  \stackrel{\triangle}{=} \exists \entryo \ldotp \nfpointsto{\mask\vaddr\ft\entrytw}{\mask\vaddr\tw\entrytw}\entryo\qfracfot\naddr \]
   \item Page Address Level Translation
     \[ \textsf{PageAccess} \stackrel{\triangle}{=} \exists \vpage \ldotp \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr \]
     
@@ -54,16 +54,15 @@ where, for an example virtual address \textsf{va} and given \textsf{CR3} in Figu
 \begin{figure*}
 \[
 \begin{array}{l}
-  \ppointsto\vaddr\locsf\vpts \stackrel{def}{=} \lambda \tlf\Loc.\\
-  \exists_{\tlfoff\Locn \;, \tltoff\Locn \;, \tltwoff\Locn \;,\tlooff\Locn \;, \tpgoff\Loctw \;, \tlt\Loc \;, \tltw\Loc \;, \tlo\Loc \tpg\Loc} \ldotp \\
-  \ulcorner \textsf{aligned } \vaddr \urcorner \star 
-   \ulcorner \vaddr = \locsx :: \lfoff :: \ltoff :: 
-   \ltwoff :: \looff :: \pgoff \urcorner \star\\
-  \pfpointsto{\lvlsum\crt\lfoff}{\lvlbor\lt}\qfracfotsss\ppts \star 
-  \pfpointsto{\lvlsum\lt\ltoff}{\lvlbor\ltw}\qfracfotss\ppts \star \\
-  \pfpointsto{\lvlsum\ltw\ltwoff}{\lvlbor\lo}\qfracfots\ppts \star 
-  \pfpointsto{\lvlsum\lo\looff}{\lvlbor\pg}\qfracfot\ppts \star \\
-  \ppointsto{\pageptstosum\pg\pgoff}\locsf\ppts 
+  \ppointsto\vaddr\locsf\vpage \stackrel{def}{=} \lambda \crthree.\\
+  \exists_{\entryf \;, \entrytr \;, \entrytw \;,\entryo} \ldotp 
+
+  \ulcorner \textsf{aligned } \vaddr \urcorner \star  \\
+  \nfpointsto{\mask\vaddr\ft\crthree}{\mask\vaddr\tw\crthree}\entryf\qfracfotsss\naddr \star \\ 
+   \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qfracfotss\naddr  \star  \\
+   \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qfracfots\naddr \star \\
+  \nfpointsto{\mask\vaddr\ft\entrytw}{\mask\vaddr\tw\entrytw}\entryo\qfracfot\naddr \star \\
+   \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr 
 \end{array}
 \]
 \caption{A Strong Virtual Points-to Relation}
