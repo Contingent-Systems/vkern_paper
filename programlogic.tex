@@ -1,18 +1,10 @@
 \section{Program Logic for Location Virtualization}
 \label{sec:logic}
-Our reasoning principles are shaped around understanding the following issues exhibiting themselves withing the context of vritual-memory-management:
+Our reasoning principles are shaped around understanding the following two main pillars of vritual-memory-management:
 \begin{enumerate}
-\item abstracting the relation between memory (virtual) addresses and the physical page addresses backing these virtual addresses
-\item regarding the address-space management, we propose reasoning principles for
-  \begin{itemize}
-  \item aliasing/sharing Physical Pages:
-  \item abstracting address-space as a modality
-    \begin{itemize}
-    \item modal resource context:
-    \item interaction:
-    \end{itemize}
-    \item Hoare-Doubles: 
-  \end{itemize}
+\item page-table walk: L4-L1 walk on shared page tables to reach a physical page address
+\item allocating/updating a pages backing a virtual address 
+\item switching from one address-space to another 
 \end{enumerate}
 %\subsection{Machine State under Address Translation}
 %\label{sec:selectedinstrsemantics}
