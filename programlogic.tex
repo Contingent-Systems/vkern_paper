@@ -61,18 +61,23 @@ where, for an example virtual address \textsf{va} and given \textsf{CR3} in Figu
   One could give a naive logical definition to the virtual mememory addressing as conjuctions of each level translation (Figure \fref{fig:strongvirtualpointsto}). The very first assurance our logical constructions need to be able assert is the \textit{existence} of the page table walk. Our naive attempt shown in Figure \ref{figure:strongvirtualpointsto}, we see that a virtual address with a certain fractional permissions at each level of the page-table walk gives us sound assurance of the path existence reaching to a page table entry, consequently, with a full-ownership of page address, we can obtain and update the value mapped value at this physical page address through our virtual memory address. 
 
 \begin{figure*}
-\[
+  \[
+  \begin{array}{l}
 \begin{array}{l}
   \vaddr\mapsto_{\textsf{v}}\{\textsf{q}\}\vpage \stackrel{def}{=} \lambda \crthree.\\
   \exists_{\entryf \;, \entrytr \;, \entrytw \;,\entryo} \ldotp 
 
   \ulcorner \textsf{aligned } \vaddr \urcorner \star  \\
-  \nfpointsto{\mask\vaddr\ft\crthree}{\mask\vaddr\tw\crthree}\entryf\qfracfotsss\naddr \star \\ 
-   \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qfracfotss\naddr  \star  \\
-   \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qfracfots\naddr \star \\
-  \nfpointsto{\mask\vaddr\ft\entrytw}{\mask\vaddr\tw\entrytw}\entryo\qfracfot\naddr \star \\
+  \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\entryf,\entrytr,\entrytw,\entryo)\\
    \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr 
-\end{array}
+\end{array} \\
+
+\textsf{where   }\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\entryf,\entrytr,\entrytw,\entryo) \stackrel{\triangle}{=} \\
+ \qquad\qquad \nfpointsto{\mask\vaddr\ft\crthree}{\mask\vaddr\tw\crthree}\entryf\qfracfotsss\naddr \star \\ 
+ \qquad\qquad  \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qfracfotss\naddr  \star  \\
+  \qquad\qquad \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qfracfots\naddr \star \\
+  \qquad\qquad \nfpointsto{\mask\vaddr\ft\entrytw}{\mask\vaddr\tw\entrytw}\entryo\qfracfot\naddr 
+   \end{array}
 \]
 \caption{A Strong Virtual Points-to Relation}
 \todo[inline]{These fractions aren't quite right (though I see you added the variance between levels), I can walk you through in our meeting tomorrow.}
@@ -112,7 +117,9 @@ Then, our virtual memory addressing would be the fragmental ownership of the abs
 \label{sec:aspacemodal}
 Abstractions we introduce for virtual address spaces are based on two pillars:
 \begin{enumerate}
-\item a global address space invariant asserting the authorative ownership of the ghost map, , summarizing the existence of the page-table walks, and for each physical page address reached by one of these abstract page-table walks we know that there exists concrete physical page-table accesses, i.e. L4-L1 pointsto
+\item a global address space invariant asserting the authorative ownership of the ghost map, $\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$ 
+\item for each ghost page-table-walk mapping,  $\sumwalkabs\vaddr\qfrac\paddr$, there exists concrete physical page-table accesses path
+  \[\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\entryf,\entrytr,\entrytw,\entryo)\]
   \item  a modal definition describing the truth of assertions for the resources inside the address space, $[r]P$ indicating that $P$ holds in the virtual address space rooted at $r$.  This is essentially what hybrid logic \ref{} calls a satisfaction operator, which evaluates the truth of a predicate in a named alternative state (here, address space). 
 \end{enumerate}
     \subsubsection{Global Per-Addressspace Invariant}
