@@ -94,11 +94,14 @@ provided by a fragmentery ghost resrource ownership of $\mathcal{A}\textsf{bsPTa
 \begin{remark}[Exchanging Page-Table-Walk-Summarization Mappings (Tokens) with Physical Page-Table-Walk Pointstos ]
 $\mathcal{A}\textsf{PTableWalk}$ is a ghost map resource where fragmental-ownership of an individual key-value pair (per-element) can be handled as a resource. We use this mechanism to separate the virtual-to-physical translation from the physical memory involved: virtual points-to assertions can be defined in terms of fragmental ownership (ownership of an element) of these partial ghost map entry assertions , $\sumwalkabs\vaddr\qfrac\paddr$, plus sharing an invariant ($\mathcal{I}$\textsf{ASpace} in Figure \ref{fig:peraspaceinvariant}) that the current installed page table respects all entries of the mapping, $\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$. From one another perspective, unmapping pages collects the fragmental map kvpairs, e.g. $\sumwalkabs\vaddr\qfrac\paddr$, from collecting the assertions, and then can remove them from the ghost map and update the page tables. Critically, physical full ownership of the page tables lives, $\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$, in the central invariant on the current page table, so some virtual pointsto assertions can refer to memory in those page tables.% This still works with the modality, since that invariant is also semantically a predicate on a page table root.
 \end{remark}
+Then, our virtual memory addressing would be the fragmental ownership of the abstract page-table-walk mapping with the physical page address mapping as shown in Figure \ref{fig:virtualpointstosharing}. 
 \begin{figure*}
 \[
 \begin{array}{l}
-  \textsf{VirtPtsTo}\stackrel{def}{=} \lambda \tlf\Loc.\\
-  \ownGhost\gamma{a} 
+  \textsf{VPointsTo}(\vaddr \;, \vpage)\stackrel{\triangle}{=} 
+  \exists \entryo \ldotp 
+  \sumwalkabs\vaddr\qfrac\paddr \star 
+   \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr
 \end{array}
 \]
 \caption{Virtual-Pointsto for Sharing Pages}
