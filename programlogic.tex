@@ -84,12 +84,12 @@ where, for an example virtual address \textsf{va} and given \textsf{CR3} in Figu
 
   \subsection{Aliasing/Sharing Physical Pages}
   \label{sec:sharingpages}
-  We already build the intuition on what a virtual address mapping is composed of: 1. traversing the page tables to reach the page table entry 2. fetching the physical address, and accessing the value mapped. This two fold access-pattern enabling sharing of pages by virtual memory addresses exhibits logically sound representation against virtual memory operations some of which ((e.g. mapping a new page) we explain in detail in Section \ref{}.
+  We already build the intuition on what a virtual address mapping is composed of: 1. traversing the page tables to reach the page table entry 2. obtaining the physical address, and accessing the value mapped.
   
-One might have already observed that this virtual points-to definition is too strong to specify virtual memory operations, some of which we explain within as part of experiement in Section \ref{}, which  requires reasoning of sharing physical pages across different virtual memory addresses. Although there seems to fractional permissions for fragmental ownership of page-table entries, strong virtual points-to (in Figure \ref{strongvirtualpointsto}) relation doesn’t care about owning those fractional resources, it only cares that something ensures the correct page table walk exists. Therefore we need to weaken the virtual-pointsto to capture the acutal sharing accross the virtual addresses. 
+One might have already observed that the virtual points-to definition shown in Figure \ref{fig:strongvirtualpointsto} is too strong to specify virtual memory operations updating a page table entry. Although there seems to fractional permissions for fragmental ownership of page-table entries, strong virtual points-to (in Figure \ref{strongvirtualpointsto}) relation doesn’t care about owning those fractional resources, it only cares that something ensures the correct page table walk exists. Any virtual memory operations such as mapping a new page which updates an page table entry would violate the soundness of other virtual-pointsto relations in the existence of page-sharing across the virtual addresses in the same address space. 
 
 One possible approach to is to just abstracting the \textit{valid} page-table walk existence from a each virtual address (e.g. \textsf{va}) to a physical page address, as \textit{per-element} ownership of a logical \textit{page-table-walk-summarization-map}
-\[\mathcal{M}\textsf{PTableWalk} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \;  (\mathcal{W}_{64} \; \rightarrow_{\textrm{fin}}\;  (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \Loc,\mathord{=}) ))\]
+\[\mathcal{A}\textsf{bsPTableWalk} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \;  (\mathcal{W}_{64} \; \rightarrow_{\textrm{fin}}\;  (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \Loc,\mathord{=}) ))\]
 provided by a fragmentery ghost resrource ownership of $\mathcal{A}\textsf{bsPTableWalk}$.
 \begin{remark}[Exchanging Page-Table-Walk-Summarization Mappings (Tokens) with Physical Page-Table-Walk Pointstos ]
 $\mathcal{A}\textsf{PTableWalk}$ is a ghost map resource where fragmental-ownership of an individual key-value pair (per-element) can be handled as a resource. We use this mechanism to separate the virtual-to-physical translation from the physical memory involved: virtual points-to assertions can be defined in terms of fragmental ownership (ownership of an element) of these partial ghost map entry assertions , $\sumwalkabs\vaddr\qfrac\paddr$, plus sharing an invariant ($\mathcal{I}$\textsf{ASpace} in Figure \ref{fig:peraspaceinvariant}) that the current installed page table respects all entries of the mapping, $\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$. From one another perspective, unmapping pages collects the fragmental map kvpairs, e.g. $\sumwalkabs\vaddr\qfrac\paddr$, from collecting the assertions, and then can remove them from the ghost map and update the page tables. Critically, physical full ownership of the page tables lives, $\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$, in the central invariant on the current page table, so some virtual pointsto assertions can refer to memory in those page tables.% This still works with the modality, since that invariant is also semantically a predicate on a page table root.
@@ -105,19 +105,23 @@ Then, our virtual memory addressing would be the fragmental ownership of the abs
 \end{array}
 \]
 \caption{Virtual-Pointsto for Sharing Pages}
-\todo[inline]{These fractions aren't quite right (though I see you added the variance between levels), I can walk you through in our meeting tomorrow.}
   \label{fig:virtualpointstosharing}
 \end{figure*}
 
 \subsection{Address-Space Abstraction}
 \label{sec:aspacemodal}
-Abstractions we introduce for virtual address spaces are based on two pillars: 1. a global address space invariant asserting the authorative ownership of the ghost map, , summarizing the existence of the page-table walks, and for each physical page address reached by one of these abstract page-table walks we know that there exists concrete physical page-table accesses, i.e. L4-L1 pointsto  2. a modal definition describing the truth of assertions for the resources inside the address space, $[r]P$ indicating that $P$ holds in the virtual address space rooted at $r$.  This is essentially what hybrid logic \ref{} calls a satisfaction operator, which evaluates the truth of a predicate in a named alternative state (here, address space). 
-\subsubsection{Global Per-Addressspace Invariant}
+Abstractions we introduce for virtual address spaces are based on two pillars:
+\begin{enumerate}
+\item a global address space invariant asserting the authorative ownership of the ghost map, , summarizing the existence of the page-table walks, and for each physical page address reached by one of these abstract page-table walks we know that there exists concrete physical page-table accesses, i.e. L4-L1 pointsto
+  \item  a modal definition describing the truth of assertions for the resources inside the address space, $[r]P$ indicating that $P$ holds in the virtual address space rooted at $r$.  This is essentially what hybrid logic \ref{} calls a satisfaction operator, which evaluates the truth of a predicate in a named alternative state (here, address space). 
+\end{enumerate}
+    \subsubsection{Global Per-Addressspace Invariant}
+    
 \label{sec:peraspaceinvariant}
 \begin{figure*}
 \[
 \begin{array}{l}
-  \textsf{ASpaceInv}\stackrel{def}{=} \lambda \tlf\Loc.\\
+  \mathcal{I}\textsf{ASpace} \stackrel{def}{=} \lambda \tlf\Loc.\\
   \ownGhost\gamma{a}
 \end{array}
 \]
