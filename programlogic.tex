@@ -75,7 +75,7 @@ where, for an example virtual address \textsf{va} and given \textsf{CR3} in Figu
 %\[  \paddr\mapsto_{\textsf{a}}\{1\}\vsome \ast \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfrac\naddr \]
   \subsection{Aliasing/Sharing Physical Pages}
   \label{sec:sharingpages}
-  Here we see that virtual address mapping is obtained simply in two fold: 1. traversing the page tables to reach the page table entry 2. fetch the physical address and the value it is adressing (Section \ref{fig:physicalpointsto}). This two fold access-pattern enabling sharing of pages by virtual memory addresses exhibits logically sound representation against virtual memory operations some of which ((e.g. mapping a new page) we explain in detail in Section \ref{}.
+  We already build the intuition on what a virtual address mapping is composed of: 1. traversing the page tables to reach the page table entry 2. fetching the physical address, and accessing the value mapped. This two fold access-pattern enabling sharing of pages by virtual memory addresses exhibits logically sound representation against virtual memory operations some of which ((e.g. mapping a new page) we explain in detail in Section \ref{}.
   
 One might have already observed that this virtual points-to definition is too strong to specify any virtual memory operations, some of which we explain within as part of experiement in Section \ref{}, require reasoning of sharing of physicall pages accross virtual memory addresses because this strong virtual points-to relation doesn’t care about owning those fractional resources, it only cares that something ensures the correct page table walk exists. Therefore we need to weaken the virtual-pointsto to capture the acutal sharing accross the virtual addresses. 
 
