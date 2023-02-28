@@ -120,7 +120,7 @@ Abstractions we introduce for virtual address spaces are based on two pillars:
 \item a global address space invariant asserting the authorative ownership of the ghost map, $\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$ 
 \item for each ghost page-table-walk mapping,  $\sumwalkabs\vaddr\qfrac\paddr$, there exists concrete physical page-table accesses path
   \[\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\entryf,\entrytr,\entrytw,\entryo)\]
-  \item  a modal definition describing the truth of assertions for the resources inside the address space, $[r]P$ indicating that $P$ holds in the virtual address space rooted at $r$.  This is essentially what hybrid logic \ref{} calls a satisfaction operator, which evaluates the truth of a predicate in a named alternative state (here, address space). 
+  \item a modal definition describing the truth of assertions for the resources inside the address space, $[r]P$ indicating that $P$ holds in the virtual address space rooted at $r$.  This is essentially what hybrid logic \ref{} calls a satisfaction operator, which evaluates the truth of a predicate in a named alternative state (here, address space). 
 \end{enumerate}
     \subsubsection{Global Per-Addressspace Invariant}
     
@@ -128,8 +128,9 @@ Abstractions we introduce for virtual address spaces are based on two pillars:
 \begin{figure*}
 \[
 \begin{array}{l}
-  \mathcal{I}\textsf{ASpace} \stackrel{def}{=} \lambda \tlf\Loc.\\
-  \ownGhost\gamma{a}
+  \mathcal{I}\textsf{ASpace} \stackrel{\triangle}{=} \lambda \; \crthree \ldotp
+  \exists\;\gammaPred \;\ldotp\; \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \star \\
+  \bigast{(\vaddr, \entryo)\in \ptablestore}{\exists\;(\entryf\;,\entrytr\;,\entrytw)\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\vaddr,\entryf,\entrytr,\entrytw,\entryo)}
 \end{array}
 \]
 \caption{Global Address-Space Invarian}
