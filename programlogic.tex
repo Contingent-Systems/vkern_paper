@@ -115,16 +115,20 @@ Then, our virtual memory addressing would be the fragmental ownership of the abs
 
 \subsection{Address-Space Abstraction}
 \label{sec:aspacemodal}
-Abstractions we introduce for virtual address spaces are based on two pillars:
+Abstractions we introduce for virtual address spaces are based on the following aspects:
 \begin{enumerate}
 \item a global address space invariant asserting the authorative ownership of the ghost map, $\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$ 
 \item for each ghost page-table-walk mapping,  $\sumwalkabs\vaddr\qfrac\paddr$, there exists concrete physical page-table accesses path
   \[\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\entryf,\entrytr,\entrytw,\entryo)\]
-  \item a modal definition describing the truth of assertions for the resources inside the address space, $[r]P$ indicating that $P$ holds in the virtual address space rooted at $r$.  This is essentially what hybrid logic \ref{} calls a satisfaction operator, which evaluates the truth of a predicate in a named alternative state (here, address space). 
+  \item all virtual pointsto assertions happen to be true in a certain address space, i.e. the truth on address virtualization is indexed by CPUs page table register ($\crthree$ for x86-64), and we present modal reasoning principles for updating $\crthree$ (switching from the current address space to another)  
 \end{enumerate}
-    \subsubsection{Global Per-Addressspace Invariant}
-    
-\label{sec:peraspaceinvariant}
+    \subsubsection{Global Per-Address-Space Invariant}
+    \label{sec:peraspaceinvariant}
+    Virtual points-to assertions would need to be defined in terms of physical points-to assertions and hardware-specific address translation assertions for mapped virtual addresses ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\entryf,\entrytr,\entrytw,\entryo)$ in Figure \ref{fig:peraspaceinvariant}). For each virtual address \textit{mapped} with a physical page table entry, abstracted with ghost mappings ($\sumwalkabs\vaddr\qfrac\paddr$) in virtul-pointsto relations as shown in Figure \ref{fig:virtualpointstosharing}), there exsits a physical page table walk.  
+    \[ \bigast{(\vaddr, \entryo)\in \ptablestore}{\exists\;(\entryf\;,\entrytr\;,\entrytw)\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\vaddr,\entryf,\entrytr,\entrytw,\entryo)} \]
+    By separating the virtual-points Overlapping address spaces — both shared data, and shared page tables
+which may see updates — can be coordinated with protocols to ensure those updates preserve
+address space invariants.
 \begin{figure*}
 \[
 \begin{array}{l}
@@ -133,18 +137,23 @@ Abstractions we introduce for virtual address spaces are based on two pillars:
   \bigast{(\vaddr, \entryo)\in \ptablestore}{\exists\;(\entryf\;,\entrytr\;,\entrytw)\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\vaddr,\entryf,\entrytr,\entrytw,\entryo)}
 \end{array}
 \]
-\caption{Global Address-Space Invarian}
-\todo[inline]{These fractions aren't quite right (though I see you added the variance between levels), I can walk you through in our meeting tomorrow.}
+\caption{Global Address-Space Invariant}
   \label{fig:peraspaceinvariant}
 \end{figure*}
 \subsubsection{Address-Space Modality}
 \label{sec:aspacemodalist}
+
+The truth on an address space, exhibits itself as a contingent truth: a location virtualization assertion (a virtual points-to in \ref{fig:virtualpointstosharing}),  happens to valid in the \textit{current world} (in the current address space), and switching address spaces pulls information out of one \textit{world} into the “current view” of memory, and leaves other assertions true relative to the previous address space.
+
+Therefore, an address-space, as an abstraction, can be treated as naming the memory state as a modal frame and the choice of page table root as a world in Kripke-style semantics. Not suprisingly, transition between two address-spaces, then, can be just an entailment relation \textit{alternating} the \textit{named-state} against the address-space invariant ($\mathcal{I}\textsf{ASpace}$ in Figure \ref{fig:peraspaceinvariant}). 
+
+Being inspired by what hybrid logic \ref{} calls a satisfaction operator, which evaluates the truth of a predicate in a named alternative state (here, address space), we give a modal definition describing the truth of assertions for the resources inside the address space, $[r]P$ indicating that $P$ holds in the virtual address space rooted at $r$. While doing so, we explain what a modal resource context is, and how it interacts with the ambient logic, i.e. separation logic.
 \paragraph{Modal Resource Context}
 \label{sec:resourcecontext}
-\todo[inline,color=green]{ismail, speak about virtual points-to established under a certain root of an address space}
+
 \paragraph{Interaction}
 \label{sec:interaction}
-\todo[inline,color=green]{ismail: speak about the interection with ambient logic}
+
 \subsection{Considering Hoare Doubles in the Context of Switching Address-Space}
 An important subtlety arises with supporting \lstinline|mov|s into \lstinline|%cr3|. Consider the hypothetical rule:
 \begin{mathpar}
