@@ -147,8 +147,8 @@ The truth on an address space, exhibits itself as a contingent truth: a location
 Therefore, an address-space, as an abstraction, can be treated as naming the memory state as a modal frame and the choice of page table root as a world in Kripke-style semantics. Not suprisingly, transition between two address-spaces, then, can be just an entailment relation \textit{alternating} the \textit{named-state} against the address-space invariant ($\mathcal{I}\textsf{ASpace}$ in Figure \ref{fig:peraspaceinvariant}). 
 \[
   \begin{array}{l}
-\hbox{(\TirNameStyle{ModalAddressSpace})} \qquad
- [r](P)  \;\stackrel{\triangle}{=} (\mathcal{W}_{64} -\textsf{b}> \textsf{uPredI} (\textsf{iResUR} \;\Sigma)) -\textsf{b}> \textsf{uPredI} \_ := \lambda \textsf{P},\; \textsf{P r}. 
+    \hbox{(\TirNameStyle{ModalAddressSpace})} \\ \qquad
+         [r](P)  \;\stackrel{\triangle}{=}  (\mathcal{W}_{64} -\textsf{b}> \textsf{uPredI} (\textsf{iResUR} \;\Sigma)) -\textsf{b}> \textsf{uPredI} \_ := \lambda \textsf{P},\; \textsf{P r}. 
   \end{array}
 \]
 Being inspired by what hybrid logic \ref{} calls a satisfaction operator, which evaluates the truth of a predicate in a named alternative state (here, address space), we give a modal definition describing the truth of assertions for the resources (i.e. virtual pointsto relations) inside the address space. Ignoring the predicate types for a while, $[r]P$ in Definition $\hbox{(\TirNameStyle{ModalAddressSpace})}$, indicates that $P$ holds in the virtual address space rooted at $r$, the truth ($P$) on an address-space is indexed by the root page-table address $r$ of the address-space. In the rest of this section, we explain the structural aspects -- the modal resource context of address space modality -- , and how we lift the interaction of address-space modality with the ambient logic, i.e. separation logic as an entailment for specifying \textit{address-space-switch}.  
@@ -179,7 +179,7 @@ So far, we have just mentioned the structural properties of our modal definition
 \{ \crthree \mapsto_{r} r0 \star \textsf{va1} \mapsto_{v} \textsf{v}_1 \star \textsf{va2} \mapsto_{v} \textsf{v}_2 \star \textsf{va3} \mapsto_{v} \textsf{v}_3 \star [r1]\;P
 \]
 where we see the \textit{current address-space} rooted at $r0$ is loaded into the  \textit{current-view} of the memory with its resources ($ \textsf{va1} \mapsto_{v} \textsf{v}_1 \star \textsf{va2} \mapsto_{v} \textsf{v}_2 \star \textsf{va3} \mapsto_{v} \textsf{v}_3$), and framed by the address-space rooted at $r1$ with resources $P$. 
-Now, we need to a rule capturing the notion that switching the address spaces by pulling the resources ($P$) out of the one under modality into the \textit{“current view”} of memory, and leaves other assertions true relative to the previous address space (the one rooted at $r0$). To do so, we need to have a proof rule for the instruction (\lstinline|mov\_ctl|) updating the $\crthree$ register.
+Now, we need to a rule capturing the notion that switching the address spaces by pulling the resources ($P$) out of the one under modality into the \textit{“current view”} of memory, and leaves other assertions true relative to the previous address space (the one rooted at $r0$). To do so, we need to have a proof rule for the instruction (\lstinline|mov_ctl|) updating the $\crthree$.
 
 \subsection{Considering Hoare Doubles in the Context of Switching Address-Space}
 An important subtlety arises with supporting \lstinline|mov|s into \lstinline|%cr3|. Consider the hypothetical rule:
@@ -236,7 +236,28 @@ Virtual points-to assertions could be made self-stable by also giving them parti
 
 \begin{figure}
 \begin{mathpar}
-\inferrule[ChangeAddressSpace]{
+\inferrule[WriteToMemoryFromReg]{
+  \{[r_1](P) \ast cr3=r_2 \ast r = r_2 \ast Q\}\overline{is}
+}{
+  \{P \ast cr3=r_1 \ast r=r_2 \ast [r_2](Q)\}
+  \texttt{mov}~\texttt{\%cr3},~r;\;\overline{is}
+  %\lstinline|mov %cr3, r| 
+} 
+\inferrule[WriteToRegFromReg]{
+  \{[r_1](P) \ast cr3=r_2 \ast r = r_2 \ast Q\}\overline{is}
+}{
+  \{P \ast cr3=r_1 \ast r=r_2 \ast [r_2](Q)\}
+  \texttt{mov}~\texttt{\%cr3},~r;\;\overline{is}
+  %\lstinline|mov %cr3, r| 
+} \\ 
+\inferrule[WriteToRegFromMem]{
+  \{[r_1](P) \ast cr3=r_2 \ast r = r_2 \ast Q\}\overline{is}
+}{
+  \{P \ast cr3=r_1 \ast r=r_2 \ast [r_2](Q)\}
+  \texttt{mov}~\texttt{\%cr3},~r;\;\overline{is}
+  %\lstinline|mov %cr3, r| 
+}
+\inferrule[WriteToCtlFromReg]{
   \{[r_1](P) \ast cr3=r_2 \ast r = r_2 \ast Q\}\overline{is}
 }{
   \{P \ast cr3=r_1 \ast r=r_2 \ast [r_2](Q)\}
