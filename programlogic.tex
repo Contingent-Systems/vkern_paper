@@ -176,7 +176,7 @@ The choice of resource defining the modal context already exhibits itself as a r
 \label{sec:interaction}
 So far, we have just mentioned the structural properties of our modal definition (Remark \ref{remark:pattern}), and what inherent entailments (Rule \hbox{(\TirNameStyle{ModalContextInvariance})}) these properties provide. However, all these structural aspects of using the address-space modality ($[r]P$) considers the fixed index ($r$) of on the truth $P$. From the client's perspective, structural properties of the modal abstraction mainly constitutes the modal frame with summarizing the facts for one another address-space under the address-space modality roughly as it is in the following spec
 \[
-\{ \crthree \mapsto_{r} r0 \star \textsf{va1} \mapsto_{v} \textsf{v}_1 \star \textsf{va2} \mapsto_{v} \textsf{v}_2 \star \textsf{va3} \mapsto_{v} \textsf{v}_3 \star [r1]\;P
+\{ \crthree \mapsto_{r} r0 \star \textsf{va1} \mapsto_{v} \textsf{v}_1 \star \textsf{va2} \mapsto_{v} \textsf{v}_2 \star \textsf{va3} \mapsto_{v} \textsf{v}_3 \star [r1]\;P \}
 \]
 where we see the \textit{current address-space} rooted at $r0$ is loaded into the  \textit{current-view} of the memory with its resources ($ \textsf{va1} \mapsto_{v} \textsf{v}_1 \star \textsf{va2} \mapsto_{v} \textsf{v}_2 \star \textsf{va3} \mapsto_{v} \textsf{v}_3$), and framed by the address-space rooted at $r1$ with resources $P$. 
 Now, we need to a rule capturing the notion that switching the address spaces by pulling the resources ($P$) out of the one under modality into the \textit{“current view”} of memory, and leaves other assertions true relative to the previous address space (the one rooted at $r0$). To do so, we need to have a proof rule for the instruction (\lstinline|mov_ctl|) updating the $\crthree$.
@@ -185,23 +185,23 @@ Now, we need to a rule capturing the notion that switching the address spaces by
 An important subtlety arises with supporting \lstinline|mov|s into \lstinline|%cr3|. Consider the hypothetical rule:
 \begin{mathpar}
 \inferrule[Broken]{ }{
-  \{P \ast cr3=r_1 \ast r=r_2 \ast [r_2](Q)\}
+  \{P \ast cr3\mapsto_{r} \;r_1 \ast r \mapsto_{r} \;r_2 \ast [r_2](Q)\}
   \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
-  \{[r_1](P) \ast cr3=r_2 \ast r = r_2 \ast Q\}
+  \{[r_1](P) \ast cr3 \mapsto_{r} r_2 \ast r \mapsto_{r} r_2 \ast Q\}
 }
 \end{mathpar}
 This rule captures the intuitive change of address space in a Hoare triple, rather than double, form. The problem with this is that it interacts quite poorly with the traditional frame rule and the modal flavor of virtual points-to assertions:
 \begin{mathpar}
   \inferrule*[right=Frame]{
     \inferrule*[right=Broken]{ }{
-    \{\mathsf{emp} \ast cr3=r_1 \ast r=r_2 \ast [r_2](Q)\}
+    \{\mathsf{emp} \ast cr3 \mapsto_{r} r_1 \ast r\mapsto_{r} r_2 \ast [r_2](Q)\}
     \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
-    \{[r_1](\mathsf{emp}) \ast cr3=r_1 \ast r=r_2 \ast Q\}
+    \{[r_1](\mathsf{emp}) \ast cr3 \mapsto_{r} r_1 \ast r \mapsto_{r} r_2 \ast Q\}
     }
   }{
-    \{a\mapsto_\mathsf{v} x \ast \mathsf{emp} \ast cr3=r_1 \ast r=r_2 \ast [r_2](Q)\}
+    \{a\mapsto_\mathsf{v} x \ast \mathsf{emp} \ast cr3\mapsto_{r}r_1 \ast r \mapsto_{r}r_2 \ast [r_2](Q)\}
     \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
-    \{a\mapsto_\mathsf{v} x \ast [r_1](\mathsf{emp}) \ast cr3=r_1 \ast r=r_2 \ast Q\}
+    \{a\mapsto_\mathsf{v} x \ast [r_1](\mathsf{emp}) \ast cr3 \mapsto_{r} r_1 \ast r \mapsto_{r} r_2 \ast Q\}
   }
 \end{mathpar}
 Notice that both the precondition and postcondition assert that $a\mapsto_\mathsf{v} x$ in the current address space, but we have no basis for concluding that address translation is preserved by the change of address space. So this derivation clearly leads to an unsound conclusion. This suggestss that the traditional frame rule and the Hoare triple presentation of the change-of-address-space rule cannot soundly coexist in the same system.
@@ -212,9 +212,9 @@ Switching to Hoare doubles resolves this problem because an under-appreciated su
 This is then how we justify our actual rule for \lstinline|cr3| updates:
 \begin{mathpar}
 \inferrule[ChangeAddressSpace]{
-  \{[r_1](P) \ast cr3=r_2 \ast r = r_2 \ast Q\}\overline{is}
+  \{[r_1](P) \ast cr3 \mapsto_{r} r_2 \ast r \mapsto_{r} r_2 \ast Q\}\overline{is}
 }{
-  \{P \ast cr3=r_1 \ast r=r_2 \ast [r_2](Q)\}
+  \{P \ast cr3 \mapsto_{r} r_1 \ast r \mapsto_{r} r_2 \ast [r_2](Q)\}
   \texttt{mov}~\texttt{\%cr3},~r;\;\overline{is}
   %\lstinline|mov %cr3, r| 
 }
@@ -233,7 +233,7 @@ By demanding that \lstinline|cr3| be held constant (or rather, at least restored
 
 Readers familiar with dynamic frames~\cite{parkinson2011relationship} might find it useful to notice that a different perspective on this matter is that virtual points-to assertions are self-stable \emph{except} for changes in \lstinline|cr3|, so framing would then naturally require other means of holding \lstinline|cr3| constant (or saving and restoring it).
 Virtual points-to assertions could be made self-stable by also giving them partial ownership over \lstinline|cr3| assertions, but this would require explicitly plumbing that ownership from \emph{all} assertions back to any place an address space change might occur; this would seem to be a far graver loss of modularity than this extra quirk in framing discussions.
-
+\todo{inlined, color= red}[STOP HERE, go back fix the stuff discussed with COLIN]
 \begin{figure}
 \begin{mathpar}
 \inferrule[WriteToMemoryFromReg]{
