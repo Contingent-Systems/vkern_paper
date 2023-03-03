@@ -44,7 +44,7 @@ As part of assertions on our machine state ($\sigma$), we abstract memory addres
 where, for an example virtual address \textsf{va} and given \textsf{CR3} in Figure \ref{}, we can abstract the L4-L1 table traversal as the following:
 \begin{itemize}
   \item Page Map Level-4 Translation (L4): Calculating the offset to the 4 \textsf{Kbyte Physical Page} table to obtain the  physical address by  which resides in the last 12 bits of the virtual memory address, $\locsf|^{12}$,  shown in Figure \ref{}.
-    % \pfpointsto{\lvlsum\crt\lfoff}{\lvlbor\lt}\qfracfotsss\ppts \star
+    % \pfpointsto{\lvlsum\crt\lfoff}{\lvlbor\lt}\qfracfotsss\ppts \ast
     \[ \textsf{L4translate} \stackrel{\triangle}{=} \exists \entryf \ldotp \nfpointsto{\mask\vaddr\ft\crthree}{\mask\vaddr\tw\crthree}\entryf\qfracfotsss\naddr \]
   \item Page Directory Pointer Level Translation (L3):
     \[ \textsf{L3translate} \stackrel{\triangle}{=} \exists \entrytr \ldotp \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qfracfotss\naddr \]
@@ -67,15 +67,15 @@ where, for an example virtual address \textsf{va} and given \textsf{CR3} in Figu
   \vaddr\mapsto_{\textsf{v}}\{\textsf{q}\}\vpage \stackrel{def}{=} \lambda \crthree.\\
   \exists_{\entryf \;, \entrytr \;, \entrytw \;,\entryo} \ldotp 
 
-  \ulcorner \textsf{aligned } \vaddr \urcorner \star  \\
+  \ulcorner \textsf{aligned } \vaddr \urcorner \ast  \\
   \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\entryf,\entrytr,\entrytw,\entryo)\\
    \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr 
 \end{array} \\
 
 \textsf{where   }\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\entryf,\entrytr,\entrytw,\entryo) \stackrel{\triangle}{=} \\
- \qquad\qquad \nfpointsto{\mask\vaddr\ft\crthree}{\mask\vaddr\tw\crthree}\entryf\qfracfotsss\naddr \star \\ 
- \qquad\qquad  \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qfracfotss\naddr  \star  \\
-  \qquad\qquad \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qfracfots\naddr \star \\
+ \qquad\qquad \nfpointsto{\mask\vaddr\ft\crthree}{\mask\vaddr\tw\crthree}\entryf\qfracfotsss\naddr \ast \\ 
+ \qquad\qquad  \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qfracfotss\naddr  \ast  \\
+  \qquad\qquad \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qfracfots\naddr \ast \\
   \qquad\qquad \nfpointsto{\mask\vaddr\ft\entrytw}{\mask\vaddr\tw\entrytw}\entryo\qfracfot\naddr 
    \end{array}
 \]
@@ -105,7 +105,7 @@ Then, our virtual memory addressing would be the fragmental ownership of the abs
 \begin{array}{l}
     \vaddr\mapsto_{\textsf{v}}\{\textsf{q}\}\vpage \stackrel{\triangle}{=} 
   \exists \entryo \ldotp 
-  \sumwalkabs\vaddr\qfrac\paddr \star 
+  \sumwalkabs\vaddr\qfrac\paddr \ast 
    \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr
 \end{array}
 \]
@@ -133,7 +133,7 @@ address space invariants.
 \[
 \begin{array}{l}
   \mathcal{I}\textsf{ASpace} \stackrel{\triangle}{=} \lambda \; \crthree \ldotp
-  \exists\;\gammaPred \;\ldotp\; \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \star \\
+  \exists\;\gammaPred \;\ldotp\; \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \ast \\
   \bigast{(\vaddr, \entryo)\in \ptablestore}{\exists\;(\entryf\;,\entrytr\;,\entrytw)\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\vaddr,\entryf,\entrytr,\entrytw,\entryo)}
 \end{array}
 \]
@@ -160,7 +160,7 @@ The choice of resource defining the modal context already exhibits itself as a r
   \[
   \begin{array}{l}
 \hbox{(\TirNameStyle{ModalContextInvariance})} \qquad
- [r](Q \star \ell \mapsto_{\textsf{p}} \vpage)  \;\vdash [r](Q) \star \ell \mapsto_{\textsf{p}} \vpage 
+ [r](Q \ast \ell \mapsto_{\textsf{p}} \vpage)  \;\vdash [r](Q) \ast \ell \mapsto_{\textsf{p}} \vpage 
   \end{array}
   \]
 \begin{remark}[The Choice of Modal Context Definition as a Pattern of Verification Context]
@@ -176,9 +176,9 @@ The choice of resource defining the modal context already exhibits itself as a r
 \label{sec:interaction}
 So far, we have just mentioned the structural properties of our modal definition (Remark \ref{remark:pattern}), and what inherent entailments (Rule \hbox{(\TirNameStyle{ModalContextInvariance})}) these properties provide. However, all these structural aspects of using the address-space modality ($[r]P$) considers the fixed index ($r$) of on the truth $P$. From the client's perspective, structural properties of the modal abstraction mainly constitutes the modal frame with summarizing the facts for one another address-space under the address-space modality roughly as it is in the following spec
 \[
-\{ \crthree \mapsto_{r} r0 \star \textsf{va1} \mapsto_{v} \textsf{v}_1 \star \textsf{va2} \mapsto_{v} \textsf{v}_2 \star \textsf{va3} \mapsto_{v} \textsf{v}_3 \star [r1]\;P \}
+\{ \crthree \mapsto_{r} r0 \ast \textsf{va1} \mapsto_{v} \textsf{v}_1 \ast \textsf{va2} \mapsto_{v} \textsf{v}_2 \ast \textsf{va3} \mapsto_{v} \textsf{v}_3 \ast [r1]\;P \}
 \]
-where we see the \textit{current address-space} rooted at $r0$ is loaded into the  \textit{current-view} of the memory with its resources ($ \textsf{va1} \mapsto_{v} \textsf{v}_1 \star \textsf{va2} \mapsto_{v} \textsf{v}_2 \star \textsf{va3} \mapsto_{v} \textsf{v}_3$), and framed by the address-space rooted at $r1$ with resources $P$. 
+where we see the \textit{current address-space} rooted at $r0$ is loaded into the  \textit{current-view} of the memory with its resources ($ \textsf{va1} \mapsto_{v} \textsf{v}_1 \ast \textsf{va2} \mapsto_{v} \textsf{v}_2 \ast \textsf{va3} \mapsto_{v} \textsf{v}_3$), and framed by the address-space rooted at $r1$ with resources $P$. 
 Now, we need to a rule capturing the notion that switching the address spaces by pulling the resources ($P$) out of the one under modality into the \textit{“current view”} of memory, and leaves other assertions true relative to the previous address space (the one rooted at $r0$). To do so, we need to have a proof rule for the instruction (\lstinline|mov_ctl|) updating the $\crthree$.
 
 \subsection{Considering Hoare Doubles in the Context of Switching Address-Space}
@@ -233,35 +233,35 @@ By demanding that \lstinline|cr3| be held constant (or rather, at least restored
 
 Readers familiar with dynamic frames~\cite{parkinson2011relationship} might find it useful to notice that a different perspective on this matter is that virtual points-to assertions are self-stable \emph{except} for changes in \lstinline|cr3|, so framing would then naturally require other means of holding \lstinline|cr3| constant (or saving and restoring it).
 Virtual points-to assertions could be made self-stable by also giving them partial ownership over \lstinline|cr3| assertions, but this would require explicitly plumbing that ownership from \emph{all} assertions back to any place an address space change might occur; this would seem to be a far graver loss of modularity than this extra quirk in framing discussions.
-\todo{inlined, color= red}[STOP HERE, go back fix the stuff discussed with COLIN]
 \begin{figure}
 \begin{mathpar}
-\inferrule[WriteToMemoryFromReg]{
-  \{[r_1](P) \ast cr3=r_2 \ast r = r_2 \ast Q\}\overline{is}
-}{
-  \{P \ast cr3=r_1 \ast r=r_2 \ast [r_2](Q)\}
-  \texttt{mov}~\texttt{\%cr3},~r;\;\overline{is}
-  %\lstinline|mov %cr3, r| 
-} 
 \inferrule[WriteToRegFromReg]{
-  \{[r_1](P) \ast cr3=r_2 \ast r = r_2 \ast Q\}\overline{is}
+  \{P \ast r_d \mapsto_{r} \texttt{rvs} \ast r_s \mapsto_{r}\{q\} \texttt{ rvs} \}\;\overline{ is}
 }{
-  \{P \ast cr3=r_1 \ast r=r_2 \ast [r_2](Q)\}
-  \texttt{mov}~\texttt{\%cr3},~r;\;\overline{is}
-  %\lstinline|mov %cr3, r| 
-} \\ 
-\inferrule[WriteToRegFromMem]{
-  \{[r_1](P) \ast cr3=r_2 \ast r = r_2 \ast Q\}\overline{is}
-}{
-  \{P \ast cr3=r_1 \ast r=r_2 \ast [r_2](Q)\}
-  \texttt{mov}~\texttt{\%cr3},~r;\;\overline{is}
+  \{P \ast r_d \mapsto_{r} \texttt{rvd} \ast r_s \mapsto_{r}\{q\} \texttt{ rvs} \}
+  \texttt{ mov}~\texttt{r}_d,~\texttt{r}_s;\;\overline{is}
   %\lstinline|mov %cr3, r| 
 }
-\inferrule[WriteToCtlFromReg]{
-  \{[r_1](P) \ast cr3=r_2 \ast r = r_2 \ast Q\}\overline{is}
+\\
+\inferrule[WriteToMemFromReg]{
+  \{P \ast r_s \mapsto_{r}\{q\}  \texttt{rvs} \ast \lstinline|cr3| \mapsto_{r} \texttt{cr3val}  \ast r_a \mapsto_{r} \{q\} \texttt{ vaddr} \ast \texttt{vaddr} \mapsto_{t,\texttt{cr3val}} \texttt{v} \}\;\overline{ is}  
 }{
-  \{P \ast cr3=r_1 \ast r=r_2 \ast [r_2](Q)\}
-  \texttt{mov}~\texttt{\%cr3},~r;\;\overline{is}
+  \{P \ast r_s \mapsto_{r}\{q\}  \texttt{rvs} \ast \lstinline|cr3| \mapsto_{r} \texttt{cr3val}  \ast r_a \mapsto_{r}\{q\} \texttt{ vaddr} \ast \texttt{vaddr} \mapsto_{t,\texttt{cr3val}} \texttt{rvs} \}
+  \texttt{ mov}~\texttt{r}_a,~\texttt{r}_s;\;\overline{is}
+}
+\\
+\inferrule[WriteToRegFromMem]{
+  \{P \ast r_d \mapsto_{r}  \texttt{v} \ast \lstinline|cr3| \mapsto_{r} \texttt{cr3val}  \ast r_a \mapsto_{r} \{q\} \texttt{ vaddr} \ast \texttt{vaddr} \mapsto_{t,\texttt{cr3val}} \texttt{v} \}\;\overline{is}
+}{
+  \{P \ast r_d \mapsto_{r}  \texttt{rvd} \ast \lstinline|cr3| \mapsto_{r} \texttt{cr3val}  \ast r_a \mapsto_{r} \{q\} \texttt{ vaddr} \ast \texttt{vaddr} \mapsto_{t,\texttt{cr3val}} \texttt{v} \}
+  \texttt{mov}~\texttt{r}_d,~\texttt{r}_a;\;\overline{is}
+}
+\\
+\inferrule[WriteToRegCtlFromReg]{
+  \{P \ast r_s \mapsto_{r}\{q\}  \texttt{ rvs} \ast \lstinline|cr3| \mapsto_{r} \texttt{rvs}  \}\overline{is}
+}{
+  \{P \ast r_s \mapsto_{r}\{q\}  \texttt{ rvs} \ast \lstinline|cr3| \mapsto_{r} \texttt{cr3val}  \}
+  \texttt{mov}~\texttt{cr3},~r_s;\;\overline{is}
   %\lstinline|mov %cr3, r| 
 }
 \end{mathpar}
