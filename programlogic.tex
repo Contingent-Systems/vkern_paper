@@ -45,15 +45,35 @@ where, for an example virtual address \textsf{va} and given \textsf{CR3} in Figu
 \begin{itemize}
   \item Page Map Level-4 Translation (L4): Calculating the offset to the 4 \textsf{Kbyte Physical Page} table to obtain the  physical address by  which resides in the last 12 bits of the virtual memory address, $\locsf|^{12}$,  shown in Figure \ref{}.
     % \pfpointsto{\lvlsum\crt\lfoff}{\lvlbor\lt}\qfracfotsss\ppts \ast
-    \[ \textsf{L4translate} \stackrel{\triangle}{=} \exists \entryf \ldotp \nfpointsto{\mask\vaddr\ft\crthree}{\mask\vaddr\tw\crthree}\entryf\qfracfotsss\naddr \]
+    \[ \begin{array}{l}
+      \hbox{(\TirNameStyle{{L4translate}})} \quad
+      \exists \entryf \ldotp \nfpointsto{\mask\vaddr\ft\crthree}{\mask\vaddr\tw\crthree}\entryf\qfracfotsss\naddr
+      \end{array}
+      \]
   \item Page Directory Pointer Level Translation (L3):
-    \[ \textsf{L3translate} \stackrel{\triangle}{=} \exists \entrytr \ldotp \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qfracfotss\naddr \]
+    \[\begin{array}{l}
+    \hbox{(\TirNameStyle{{L3translate}})} \quad
+    \exists \entrytr \ldotp \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qfracfotss\naddr
+    \end{array}
+    \]
   \item Page Directory Table Level Translation (L2):  we obtain the address of the page table via \textsf{PDE}$|^{52}$ and picking the offset from the virtual memory address via imposing the mask to obtain page table offset bits (9 bits [20-12] shown in Figure \ref{}) to obtain the page table entry (\textsf{PTE}).
-    \[ \textsf{L2translate} \stackrel{\triangle}{=} \exists \entrytw \ldotp \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qfracfots\naddr \]
+    \[ \begin{array}{l}
+            \hbox{(\TirNameStyle{{L2translate}})} \quad 
+       \exists \entrytw \ldotp \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qfracfots\naddr
+      \end{array}
+      \]
   \item Page Table Level Translation (L1):
-    \[ \textsf{L1translate}  \stackrel{\triangle}{=} \exists \entryo \ldotp \nfpointsto{\mask\vaddr\ft\entrytw}{\mask\vaddr\tw\entrytw}\entryo\qfracfot\naddr \]
+    \[ \begin{array}{l}
+      \hbox{(\TirNameStyle{{L1translate}})} \quad
+      \exists \entryo \ldotp \nfpointsto{\mask\vaddr\ft\entrytw}{\mask\vaddr\tw\entrytw}\entryo\qfracfot\naddr
+      \end{array}
+      \]
   \item Page Address Level Translation
-    \[ \textsf{PageAccess} \stackrel{\triangle}{=} \exists \vpage \ldotp \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr \]
+    \[ \begin{array}{l}
+      \hbox{(\TirNameStyle{{PageLebelAccess}})} \quad
+      \exists \vpage \ldotp \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr
+      \end{array}
+      \]
     
 \end{itemize}
 \begin{remark}[A Strong Definition for Virtual Memory Addressing]
@@ -72,7 +92,7 @@ where, for an example virtual address \textsf{va} and given \textsf{CR3} in Figu
    \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr 
 \end{array} \\
 
-\textsf{where   }\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\entryf,\entrytr,\entrytw,\entryo) \stackrel{\triangle}{=} \\
+\textsf{where   }\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\crthree,\entryf,\entrytr,\entrytw,\entryo) \stackrel{\triangle}{=} \\
  \qquad\qquad \nfpointsto{\mask\vaddr\ft\crthree}{\mask\vaddr\tw\crthree}\entryf\qfracfotsss\naddr \ast \\ 
  \qquad\qquad  \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qfracfotss\naddr  \ast  \\
   \qquad\qquad \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qfracfots\naddr \ast \\
