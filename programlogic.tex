@@ -172,7 +172,7 @@ Therefore, an address-space, as an abstraction, can be treated as naming the mem
 \[
   \begin{array}{l}
     \hbox{(\TirNameStyle{ModalAddressSpace})} \\ \qquad
-         [r](P)  \;\stackrel{\triangle}{=}  (\mathcal{W}_{64} -\textsf{b}> \textsf{uPredI} (\textsf{iResUR} \;\Sigma)) -\textsf{b}> \textsf{uPredI} \_ := \lambda \textsf{P},\; \textsf{P r}. 
+         [r](P)  \;\stackrel{\triangle}{=}  (\mathcal{W}_{64} \rightarrow_{\textsf{b}} \textsf{uPredI} (\textsf{iResUR} \;\Sigma)) \rightarrow_{\textsf{b}} \textsf{uPredI } \_ := \lambda \textsf{P},\; \textsf{P r}. 
   \end{array}
 \]
 Being inspired by what hybrid logic \ref{} calls a satisfaction operator, which evaluates the truth of a predicate in a named alternative state (here, address space), we give a modal definition describing the truth of assertions for the resources (i.e. virtual pointsto relations) inside the address space. Ignoring the predicate types for a while, $[r]P$ in Definition $\hbox{(\TirNameStyle{ModalAddressSpace})}$, indicates that $P$ holds in the virtual address space rooted at $r$, the truth ($P$) on an address-space is indexed by the root page-table address $r$ of the address-space. In the rest of this section, we explain the structural aspects -- the modal resource context of address space modality -- , and how we lift the interaction of address-space modality with the ambient logic, i.e. separation logic as an entailment for specifying \textit{address-space-switch}.  
