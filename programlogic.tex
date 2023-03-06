@@ -142,10 +142,15 @@ Abstractions we introduce for virtual address spaces are based on the following 
   \[\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\entryf,\entrytr,\entrytw,\entryo)\]
   \item all virtual pointsto assertions happen to be true in a certain address space, i.e. the truth on address virtualization is indexed by CPUs page table register ($\crthree$ for x86-64), and we present modal reasoning principles for updating $\crthree$ (switching from the current address space to another)  
 \end{enumerate}
+\begin{figure}
+   \includegraphics[width=\columnwidth]{logical_addr_space.png}
+  \caption{Logical Resources of Address-Space Abstraction}
+  \label{fig:logicaladdrspace}
+  \end{figure}
     \subsubsection{Global Per-Address-Space Invariant}
     \label{sec:peraspaceinvariant}
     Virtual points-to assertions would need to be defined in terms of physical points-to assertions and hardware-specific address translation assertions for mapped virtual addresses ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\entryf,\entrytr,\entrytw,\entryo)$ in Figure \ref{fig:peraspaceinvariant}). For each virtual address \textit{mapped} with a physical page table entry, abstracted with ghost mappings ($\sumwalkabs\vaddr\qfrac\paddr$) in virtul-pointsto relations as shown in Figure \ref{fig:virtualpointstosharing}), there exsits a physical page table walk.  
-    \[ \bigast{(\vaddr, \entryo)\in \ptablestore}{\exists\;(\entryf\;,\entrytr\;,\entrytw)\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\vaddr,\entryf,\entrytr,\entrytw,\entryo)} \]
+    \[ \bigast{(\vaddr, \entryo)\in \ptablestore}{\exists\;(\entryf\;,\entrytr\;,\entrytw)\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\crthree,\entryf,\entrytr,\entrytw,\entryo)} \]
     By separating the virtual-points Overlapping address spaces — both shared data, and shared page tables
 which may see updates — can be coordinated with protocols to ensure those updates preserve
 address space invariants.
@@ -154,7 +159,7 @@ address space invariants.
 \begin{array}{l}
   \mathcal{I}\textsf{ASpace} \stackrel{\triangle}{=} \lambda \; \crthree \ldotp
   \exists\;\gammaPred \;\ldotp\; \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \ast \\
-  \bigast{(\vaddr, \entryo)\in \ptablestore}{\exists\;(\entryf\;,\entrytr\;,\entrytw)\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\vaddr,\entryf,\entrytr,\entrytw,\entryo)}
+  \bigast{(\vaddr, \entryo)\in \ptablestore}{\exists\;(\entryf\;,\entrytr\;,\entrytw)\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\crthree,\entryf,\entrytr,\entrytw,\entryo)}
 \end{array}
 \]
 \caption{Global Address-Space Invariant}
