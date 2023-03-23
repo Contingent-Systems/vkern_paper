@@ -133,10 +133,12 @@ Then, our virtual memory addressing would be the fragmental ownership of the abs
 
 \subsection{Address-Space Abstraction}
 \label{sec:aspacemodal}
-Abstractions we introduce for virtual address spaces are based on the following aspects:
+Abstractions we introduce for virtual address spaces are based on the following aspects pictorially shown in Figure \ref{fig:logicaladdrspace}:
 \begin{enumerate}
-\item a global address space invariant asserting the authorative ownership of the ghost map, $\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$ 
-\item for each ghost page-table-walk mapping,  $\sumwalkabs\vaddr\qfrac\paddr$, there exists concrete physical page-table accesses path
+  
+\item a global address space invariant (solid round square labelled as $\mathcal{I}$\textsf{ASpace} in Figure \ref{fig:peraspaceinvariant}) asserting the authorative ownership of the ghost map, $\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$ \textit{represents} the full-ownership (solid-round-head arrow) of $\mathcal{A}\textsf{PTableWalk}$
+\item per-virtual-pointsto relation ((cutted round square labelled as \textsf{Virtual PointsTo} in Figure \ref{fig:peraspaceinvariant})) asserting the fragmental ownership of the ghost map, $\sumwalkabs\vaddr\qfrac\paddr$ \textit{represents} the fragmental-ownership (cutted-diamond-head arrow) of $\mathcal{A}\textsf{PTableWalk}$
+\item for each ghost page-table-walk mapping,  $\sumwalkabs\vaddr\qfrac\paddr$, there exists one shared persistent invariant (shown as double-ended solid arrow 1 to N)
   \[\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\entryf,\entrytr,\entrytw,\entryo)\]
   \item all virtual pointsto assertions happen to be true in a certain address space, i.e. the truth on address virtualization is indexed by CPUs page table register ($\crthree$ for x86-64), and we present modal reasoning principles for updating $\crthree$ (switching from the current address space to another)  
 \end{enumerate}
