@@ -136,17 +136,17 @@ to realize these reasoning principles ($\mathcal{A}\textsf{bsPTableWalk}$).
 \caption{Virtual-Pointsto for Sharing Pages}
   \label{fig:virtualpointstosharing}
 \end{figure*}
-\subsection{Address-Space Abstraction}
-\label{sec:aspacemodal}
-Abstractions we introduce for virtual address spaces are based on the following aspects pictorially shown in Figure \ref{fig:logicaladdrspace}:
+%\subsection{Address-Space Abstraction}
+%\label{sec:aspacemodal}
+
+Then, once we want to outline the distribution of the facts per-address, as we see it pictorially  in Figure \ref{fig:logicaladdrspace}, the outline is composed of the following aspects:
 \begin{enumerate}
-  
-\item a global address space invariant (solid round square labelled as $\mathcal{I}$\textsf{ASpace} in Figure \ref{fig:peraspaceinvariant}) asserting the authorative ownership of the ghost map, $\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$ \textit{represents} the full-ownership (solid-round-head arrow) of $\mathcal{A}\textsf{PTableWalk}$
+\item a global address space invariant (solid round square labelled as $\mathcal{I}$\textsf{ASpace} in Figure \ref{fig:peraspaceinvariant}) asserting the authorative ownership (i.e. update capability), $\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$, of the ghost map -- shown as solid-round-head arrow to $\mathcal{A}\textsf{PTableWalk}$ Figure \ref{fig:logicaladdrspace}
 \item per-virtual-pointsto relation ((cutted round square labelled as \textsf{Virtual PointsTo} in Figure \ref{fig:peraspaceinvariant})) asserting the fragmental ownership of the ghost map, $\sumwalkabs\vaddr\qfrac\paddr$ \textit{represents} the fragmental-ownership (cutted-diamond-head arrow) of $\mathcal{A}\textsf{PTableWalk}$
 \item for each ghost page-table-walk mapping,  $\sumwalkabs\vaddr\qfrac\paddr$, there exists one shared persistent invariant (shown as double-ended solid arrow 1 to N)
   \[\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\entryf,\entrytr,\entrytw,\entryo)\]
-  \item all virtual pointsto assertions happen to be true in a certain address space, i.e. the truth on address virtualization is indexed by CPUs page table register ($\crthree$ for x86-64), and we present modal reasoning principles for updating $\crthree$ (switching from the current address space to another)  
 \end{enumerate}
+
 \begin{figure}
    \includegraphics[width=0.75\columnwidth]{logical_addr_space.png}
   \caption{Logical Resources of Address-Space Abstraction}
@@ -170,6 +170,9 @@ address space invariants.
 \caption{Global Address-Space Invariant}
   \label{fig:peraspaceinvariant}
 \end{figure*}
+\subsection{Address-Space Management}
+\label{sec:aspacemanagement}
+% \item abstractions shaped-around address-space switch where all virtual pointsto assertions happen to be true in a certain address space, i.e. the truth on address virtualization is indexed by CPUs page table register ($\crthree$ for x86-64), and we present modal reasoning principles for updating $\crthree$ (switching from the current address space to another) 
 \subsubsection{Address-Space Modality}
 \label{sec:aspacemodalist}
 The truth on an address space, exhibits itself as a contingent truth: a location virtualization assertion (a virtual points-to in \ref{fig:virtualpointstosharing}),  happens to valid in the \textit{current world} (in the current address space), and switching address spaces pulls information out of one \textit{world} into the “current view” of memory, and leaves other assertions true relative to the previous address space.
