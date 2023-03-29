@@ -8,10 +8,10 @@
 }
 \newcommand{\ptableabswalk}[1]{\mathcal{A}\textsf{bsPTableWalk}(#1)}
 \newcommand{\ptablestore}{\theta}
-Our reasoning principles are shaped around understanding the following main pillars of vritual-memory-management:
+Our reasoning principles are shaped around understanding the following perspectives on the vritual-memory abstraction:
 \begin{enumerate}
-\item page-table walk: L4-L1 walk on shared page tables to reach a physical page address
-\item allocating/updating a pages backing a virtual address 
+\item a bag of physical pages reached through a set of physical page-table (L4-L1 page-tables) acceses which are shared amongst different virtual addresses indexed by the root address of the address-space 
+\item allocating/updating pages backing a virtual address 
 \item switching from one address-space to another 
 \end{enumerate}
 %\subsection{Machine State under Address Translation}
@@ -172,6 +172,7 @@ address space invariants.
 \end{figure*}
 \subsection{Address-Space Management}
 \label{sec:aspacemanagement}
+With the reasoning principles introduced for the essential resource of address spaces, i.e. virtual memory addresses, now we can ...
 % \item abstractions shaped-around address-space switch where all virtual pointsto assertions happen to be true in a certain address space, i.e. the truth on address virtualization is indexed by CPUs page table register ($\crthree$ for x86-64), and we present modal reasoning principles for updating $\crthree$ (switching from the current address space to another) 
 \subsubsection{Address-Space Modality}
 \label{sec:aspacemodalist}
