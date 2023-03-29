@@ -14,6 +14,16 @@ Our reasoning principles are shaped around understanding the following perspecti
 \item allocating/updating pages backing a virtual address 
 \item switching from one address-space to another 
 \end{enumerate}
+Based on these perspectives, we coneptualize truth on an address-space as indexed by its roots address, therefore. we lift standard bi proposition to be indexed with $\mathcal{W}_{64}$ as shown in Figure \ref{fig:vprop}. Contesequently. all abstractions we explain in this section as part of our address-space logic are type $\textsf{vProp }\Sigma$.
+\begin{figure}[!ht]
+\[
+\begin{array}{cl}
+\textsf{vProp } \Sigma \; : \; \textsf{bi} \; \stackrel{def}{=} \mathcal{W}_{64} -\textsf{b}> \textsf{iPropI } \Sigma
+\end{array}
+\]
+\caption{$\textsf{vProp }\Sigma$: Root-Address Indexed Address-Space Proposition}
+  \label{fig:vprop}
+\end{figure}
 %\subsection{Machine State under Address Translation}
 %\label{sec:selectedinstrsemantics}
 %Althought we give the complete set of operational semantics rule in \sref{appendix:movops}, It is worth building the intuition on the the way some of these rules bahave in the context of address translation. In fact $\readlval\maddr{\storememstar\crval}\locsf$ is unfoled into multiple physical memory lookups for the final page address retrieval -- i.e. address translation traversal as shown in Figure \ref{fig:pagetables}:
@@ -25,20 +35,11 @@ Our reasoning principles are shaped around understanding the following perspecti
 %\end{itemize}
 \subsection{Points-To Assertions}
 \label{sec:pointsto}
-As part of assertions on our machine state ($\sigma$), we abstract memory addresses and registers naming their relevant values through well-known separation logic assertion \textit{points-to}.
+We abstract memory addresses and registers naming their relevant values through well-known separation logic assertion \textit{points-to}.
 \begin{enumerate}
 \item Physical address points-to, $\pfpointsto\locsf\locsf\qfrac\ppts$
 \item Register points-to, $\pfpointsto\rg\rv\qfrac\rpts$
 \end{enumerate}
-\begin{figure}[!ht]
-\[
-\begin{array}{cl}
-\textsf{vProp } \Sigma \; : \; \textsf{bi} \; \stackrel{def}{=} \mathcal{W}_{64} -\textsf{b}> \textsf{iPropI } \Sigma
-\end{array}
-\]
-\caption{$\textsf{vProp }\Sigma$: Root-Address Indexed Address-Space Proposition}
-  \label{fig:vprop}
-\end{figure}
 \paragraph{Register points-to} The assertion $\pfpointsto\rg\rv\rpts\qfrac$ ensures the ownership of the register $\rg$ naming the register value $\rv$. The fraction $\qfrac$ with value 1 asserts the unique ownership of the register mapping, and grants update permission on it, otherwise, any value $0 < \qfrac <1$ represents partial ownership granting readonly permission on the mapping.
 \paragraph{Physical-Memory points-to} Our physical memory points-to relation ($\pfpointsto\locsf\locsf\qfrac\ppts$) exhibits nested-mappings abstracting the  masks applied on the indexing virtual address ($\textsf{vaddr}\in\mathcal{W}_{64}$). The unfolded definition of the physical mapsto 
 \begin{figure}[!ht]
