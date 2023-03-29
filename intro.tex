@@ -13,4 +13,9 @@ Further complicating matters is that addresses themselves bear no information ab
 This kind of context-dependent assertion, where a fact may be true in one address space but not others, has a modal flavor. 
 We propose tackling the verification of virtual memory subsystems (and kernels more broadly) by adapting ideas from hybrid modal logic, which can label assertions true under \emph{other} circumstances (i.e., in another address space) with a modality indexed by a name for that space (in our case, the root of the page tables for an address space). This offers a convenient and powerful way to modularly (1) isolate assertions specific to a particular address space, (2) explicitly state when an assertion is true across address spaces, (3) manipulate address spaces from within other address spaces, and (4) reason about change in address spaces. These advantages make this approach to reasoning about virtual memory more flexible than prior program logic techniques~\cite{kolanski08vstte,kolanski09tphols}, which was only able to work with a single address space (the current address space on the CPU).
 
+\begin{figure}
+   \includegraphics[width=0.5\columnwidth]{architecture.png}
+  \caption{Layers of Implementation}
+  \label{fig:architecture}
+  \end{figure}
 We develop these ideas in an Iris-based\mytodo{cite JFP} separation logic, and verify simplified versions of several critical virtual-memory-related pieces of OS functionality, including mapping and unmapping pages, and describing the self-referential identity maps used in most kernels to allow convenient access to physical memory. 
