@@ -27,7 +27,7 @@ We propose tackling the verification of virtual memory subsystems (and kernels m
 \end{figure}
 We realize and show our reasoning principles, showin in Figure \ref{fig:architecture}
 \begin{itemize}
-\item we develop these ideas in an Iris-based\mytodo{cite JFP} separation logic, a logic for address-virtualization (\textsf{vProp} in Figure \ref{fig:architecture})
+\item we develop these ideas in an Iris-based\mytodo{cite JFP} separation logic, a logic for address-virtualization 
 \item we model \textsf{AMD64} in Coq, and specify and prove its instructions in \textsf{vProp}
 \item and verify simplified versions of several critical virtual-memory-related pieces of OS functionality, including mapping and unmapping pages, and describing the self-referential identity maps used in most kernels to allow convenient access to physical memory.
 \end{itemize}
