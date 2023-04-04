@@ -40,15 +40,15 @@ Based on these perspectives, we coneptualize truth on an address-space through t
 \label{sec:pointsto}
 We abstract physical memory addressing and registers naming with well-known separation logic assertion \textit{points-to} assertions.
 \begin{enumerate}
-\item Physical address points-to, $\pfpointsto\locsf\locsf\qfrac\ppts$
+\item Physical address points-to, $\pfpointsto\locsf\vpts\qfrac\ppts$
 \item Register points-to, $\pfpointsto\rg\rv\qfrac\rpts$
 \end{enumerate}
 \paragraph{Register points-to} The assertion $\pfpointsto\rg\rv\rpts\qfrac$ ensures the ownership of the register $\rg$ naming the register value $\rv$. The fraction $\qfrac$ with value 1 asserts the unique ownership of the register mapping, and grants update permission on it, otherwise, any value $0 < \qfrac <1$ represents partial ownership granting readonly permission on the mapping.
-\paragraph{Physical-Memory points-to} Our physical memory points-to relation for a page table entry (e.g. \textsf{PDE} in Figure \ref{fig:physicalpointsto}) abstracts masking -- $|^{52}$ for frame for and $|^{12}$ for offset -- through logical nested maps.  
+\paragraph{Physical-Memory points-to} Our physical memory points-to relation in Figure \ref{fig:physicalpointsto} for a page table entry (e.g. \textsf{PDE} in Figure \ref{fig:pagetables}) abstracts masking -- $|^{52}$ for frame for and $|^{12}$ for offset -- through logical nested maps.  
 \begin{figure}[!ht]
 \[
 \begin{array}{cl}
-\pfpointsto\locsf\locsf\qfrac\ppts \stackrel{def}{=} & \nfpointsto{\mask\locsf\ft\generalentry}{\mask\locsf\tw\generalentry}\locsf\qfrac\naddr
+\pfpointsto\locsf\vpts\qfrac\ppts \stackrel{def}{=} & \nfpointsto{\mask\locsf\ft\generalentry}{\mask\locsf\tw\generalentry}\vpts\qfrac\naddr
 \end{array}
 \]
 \caption{Physical Points-to with Nested Masking}
