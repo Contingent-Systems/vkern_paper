@@ -157,13 +157,12 @@ address space invariants.
 %\subsection{Address-Space Abstraction}
 %\label{sec:aspacemodal}
 
-Then, once we want to outline the distribution of the facts per-address, as we see it pictorially  in Figure \ref{fig:logicaladdrspace}, the outline is composed of the following aspects:
-\begin{enumerate}
-\item a global address space invariant (solid round square labelled as $\mathcal{I}$\textsf{ASpace} in Figure \ref{fig:peraspaceinvariant}) asserting the authorative ownership (i.e. update capability), $\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$, of the ghost map -- shown as solid-round-head arrow to $\mathcal{A}\textsf{PTableWalk}$ Figure \ref{fig:logicaladdrspace}
+Relations amongst these logical constructions, for the sake making it clearly understood, outlined pictorially  in Figure \ref{fig:logicaladdrspace}:
+\begin{itemize}
+\item a global address space invariant (solid round square labelled as $\mathcal{I}$\textsf{ASpace} in Figure \ref{fig:logicaladdrspace}) asserting the authorative ownership (i.e. update capability), $\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$, of the ghost map -- shown as solid-round-head arrow to $\mathcal{A}\textsf{PTableWalk}$ Figure \ref{fig:logicaladdrspace}
 \item per-virtual-pointsto relation ((cutted round square labelled as \textsf{Virtual PointsTo} in Figure \ref{fig:peraspaceinvariant})) asserting the fragmental ownership of the ghost map, $\sumwalkabs\vaddr\qfrac\paddr$ \textit{represents} the fragmental-ownership (cutted-diamond-head arrow) of $\mathcal{A}\textsf{PTableWalk}$
-\item for each ghost page-table-walk mapping,  $\sumwalkabs\vaddr\qfrac\paddr$, there exists one shared persistent invariant (shown as double-ended solid arrow 1 to N)
-  \[\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\entryf,\entrytr,\entrytw,\entryo)\]
-\end{enumerate}
+\item there exists only one persistent authorative ownership ($\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$) for all fragmental ghost page-table-walk mapping ($\sumwalkabs\vaddr\qfrac\paddr$) shown as double-ended solid arrow 1 to N
+\end{itemize}
 
 \begin{figure}
    \includegraphics[width=0.75\columnwidth]{logical_addr_space.png}
@@ -171,30 +170,51 @@ Then, once we want to outline the distribution of the facts per-address, as we s
   \label{fig:logicaladdrspace}
   \end{figure}
 
-\begin{figure*}
-\[
-\begin{array}{l}
-  \mathcal{I}\textsf{ASpace} \stackrel{\triangle}{=} \lambda \; \crthree \ldotp
-  \exists\;\gammaPred \;\ldotp\; \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \ast \\
-  \bigast{(\vaddr, \entryo)\in \ptablestore}{\exists\;(\entryf\;,\entrytr\;,\entrytw)\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\crthree,\entryf,\entrytr,\entrytw,\entryo)}
-\end{array}
-\]
-\caption{Global Address-Space Invariant}
-  \label{fig:peraspaceinvariant}
-\end{figure*}
 \subsection{Address-Space Management}
 \label{sec:aspacemanagement}
-With the reasoning principles introduced for the essential resource of address spaces, i.e. virtual memory addresses, now we can ...
-% \item abstractions shaped-around address-space switch where all virtual pointsto assertions happen to be true in a certain address space, i.e. the truth on address virtualization is indexed by CPUs page table register ($\crthree$ for x86-64), and we present modal reasoning principles for updating $\crthree$ (switching from the current address space to another)
- \[\mathcal{A}\textsf{spaces} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \; (\textsc{Agree } \mathsf{GName},\mathord{=}) ) \]
-\subsubsection{Address-Space Modality}
-\label{sec:aspacemodalist}
-The truth on an address space, exhibits itself as a contingent truth: a location virtualization assertion (a virtual points-to in \ref{fig:virtualpointstosharing}),  happens to valid in the \textit{current world} (in the current address space), and switching address spaces pulls information out of one \textit{world} into the “current view” of memory, and leaves other assertions true relative to the previous address space.
+So far, we have introduced logical abstractions for a single address space. However, \textsf{VMM} implementations handle more than one address-space which we abstract as a ghost map from root address of an address-space to a namespace labelling the address space
+\[\mathcal{A}\textsf{spaces} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \; (\textsc{Agree } \mathsf{GName},\mathord{=}) ) \]
+
+\paragraph{Valid Context-Resources} Fragmental ownership of $\mathcal{A}\textsf{spaces}$ ($\sumapaces\crthree\gammaPred$) conveys the fact that a current address-space ($\gammaPred$) is the one selected, i.e. loaded into the $\crthree$. This simple fact becomes essential when we observe it inside virtual-pointsto definition in Figure \ref{fig:virtualpointstosharing} and pictorially Figure \ref{logicaladdrspace}. Existence of this fragmental ownership ensures that the contextual resource, i.e. a virtual pointsto assertion, resides under the correct address-space, i.e. modal-context, that makes it valid.
+
+\paragraph{Modal Resource Context\&Interaction with Ambient Logic \textsf{vProp}}
+\label{sec:resourcecontext}
+The relation between the address-space and and the validity of virtual-pointsto assertions exhibits itself as a contingency, i.e. \textit{"a certain virtual-pointsto facts whose validity is indexed by the root address of an address space"}. But, what sort of convenience this pattern provides when we do reasoning about more than one address-space.
+
 \begin{figure}
    \includegraphics[width=\columnwidth]{addr_space_switch.png}
   \caption{Loading an Address-Space into the Current Memory View}
   \label{fig:addrswitch}
   \end{figure}
+
+In Figure \ref{fig:addrswitch}, we see two different address-spaces rooted at R0 and R1 in the pre/post condition. To be put into words, while switching an address-space by executing \lstinline|mov_ctl|) updating the $\crthree$, it is expected to mention resources of two different address-spaces in the specification. In the precondition, the dashed white background denotes the resources of the current address space: $\crthree$ is loaded with R0 and all the virtual-pointsto assertions ($a_0 \mapsto_{\textsf{v}}p_0$ and $a_1 \mapsto_{\textsf{v}}p_1$). We need one more address-space -- the solid square with the root address R1 -- which has its own resources ($b_0 \mapsto_{\textsf{v}}p_3$ and $b_1 \mapsto_{\textsf{v}}p_4$) which are invalid under the current address space rooted at R0. This pattern of specification requires resources being mentioned under the \textit{world} they are valid, i.e. a modal-framing within the specification. Once the current address-space becomes the one with root address R1, i.e. $\crthree$ is loaded with R1, the context-resources $b_0 \mapsto_{\textsf{v}}p_3$ and $b_1 \mapsto_{\textsf{v}}p_4$ are loaded into the current-view of the memory, and all the other resources that are valid under R0 are introduced into the modal context rooted at R0
+\[
+\begin{array}{l}
+  \{ \crthree \mapsto_{r} R0 \ast a_0 \mapsto_{\textsf{v}}p_0  \ast a_1 \mapsto_{\textsf{v}}p_1  \ast [r1]\;( b_0 \mapsto_{\textsf{v}}p_3  \ast b_1 \mapsto_{\textsf{v}}p_4 )\}\\
+  \qquad \qquad \qquad \qquad\qquad \qquad \mathsf{mov\_ctl} \;\; \crthree \; \; R1\\
+
+  \{ \crthree \mapsto_{r} R1 \ast [r0](a_0 \mapsto_{\textsf{v}}p_0  \ast a_1 \mapsto_{\textsf{v}}p_1)  \ast  b_0 \mapsto_{\textsf{v}}p_3  \ast b_1 \mapsto_{\textsf{v}}p_4 \}
+  \end{array}
+\]
+
+The choice of resource defining the modal context already exhibits itself as a reasoning principle (Figure \ref{fig:modalcontextinvariance}) in which we can intro/eliminate any resource that is not virtual pointsto into/from modal context without dischargin any obligation. We can use this entailment for  \todo[inline,color=red]{Ask Colin}.
+
+\begin{remark}[The Choice of Modal Context Definition as a Pattern of Verification Context]
+  \label{remark:pattern}
+  By choosing the contingency and what defines the modal contex, we simply introduce 
+  \begin{enumerate}
+  \item how a modal context (e.g. a address-space modality $[r]P$), logically, draws the attention to the certain facts in the interest of reasoning (e.g. virtual pointsto relations in the current address-space in Figure \ref{fig:virtualpointstosharing})
+  \item and, offloads the burden of individual bookkeeping of these facts (e.g. virtual pointsto relations per address-space) under different context (e.g. virtual pointsto relations in other address-spaces) via utilizing the \textit{summarization} aspect of the contingency it represents (e.g. other virtual pointsto relations are valid under other certain address-space page-table root addresseses).  
+  \end{enumerate}
+\end{remark}
+\paragraph{Interaction}
+\label{sec:interaction}
+
+
+\subsubsection{Address-Space Modality}
+\label{sec:aspacemodalist}
+The truth on an address space, exhibits itself as a contingent truth: a location virtualization assertion (a virtual points-to in \ref{fig:virtualpointstosharing}),  happens to valid in the \textit{current world} (in the current address space), and switching address spaces pulls information out of one \textit{world} into the “current view” of memory, and leaves other assertions true relative to the previous address space.
+
 Therefore, an address-space, as an abstraction, can be treated as naming the memory state as a modal frame and the choice of page table root as a world in Kripke-style semantics. Not suprisingly, transition between two address-spaces, then, can be just an entailment relation \textit{alternating} the \textit{named-state} against the address-space invariant ($\mathcal{I}\textsf{ASpace}$ in Figure \ref{fig:peraspaceinvariant}). 
 \[
   \begin{array}{l}
@@ -203,34 +223,6 @@ Therefore, an address-space, as an abstraction, can be treated as naming the mem
   \end{array}
 \]
 Being inspired by what hybrid logic \ref{} calls a satisfaction operator, which evaluates the truth of a predicate in a named alternative state (here, address space), we give a modal definition describing the truth of assertions for the resources (i.e. virtual pointsto relations) inside the address space. Ignoring the predicate types for a while, $[r]P$ in Definition $\hbox{(\TirNameStyle{ModalAddressSpace})}$, indicates that $P$ holds in the virtual address space rooted at $r$, the truth ($P$) on an address-space is indexed by the root page-table address $r$ of the address-space. In the rest of this section, we explain the structural aspects -- the modal resource context of address space modality -- , and how we lift the interaction of address-space modality with the ambient logic, i.e. separation logic as an entailment for specifying \textit{address-space-switch}.  
-\paragraph{Modal Resource Context}
-\label{sec:resourcecontext}
-When we pick up a certain contingency, which is \textit{"a certain virtual-pointsto facts whose validity is indexed by the root address of an address space"}for address space modality, we, in fact, make our choice around some logical resources for which we care about reasoning, which is virtual pointsto relation shown in Figure \ref{fig:virtualpointstosharing}. In other words, our modality definition is the logical virtual pointsto resources: introduction/elimination of logical virtual pointsto resources are the ones essential to the reasoning capabilities the address space modality provides, i.e. validity of virtual addresses under/out of modality -- resources under/out of \textit{modal resource context}.
-
-The choice of resource defining the modal context already exhibits itself as a reasoning principle (Figure \ref{fig:modalcontextinvariance}) in which we can intro/eliminate any resource that is not virtual pointsto into/from modal context without dischargin any obligation. We can use this entailment for  \todo[inline,color=red]{Ask Colin}.
-  \[
-  \begin{array}{l}
-\hbox{(\TirNameStyle{ModalContextInvariance})} \qquad
- [r](Q \ast \ell \mapsto_{\textsf{p}} \vpage)  \;\vdash [r](Q) \ast \ell \mapsto_{\textsf{p}} \vpage 
-  \end{array}
-  \]
-\begin{remark}[The Choice of Modal Context Definition as a Pattern of Verification Context]
-  \label{remark:pattern}
-  By choosing the contingency and what defines the modal contex, we simply introduce 
-  \begin{enumerate}
-  \item the pattern of what the essential abstraction (e.g. address spaces) we care about to do verification for is
-  \item how a modal context (e.g. a address-space modality $[r]P$), logically, draws the attention to the certain facts in the interest of reasoning (e.g. virtual pointsto relations in the current address-space in Figure \ref{fig:virtualpointstosharing})
-  \item and, offloads the burden of individual bookkeeping of these facts (e.g. virtual pointsto relations per address-space) under different context (e.g. virtual pointsto relations in other address-spaces) via utilizing the \textit{summarization} aspect of the contingency it represents (e.g. other virtual pointsto relations are valid under other certain address-space page-table root addresseses).  
-  \end{enumerate}
-\end{remark}
-\paragraph{Interaction}
-\label{sec:interaction}
-So far, we have just mentioned the structural properties of our modal definition (Remark \ref{remark:pattern}), and what inherent entailments (Rule \hbox{(\TirNameStyle{ModalContextInvariance})}) these properties provide. However, all these structural aspects of using the address-space modality ($[r]P$) considers the fixed index ($r$) of on the truth $P$. From the client's perspective, structural properties of the modal abstraction mainly constitutes the modal frame with summarizing the facts for one another address-space under the address-space modality roughly as it is in the following spec
-\[
-\{ \crthree \mapsto_{r} r0 \ast \textsf{va1} \mapsto_{v} \textsf{v}_1 \ast \textsf{va2} \mapsto_{v} \textsf{v}_2 \ast \textsf{va3} \mapsto_{v} \textsf{v}_3 \ast [r1]\;P \}
-\]
-where we see the \textit{current address-space} rooted at $r0$ is loaded into the  \textit{current-view} of the memory with its resources ($ \textsf{va1} \mapsto_{v} \textsf{v}_1 \ast \textsf{va2} \mapsto_{v} \textsf{v}_2 \ast \textsf{va3} \mapsto_{v} \textsf{v}_3$), and framed by the address-space rooted at $r1$ with resources $P$. 
-Now, we need to a rule capturing the notion that switching the address spaces by pulling the resources ($P$) out of the one under modality into the \textit{“current view”} of memory, and leaves other assertions true relative to the previous address space (the one rooted at $r0$). To do so, we need to have a proof rule for the instruction (\lstinline|mov_ctl|) updating the $\crthree$.
 
 \subsection{Considering Hoare Doubles in the Context of Switching Address-Space}
 An important subtlety arises with supporting \lstinline|mov|s into \lstinline|%cr3|. Consider the hypothetical rule:
