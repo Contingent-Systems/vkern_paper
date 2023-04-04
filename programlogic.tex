@@ -196,9 +196,6 @@ In Figure \ref{fig:addrswitch}, we see two different address-spaces rooted at R0
   \{ \crthree \mapsto_{r} R1 \ast [r0](a_0 \mapsto_{\textsf{v}}p_0  \ast a_1 \mapsto_{\textsf{v}}p_1)  \ast  b_0 \mapsto_{\textsf{v}}p_3  \ast b_1 \mapsto_{\textsf{v}}p_4 \}
   \end{array}
 \]
-
-The choice of resource defining the modal context already exhibits itself as a reasoning principle (Figure \ref{fig:modalcontextinvariance}) in which we can intro/eliminate any resource that is not virtual pointsto into/from modal context without dischargin any obligation. We can use this entailment for  \todo[inline,color=red]{Ask Colin}.
-
 \begin{remark}[The Choice of Modal Context Definition as a Pattern of Verification Context]
   \label{remark:pattern}
   By choosing the contingency and what defines the modal contex, we simply introduce 
@@ -209,8 +206,6 @@ The choice of resource defining the modal context already exhibits itself as a r
 \end{remark}
 \paragraph{Interaction}
 \label{sec:interaction}
-
-
 \subsubsection{Address-Space Modality}
 \label{sec:aspacemodalist}
 The truth on an address space, exhibits itself as a contingent truth: a location virtualization assertion (a virtual points-to in \ref{fig:virtualpointstosharing}),  happens to valid in the \textit{current world} (in the current address space), and switching address spaces pulls information out of one \textit{world} into the “current view” of memory, and leaves other assertions true relative to the previous address space.
