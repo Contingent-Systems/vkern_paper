@@ -56,7 +56,7 @@ We abstract physical memory addressing and registers naming with well-known sepa
 \end{figure}
 Given the definition of physical page-pointsto assertion and the root address of virtual-address space kept in the control register \textsf{CR3} as shown in Figure \ref{fig:pagetable},  one can build the physical address-translation for a virtual address (e.g. \textsf{va}) via abstracting the L4-L1 table traversal as the following:
 \begin{itemize}
-  \item Page Map Level-4 Translation (L4): Address translation, handling the first level (to get the PML4E entry) itself by calculating the offset (\textsf{CR3}$|^{12}$) and frame (PML4E$|^{52}$) via masking with the root address space address currently stored in \textsf{CR3}.
+  \item Page Map Level-4 Translation (L4): Address the first level address translation to get the PML4E entry in Figure \ref{fig:pagetables} by using the masks(\textsf{va}$|^{52}$(\textsf{CR3}) to get the starting address of the PML4 table and using the offset mask \textsf{va}$|^{12}$(\textsf{CR3}). It is worth noting that our offset indices are 12 bits as all physical memory pointsto assertions has to satisfy being \textsf{\textit{aligned}}, e.g. [47-39] plus 3 alignment bits in Figure \ref{fig:pagetables}. 
     \[ \begin{array}{l}
       \hbox{(\TirNameStyle{{L4translate}})} \quad
       \exists \entryf \ldotp \nfpointsto{\mask\vaddr\ft\crthree}{\mask\vaddr\tw\crthree}\entryf\qfracfotsss\naddr
