@@ -56,20 +56,19 @@ We abstract physical memory addressing and registers naming with well-known sepa
 \end{figure}
 Given the definition of physical page-pointsto assertion and the root address of virtual-address space kept in the control register \textsf{CR3} as shown in Figure \ref{fig:pagetable},  one can build the physical address-translation for a virtual address (e.g. \textsf{va}) via abstracting the L4-L1 table traversal as the following:
 \begin{itemize}
-  \item Page Map Level-4 Translation (L4): Calculating the offset to the 4 \textsf{Kbyte Physical Page} table to obtain the  physical address by  which resides in the last 12 bits of the virtual memory address, $\locsf|^{12}$,  shown in Figure \ref{}.
-    % \pfpointsto{\lvlsum\crt\lfoff}{\lvlbor\lt}\qfracfotsss\ppts \ast
+  \item Page Map Level-4 Translation (L4): Address translation, handling the first level (to get the PML4E entry) itself by calculating the offset (\textsf{CR3}$|^{12}$) and frame (PML4E$|^{52}$) via masking with the root address space address currently stored in \textsf{CR3}.
     \[ \begin{array}{l}
       \hbox{(\TirNameStyle{{L4translate}})} \quad
       \exists \entryf \ldotp \nfpointsto{\mask\vaddr\ft\crthree}{\mask\vaddr\tw\crthree}\entryf\qfracfotsss\naddr
       \end{array}
       \]
-  \item Page Directory Pointer Level Translation (L3):
+  \item Page Directory Pointer Level Translation (L3): Performs the second level of address translation via interpreting, in other words masking, the PML4 entry (PML4E$|^{52}$) to retrieve the starting address of a page-directory-pointer-table and the offset ( (PML4E$|^{9}$)) to the entry
     \[\begin{array}{l}
     \hbox{(\TirNameStyle{{L3translate}})} \quad
     \exists \entrytr \ldotp \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qfracfotss\naddr
     \end{array}
     \]
-  \item Page Directory Table Level Translation (L2):  we obtain the address of the page table via \textsf{PDE}$|^{52}$ and picking the offset from the virtual memory address via imposing the mask to obtain page table offset bits (9 bits [20-12] shown in Figure \ref{}) to obtain the page table entry (\textsf{PTE}).
+  \item Page Directory Table Level Translation (L2):  Performs the third level of address translation by retrieving the starting address at the PD table (PDPE$|^{52}$), and interprets a PDPE ($|^{9}$) that references the PD table entry.
     \[ \begin{array}{l}
             \hbox{(\TirNameStyle{{L2translate}})} \quad 
        \exists \entrytw \ldotp \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qfracfots\naddr
