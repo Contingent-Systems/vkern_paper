@@ -2,9 +2,14 @@
 \label{sec:logic}
 % The predicate gen_heap_interp.
 \newcommand{\gammaPred}{\delta}
+\newcommand{\gammaPreds}{\delta\textsf{s}}
 
 \newcommand{\sumwalkabs}[3]{
   \ownGhost\gammaPred{\authfrag{\singletonMap{#1}{(#2, #3)}}}
+}
+
+\newcommand{\sumapaces}[2]{
+  \ownGhost\gammaPreds{\authfrag{\singletonMap{#1}{#2}}}
 }
 \newcommand{\ptableabswalk}[1]{\mathcal{A}\textsf{bsPTableWalk}(#1)}
 \newcommand{\ptablestore}{\theta}
@@ -120,7 +125,7 @@ Given the definition of physical page-pointsto assertion and the root address of
 
   \subsection{Aliasing/Sharing Physical Pages}
   \label{sec:sharingpages}  
-  One might have already observed that the virtual points-to definition shown in Figure \ref{fig:strongvirtualpointsto} is too strong to specify virtual memory operations updating a page table entry. To speak more concretely, the fractional permissions on the page-table-walk assertion ($textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}) \textit{only} assure the existence of the certain number of mappings -- 512 at each level -- abstracting virtual address translations, and updating any of these mappings would make the other mappings, address translations sharing the page table mappings. Therefore, we need to have logical abstractions ensuring sound updates to the page-table entries in the existence of sharing.
+  One might have already observed that the virtual points-to definition shown in Figure \ref{fig:strongvirtualpointsto} is too strong to specify virtual memory operations updating a page table entry. To speak more concretely, the fractional permissions on the page-table-walk assertion ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}) \textit{only} assure the existence of the certain number of mappings -- 512 at each level -- abstracting virtual address translations, and updating any of these mappings would make the other mappings, address translations sharing the page table mappings. Therefore, we need to consturct logical abstractions ensuring sound updates to the page-table entries in the existence of sharing.
   
  One possible approach is to abstract away the physical page-table-walk pointsto ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}) from the virtual pointsto relation via replacing it with read-only abstract map entries -- a ghost (abstract) map entry per \textsf{L}$_4$\_\textsf{L}$_{1}$ mappings -- which can be used as a resource ($ \sumwalkabs\vaddr\qfrac\paddr$) whose ownership ensures that the virtual address ($\vaddr$) is mapped to a page (referenced by $\paddr$) ,and as a token to access to the physical page-table-walk pointsto (\textsf{L}$_4$\_\textsf{L}$_{1}$) stored in an address-space invariant ($\mathcal{I}$\textsf{ASpace} in Figure \ref{fig:peraspaceinvariant}). We use \textsf{Iris}'s authorative ghost-map logical machinery
 \[\mathcal{A}\textsf{bsPTableWalk} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \;  (\mathcal{W}_{64} \; \rightarrow_{\textrm{fin}}\;  (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \Loc,\mathord{=}) ))\]
@@ -139,7 +144,8 @@ to realize these reasoning principles ($\mathcal{A}\textsf{bsPTableWalk}$).
 \[
 \begin{array}{l}
     \vaddr\mapsto_{\textsf{v}}\{\textsf{q}\}\vpage \stackrel{\triangle}{=} 
-  \exists \entryo \ldotp 
+    \exists \entryo \ldotp
+    \sumapaces\crthree\delta \ast 
   \sumwalkabs\vaddr\qfrac\paddr \ast 
    \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr
 \end{array}
