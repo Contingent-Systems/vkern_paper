@@ -96,14 +96,13 @@ Given the definition of physical page-pointsto assertion and the root address of
   \[
   \begin{array}{l}
 \begin{array}{l}
-  \vaddr\mapsto_{\textsf{t}}\{\textsf{q}\}\vpage \stackrel{def}{=} \lambda \crthree.\\
+  \vaddr\mapsto_{\textsf{t}}\{\textsf{q}\}\vpage\; : \mathsf{vProp} \; \Sigma \;  \stackrel{def}{:=}  \lambda \crthree. \;\; \\
   \exists_{\entryf \;, \entrytr \;, \entrytw \;,\entryo} \ldotp 
 
   \ulcorner \textsf{aligned } \vaddr \urcorner \ast  \\
-  \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\entryf,\entrytr,\entrytw,\entryo)\\
-   \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr 
+ \quad \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\entryf,\entrytr,\entrytw,\entryo) \ast \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr 
 \end{array} \\
-
+\\
 \textsf{where   }\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\crthree,\entryf,\entrytr,\entrytw,\entryo) \stackrel{\triangle}{=} \\
  \qquad\qquad \nfpointsto{\mask\vaddr\ft\crthree}{\mask\vaddr\tw\crthree}\entryf\qfracfotsss\naddr \ast \\ 
  \qquad\qquad  \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qfracfotss\naddr  \ast  \\
