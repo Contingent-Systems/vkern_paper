@@ -10,11 +10,14 @@
 \newcommand{\ptablestore}{\theta}
 Our reasoning principles are shaped around understanding the following perspectives on the vritual-memory abstraction:
 \begin{enumerate}
-\item a bag of physical pages reached through a set of physical page-table (L4-L1 page-tables) acceses which are shared amongst different virtual addresses indexed by the root address of the address-space 
-\item allocating/updating pages backing a virtual address 
-\item switching from one address-space to another 
+\item \textit{logical representation of addressing}: we present physical memory addressing as separation-logic points-to relations.
+\item \textit{sharing}: a bag of physical pages are reached through a set of physical page-table (L4-L1 page-tables) acceses that are shared amongst different virtual addresses. This sharing imposes constraints on giving a definition to the virtual-address in terms of physical (L4-L1) page-table memory accesses
+\item \textit{context-agnostic-resources}: each virtual address is valid under a certain address-space, but it does not represent this \textit{knowledge} on its address-space. 
+\item \textit{address-spaces as modal-contexts}: we call these context-agnostic resources (virtual-address pointstos) as \textit{context-resource}, and the context identfied by a unique \textit{namespace}, and  defining the truth for these context resources as \text{modal-context}
+\item \textit{updating inter/intra address-spaces}: we present logical abstractions to enable allocating/updating pages in the existence of \textit{sharing}  
+\item \textit{address-space switch as changing the "World" of truth}: switching from one address-space to another logically becomes introduction of \textit{context-resources} to the \textit{modal-context} under which they are valid, and loading \textit{context-resources} that are valid under the \textit{currently} loaded address-space
 \end{enumerate}
-Based on these perspectives, we coneptualize truth on an address-space through the contingency it exhibits: \textit{assertion P holds on this address-space indexed by its roots address}, Therefore. we lift standard bi proposition to be indexed with $\mathcal{W}_{64}$ as shown in Figure \ref{fig:vprop}. In other words, all abstractions we explain in this section as part of our address-space logic are type $\textsf{vProp }\Sigma$.
+Based on these perspectives, we coneptualize truth on an address-space through the contingency it exhibits: \textit{assertion P holds on this address-space indexed by its roots address}. Therefore, as a first step, we lift standard bi proposition to be indexed with $\mathcal{W}_{64}$ as shown in Figure \ref{fig:vprop}, and, most notably, all abstractions we explain in this section as part of our custom-tailored address-space logic are type $\textsf{vProp }\Sigma$.
 \begin{figure}[!ht]
 \[
 \begin{array}{cl}
