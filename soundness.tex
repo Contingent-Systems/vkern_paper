@@ -75,7 +75,7 @@ We already have the physical and logical stores and a simple invariant between t
 \label{assumption}
 Iris defines two pieces of ghost state
 \begin{enumerate}
-\item  defines a predicate $\genheapinterp\store.\mathcal{R}$
+\item  defines a predicate $\textsf{to\_gen\_heap }\store.\mathcal{R}$
   that ties a store~$\store.\mathcal{R}$ to this ghost state,
   and defines the points-to assertion $\ppointsto\rg\rv\qfrac\rpts$
   in terms of this ghost state.
@@ -87,7 +87,7 @@ Iris defines two pieces of ghost state
   We mention the predicate $\genheapinterp\!$
   in our own invariant (Definition~\ref{def:invariant}),
   where it is applied to the \logical store~$\store$.
-\item unlike the points-to relation obtained by direct interpretion of $\genheapinterp\store.\mathcal{R}$ using Iris, the existing \textsf{gen\_heap\_interp},
+\item unlike the register points-to relation obtained by direct interpretion of $\textsf{to\_gen\_heap }\store.\mathcal{R}$ using Iris, the existing \textsf{gen\_heap\_heap},
   does not directly helps introducing the ghost we define a new algebra (\textsf{gen\_mem\_UR}) for abstracting the nested maps due to different levels of masking in memory mappings and an interpretation for this algebra. 
 \end{enumerate}
 \end{assumption}
@@ -137,18 +137,12 @@ The central invariant of our logic is, due to lack of need for augmenting the ma
 \left\{
 \def\arraystretch{1.2}
 \begin{array}{l@{\quad\star\quad}l@{\quad}l}
-  \genheapinterp\store &  \\
-   \genmemheapinterp\store
+  \textsf{to\_gen\_heap} \;\store.\mathcal{R} &  \\
+   \textsf{to\_gen\_mem} \; \store.\mathcal{M}
 \end{array}
 \right.
 \]
 \end{definition}
 
-As noted earlier (Assumption~\ref{assumption}), the predicate
-$\genheapinterp\!$ and the points-to assertion for register mappings is inherited from Iris. What
-this means, as far as we are concerned, is that the points-to assertion is
-defined in a standard manner: $\genheapinterp\!$ is applied to the physical store~$\store$, as is usually the case~\cite[\S6.3.2]{iris}.
-Likewise, we define nested interpretation $\genmemheapinterp\!$ in terms of $\genheapinterp\!$ to obtain physical memory points-to relation.
-
-In fact, long story short, all assertions in our logic, i.e. points-to assertions for registers and memory, really about the logical store, which is in our case identical to the physical store, so that we can reason about the physical store.
-
+Now, we have well-enough definition for giving an outline for the proof of \TirNameStyle{WriteToRegFromVirtMem}.
+\todo[inline,color=red]{ISMAIL give the outlin}
