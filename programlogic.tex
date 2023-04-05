@@ -3,6 +3,7 @@
 % The predicate gen_heap_interp.
 \newcommand{\gammaPred}{\delta}
 \newcommand{\gammaPreds}{\delta\textsf{s}}
+\newcommand{\rtv}{\textsf{rtv}}
 
 \newcommand{\sumwalkabs}[3]{
   \ownGhost\gammaPred{\authfrag{\singletonMap{#1}{(#2, #3)}}}
@@ -144,9 +145,9 @@ address space invariants.
 \begin{figure*}
 \[
 \begin{array}{l}
-    \vaddr\mapsto_{\textsf{v}}\{\textsf{q}\}\vpage \stackrel{\triangle}{=} 
+    \vaddr\mapsto_{\textsf{v,rtv}}\{\textsf{q}\}\vpage \stackrel{\triangle}{=} 
     \exists \entryo \ldotp
-    \sumapaces\crthree\delta \ast 
+    \sumapaces\rtv\delta \ast 
   \sumwalkabs\vaddr\qfrac\paddr \ast 
    \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr
 \end{array}
@@ -175,13 +176,13 @@ Relations amongst these logical constructions, for the sake making it clearly un
 So far, we have introduced logical abstractions for a single address space. However, \textsf{VMM} implementations handle more than one address-space which we abstract as a ghost map from root address of an address-space to a namespace labelling the address space
 \[\mathcal{A}\textsf{spaces} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \; (\textsc{Agree } \mathsf{GName},\mathord{=}) ) \]
 
-\paragraph{Valid Context-Resources} Fragmental ownership of $\mathcal{A}\textsf{spaces}$ ($\sumapaces\crthree\gammaPred$) conveys the fact that a current address-space ($\gammaPred$) is the one selected, i.e. loaded into the $\crthree$. This simple fact becomes essential when we observe it inside virtual-pointsto definition in Figure \ref{fig:virtualpointstosharing} and pictorially Figure \ref{logicaladdrspace}. Existence of this fragmental ownership ensures that the contextual resource, i.e. a virtual pointsto assertion, resides under the correct address-space, i.e. modal-context, that makes it valid.
+\paragraph{Valid Context-Resources} Fragmental ownership of $\mathcal{A}\textsf{spaces}$ ($\sumapaces\rtv\gammaPred$) conveys the fact that a current address-space ($\gammaPred$) is the one selected, i.e. loaded into the $\rtv$. This simple fact becomes essential when we observe it inside virtual-pointsto definition in Figure \ref{fig:virtualpointstosharing} and pictorially Figure \ref{logicaladdrspace}. Existence of this fragmental ownership ensures that the contextual resource, i.e. a virtual pointsto assertion, resides under the correct address-space, i.e. modal-context, that makes it valid.
 
 \paragraph{Modal Resource Context\&Interaction with Ambient Logic \textsf{vProp}}
 \label{sec:resourcecontext}
 The relation between the address-space and and the validity of virtual-pointsto assertions exhibits itself as a contingency, i.e. \textit{"a certain virtual-pointsto facts whose validity is indexed by the root address of an address space"}. But, what sort of convenience this pattern provides when we do reasoning about more than one address-space.
 
-In Figure \ref{fig:addrswitch}, we see two different address-spaces rooted at R0 and R1 in the pre/post condition. To be put into words, while switching an address-space by executing \lstinline|mov_ctl|) updating the $\crthree$, it is expected to mention resources of two different address-spaces in the specification. In the precondition, $\crthree$ is loaded with R0 and all the virtual-pointsto assertions $a_0 \mapsto_{\textsf{v}}p_0$ and $a_1 \mapsto_{\textsf{v}}p_1$ are in the current-view of the memory and valid in the ambient logic \textsf{vProp}. The other address-space with the root address R1 has its own resources ($b_0 \mapsto_{\textsf{v}}p_3$ and $b_1 \mapsto_{\textsf{v}}p_4$) which are invalid under the current address space rooted at R0. This pattern of specification requires resources being mentioned under the \textit{world} they are valid, i.e. a modal-framing within the specification. Once the current address-space becomes the one with root address R1, i.e. $\crthree$ is loaded with R1, the context-resources $b_0 \mapsto_{\textsf{v}}p_3$ and $b_1 \mapsto_{\textsf{v}}p_4$ are loaded into the current-view of the memory, and all the other resources that are valid under R0 are introduced into the modal context rooted at R0
+In Figure \ref{fig:addrswitch}, we see two different address-spaces rooted at R0 and R1 in the pre/post condition. To be put into words, while switching an address-space by executing \lstinline|mov_ctl|) updating the  \lstinline|cr3|, it is expected to mention resources of two different address-spaces in the specification. In the precondition,  \lstinline|cr3| is loaded with R0 and all the virtual-pointsto assertions $a_0 \mapsto_{\textsf{v}}p_0$ and $a_1 \mapsto_{\textsf{v}}p_1$ are in the current-view of the memory and valid in the ambient logic \textsf{vProp}. The other address-space with the root address R1 has its own resources ($b_0 \mapsto_{\textsf{v}}p_3$ and $b_1 \mapsto_{\textsf{v}}p_4$) which are invalid under the current address space rooted at R0. This pattern of specification requires resources being mentioned under the \textit{world} they are valid, i.e. a modal-framing within the specification. Once the current address-space becomes the one with root address R1, i.e.  \lstinline|cr3| is loaded with R1, the context-resources $b_0 \mapsto_{\textsf{v}}p_3$ and $b_1 \mapsto_{\textsf{v}}p_4$ are loaded into the current-view of the memory, and all the other resources that are valid under R0 are introduced into the modal context rooted at R0
 \begin{figure}
 
 \[
@@ -196,10 +197,10 @@ In Figure \ref{fig:addrswitch}, we see two different address-spaces rooted at R0
 \begin{figure}
 \[
 \begin{array}{l}
-  \{ \crthree \mapsto_{r} R0 \ast a_0 \mapsto_{\textsf{v}}p_0  \ast a_1 \mapsto_{\textsf{v}}p_1  \ast [r1]\;( b_0 \mapsto_{\textsf{v}}p_3  \ast b_1 \mapsto_{\textsf{v}}p_4 )\}\\
-  \qquad \qquad \qquad \qquad\qquad \qquad \mathsf{mov\_ctl} \;\; \crthree \; \; R1\\
+  \{ \textsf{cr3 } \mapsto_{r} R0 \ast a_0 \mapsto_{\textsf{v}}p_0  \ast a_1 \mapsto_{\textsf{v}}p_1  \ast [r1]\;( b_0 \mapsto_{\textsf{v}}p_3  \ast b_1 \mapsto_{\textsf{v}}p_4 )\}\\
+  \qquad \qquad \qquad \qquad \qquad \mathsf{mov\_ctl} \;\; \texttt{cr3} \; \; R1\\
 
-  \{ \crthree \mapsto_{r} R1 \ast [r0](a_0 \mapsto_{\textsf{v}}p_0  \ast a_1 \mapsto_{\textsf{v}}p_1)  \ast  b_0 \mapsto_{\textsf{v}}p_3  \ast b_1 \mapsto_{\textsf{v}}p_4 \}
+  \{ \textsf{cr3 } \mapsto_{r} R1 \ast [r0](a_0 \mapsto_{\textsf{v}}p_0  \ast a_1 \mapsto_{\textsf{v}}p_1)  \ast  b_0 \mapsto_{\textsf{v}}p_3  \ast b_1 \mapsto_{\textsf{v}}p_4 \}
   \end{array}
 \]
   \label{fig:addrswitch}
@@ -226,23 +227,23 @@ Pragmatically,
 An important subtlety arises with supporting \lstinline|mov|s into \lstinline|%cr3|. Consider the hypothetical rule:
 \begin{mathpar}
 \inferrule[Broken]{ }{
-  \{P \ast cr3\mapsto_{r} \;r_1 \ast r \mapsto_{r} \;r_2 \ast [r_2](Q)\}
+  \{P \ast \textsf{cr3}\mapsto_{r} \;r_1 \ast r \mapsto_{r} \;r_2 \ast [r_2](Q)\}
   \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
-  \{[r_1](P) \ast cr3 \mapsto_{r} r_2 \ast r \mapsto_{r} r_2 \ast Q\}
+  \{[r_1](P) \ast \textsf{cr3} \mapsto_{r} r_2 \ast r \mapsto_{r} r_2 \ast Q\}
 }
 \end{mathpar}
 This rule captures the intuitive change of address space in a Hoare triple, rather than double, form. The problem with this is that it interacts quite poorly with the traditional frame rule and the modal flavor of virtual points-to assertions:
 \begin{mathpar}
   \inferrule*[right=Frame]{
     \inferrule*[right=Broken]{ }{
-    \{\mathsf{emp} \ast cr3 \mapsto_{r} r_1 \ast r\mapsto_{r} r_2 \ast [r_2](Q)\}
+    \{\mathsf{emp} \ast \textsf{cr3} \mapsto_{r} r_1 \ast r\mapsto_{r} r_2 \ast [r_2](Q)\}
     \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
-    \{[r_1](\mathsf{emp}) \ast cr3 \mapsto_{r} r_1 \ast r \mapsto_{r} r_2 \ast Q\}
+    \{[r_1](\mathsf{emp}) \ast \textsf{cr3} \mapsto_{r} r_1 \ast r \mapsto_{r} r_2 \ast Q\}
     }
   }{
-    \{a\mapsto_\mathsf{v} x \ast \mathsf{emp} \ast cr3\mapsto_{r}r_1 \ast r \mapsto_{r}r_2 \ast [r_2](Q)\}
+    \{a\mapsto_\mathsf{v} x \ast \mathsf{emp} \ast \textsf{cr3}\mapsto_{r}r_1 \ast r \mapsto_{r}r_2 \ast [r_2](Q)\}
     \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
-    \{a\mapsto_\mathsf{v} x \ast [r_1](\mathsf{emp}) \ast cr3 \mapsto_{r} r_1 \ast r \mapsto_{r} r_2 \ast Q\}
+    \{a\mapsto_\mathsf{v} x \ast [r_1](\mathsf{emp}) \ast \textsf{cr3} \mapsto_{r} r_1 \ast r \mapsto_{r} r_2 \ast Q\}
   }
 \end{mathpar}
 Notice that both the precondition and postcondition assert that $a\mapsto_\mathsf{v} x$ in the current address space, but we have no basis for concluding that address translation is preserved by the change of address space. So this derivation clearly leads to an unsound conclusion. This suggestss that the traditional frame rule and the Hoare triple presentation of the change-of-address-space rule cannot soundly coexist in the same system.
@@ -275,18 +276,25 @@ By demanding that \lstinline|cr3| be held constant (or rather, at least restored
 Readers familiar with dynamic frames~\cite{parkinson2011relationship} might find it useful to notice that a different perspective on this matter is that virtual points-to assertions are self-stable \emph{except} for changes in \lstinline|cr3|, so framing would then naturally require other means of holding \lstinline|cr3| constant (or saving and restoring it).
 Virtual points-to assertions could be made self-stable by also giving them partial ownership over \lstinline|cr3| assertions, but this would require explicitly plumbing that ownership from \emph{all} assertions back to any place an address space change might occur; this would seem to be a far graver loss of modularity than this extra quirk in framing discussions.
 \subsubsection{Defining Hoare Doubles for Address-Space Specification}
-Based on the issues we discuss in Section \ref{sec:issues}, and the design of the abstractions for \textsf{vProp} logic, e.g. virtual-pointsto assertion and the modal address-space abstraction, we give the unfolded Hoare-double definition in Figure \ref{fig:wpddefinition}. 
-\begin{figure}
+Based on the issues we discuss in Section \ref{sec:issues}, we make sure our Hoare-Double definition in Figure \ref{fig:wpddefinition} enables
+\begin{itemize}
+\item virtual-pointsto relations to be independent of \lstinline{cr3} ownership
+\item and full-ownership of \lstinline to be propagated inside the \textsf{wpd\_def} in order to
+\end{itemize}
+This act of separation allows client-specification to be agnostic of \lstinline|cr3| physical resource, (i.e. \lstinline|cr3| $\mapsto_{\textsf{r}} \rtv$). The context-resource (virtual-pointsto) has only the \textit{knowledge} of being in a namespace in which it is valid ($\sumapaces\rtv\gammaPred$), nothing more.
+
+In the rest of this, we explain how specifications of some selected \textsf{AMD64} instructions look like under the decisions made on the reasoning principles.
+\begin{figure} 
   \[
   \begin{array}{l}
-    \textsf{wpd\_def e s E1 } \Phi \;\mathsf{ rootaddr } : \textsf{iProp }\Sigma := \\
-   \qquad ((\textsf{cr cr3}) \mapsto_{\textsf{r}} (\textsf{num rootaddr)}) \textsf{rootaddr}) \ast (\Phi \textsf{ rootaddr}) \wand \textsf{WP e E } @ \textsf{s ; E1} \{\{\_, \textsf{True} \}\}
+    \textsf{wpd\_def e s E1 } \Phi \;\mathsf{ cr3val } : \textsf{iProp }\Sigma := \\
+   \qquad ((\textsf{cr cr3}) \mapsto_{\textsf{r}} (\textsf{num cr3val)}) \textsf{ cr3val}) \ast (\Phi \textsf{ cr3val}) \wand \textsf{WP e E } @ \textsf{s ; E1 } \{\{\_, \textsf{True} \}\}
     \end{array}
   \]
 \caption{Unfolded Hoare-Double Definition for \textsf{vProp} Logic }
 \label{fig:wpddefinition}
 \end{figure}
-This definition carries only the facts ($\Phi$) that are valid under the current addresss-space -- $\Phi \; \textsf{rootaddr}$. It also helps to the agnosticism of the client on what the current address-space is by carrying the \textsf{cr3} value on the definition. 
+
 \begin{figure}
 \begin{mathpar}
 \inferrule[WriteToRegFromReg]{
@@ -297,18 +305,32 @@ This definition carries only the facts ($\Phi$) that are valid under the current
   %\lstinline|mov %cr3, r| 
 }
 \\
-\inferrule[WriteToMemFromReg]{
-  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast (\textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v})\;\textsf{cr3val} \}\;\overline{ is}  
+\inferrule[WriteToPhysMemFromReg]{
+  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}\;\overline{ is}  
 }{
-  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}   \ast r_a \mapsto_{r}\{q\} \textsf{ vaddr} \ast (\textsf{vaddr} \mapsto_{\textsf{t}} \textsf{rvs})\;\textsf{cr3val} \}
+  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}   \ast r_a \mapsto_{r}\{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{rvs} \}
   \textsf{ mov}~\textsf{r}_a,~\textsf{r}_s;\;\overline{is}
 }
 \\
-\inferrule[WriteToRegFromMem]{
-  \{P \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast (\textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v})\;\textsf{cr3val} \}\;\overline{is}
+\inferrule[WriteToRegFromPhysMem]{
+  \{P \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}\;\overline{is}
 }{
-  \{P \ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast (\textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v})\;\textsf{cr3val} \}
+  \{P \ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}
   \textsf{mov}~\textsf{r}_d,~\textsf{r}_a;\;\overline{is}
+}
+\\
+\inferrule[WriteToRegFromVirtMem]{
+  \{P \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}\;\overline{is}
+}{
+  \{P \ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}
+  \textsf{mov}~\textsf{r}_d,~\textsf{r}_a;\;\overline{is}
+}
+\\
+\inferrule[WriteToVirtMemFromReg]{
+  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}\;\overline{ is}  
+}{
+  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}   \ast r_a \mapsto_{r}\{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{rvs} \}
+  \textsf{ mov}~\textsf{r}_a,~\textsf{r}_s;\;\overline{is}
 }
 \\
 \inferrule[WriteToRegCtlFromReg]{
@@ -317,12 +339,24 @@ This definition carries only the facts ($\Phi$) that are valid under the current
   \{P \ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}   \}
   \textsf{mov}~\textsf{cr3},~r_s;\;\overline{is}
   %\lstinline|mov %cr3, r| 
+}\\
+\inferrule[WriteToRegFromRegCtl]{
+  \{P \ast r_d \mapsto_{r} \textsf{rvs} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}\;\overline{ is}
+}{
+  \{P \ast r_d \mapsto_{r} \textsf{rvd} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}
+  \textsf{ mov}~\textsf{r}_d,~\textsf{r}_s;\;\overline{is}
+  %\lstinline|mov %cr3, r| 
 }
 \end{mathpar}
-\caption{Selected Reasoning Rules for ..}
+\caption{Reasoning Rules for Selected \textsf{AMD64} Instructions}
 \label{fig:wpdamd}
 \end{figure}
-\todo[inline,color=red]{STOP HERE}
 \subsubsection{Register To Memory}
+\paragraph{Register To Physical Memory}
+\paragraph{Register To Virtual Memory}
 \subsubsection{Memory To Register}
+\paragraph{Physical Memory To Register}
+\paragraph{Virtual Memory To Register}
 \subsubsection{Register To Register}
+\paragraph{Updating \lstinline|cr3|}
+
