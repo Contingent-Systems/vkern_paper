@@ -1,7 +1,9 @@
+
+\newcommand{\assert}[1]{\mathit{assert}\ #1}
+\newcommand{\specline}[1]{{\color{blue}\left\{#1\right\}}}
+
 \section{Experiment}
 \label{sec:experiment}
-\mytodo{Mechanization is Ismail's Part -- Discussing and putting in here is Colin's}
-
 To both validate and demonstrate the value of the modal approach to reasoning about virtual memory management, we study several distillations of real concerns of virtual memory managers.
 Recall from Section \ref{sec:logic} that virtual points-to assertions work just like regular points-to assertions, by design.
 
@@ -21,12 +23,7 @@ Let's call this v2.
 One of the key tasks of a page fault handler in a general-purpose OS kernel is to map new pages into an address space by writing into an existing page table.
 \todo[inline]{Ismail, see notes about intermediate assertions on the Notion page}
 \begin{figure}
-\begin{lstlisting}
-;; Assume the faulting address f is in r12,
-;; a callee-save register, and f with the 
-;; lower 12 bits zeroed out (so, the virtual
-;; page containing f) is in r13 (also callee-save)
-
+  \begin{lstlisting}
 ;; Ensure there's a place to put the L1 mapping
 mov %rdi, %r13
 call ensure_L1_page
@@ -38,12 +35,6 @@ call alloc_phys_page_or_panic
 add %rax, 3
 ;; update the page table entry, mapping the page
 mov (%r14), %rax
-;; memset the newly-mapped page
-mov %rdi, %r13
-mov %rsi, 0
-mov %rdx, 4096
-call memset
-;; The newly mapped page is full of 0s
 \end{lstlisting}
 \caption{Distilled code for mapping a new page}
 \label{fig:mapping_code}
