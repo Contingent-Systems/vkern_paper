@@ -131,7 +131,7 @@ element of the monoid
 
 \begin{definition}[Central Invariant]
 \label{def:invariant}
-The central invariant of our logic is, due to lack of need for augmenting the machine state, simply the state interpretation \cite[\S7.3]{iris} : 
+The central invariant of our logic is, due to lack of need for augmenting the machine state, simply the state interpretation: 
 \[
 \centralinvariant\;\store \triangleq
 \left\{
@@ -144,5 +144,40 @@ The central invariant of our logic is, due to lack of need for augmenting the ma
 \]
 \end{definition}
 
+As a last definition, we give the head step relation required for the Iris instantiation for our simple language in Figure \ref{} to sequence instructions. This relation allows lifting the program expression to enables the application of changes imposed by the operational semantics on the program state $\sigma$ when applied for an insturction (\textsf{i}).
+\[
+\begin{array}{l}
+\textsf{exec\_step} (\textsf{i}: \textsf{ instr}) (\sigma:\textsf{ state}):\textsf{ option state} \stackrel{def}{=} \\
+\qquad \textsf{exec\_state} (\textsf{exec\_instr i } \sigma.(\textsf{cpu})  \\ \qquad (\textsf{regToregset } \sigma.(\mathcal{R}))  \\ \qquad ((\textsf{memToPhysMem }\sigma.(\mathcal{M})) (\textsf{exist \_}  \\ \qquad (\textsf{ regset\_get\_num }(\textsf{regToregset }\sigma.(\mathcal{R}))  (\textsf{ cr cr3}))))).
+\end{array}
+\]
+\todo[inline,color=yellow]{Colin, incase needed,not proven, could you simply say that we assume these map equalities}. Since the focus of this paper is not explaining our \textsf{AMD64} model, we prefer not to get into the details due to space limits. However, Coq formalization of our operational semantics is a part of our submission artifact.
+
 Now, we have well-enough definition for giving an outline for the proof of \TirNameStyle{WriteToRegFromVirtMem}.
-\todo[inline,color=red]{ISMAIL give the outlin}
+ \begin{lemma}[\textsc{\TirNameStyle{WriteToRegFromVirtMem}}]
+   \label{lemma:unlink}
+\begin{align*}
+\inferrule{
+  \{P \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}\;\overline{is}
+}{
+  \{P \ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}
+  \textsf{mov}~\textsf{r}_d,~\textsf{r}_a;\;\overline{is}
+}
+\end{align*}
+ \end{lemma}
+ \begin{proof}
+   Assuming the inference rule realized with \textsf{wpd\_def}, we expand the precondition with $\textsf{cr3} \mapsto_{\textsf{r}} \rtv$.
+   Then we do two proofs, one for head reducibility of atomic step \textsf{mov\_reg64\_mem64}, the second one for the executing the expression and obtaining the new state. Steps taken in the first one are subset of the second one, so we outline the second portion of the proof, but in case of an interest in details of the proof, Coq artifact can be consulted.
+
+   \begin{itemize}
+   \item Step 1: we apply the head step relation and obtain the current valid state $\sigma1$
+   \item Step 2: we unfold the \textsf{stop here}
+   \end{itemize}
+   
+   \end{proof}
+
+% Lemma wexploit_table_traversal (r:greg) maddr entry entry0 entry1 paddr cr3val  (v:word 64) σ :
+ % x64h_interp  σ.(mem)  σ.(reg) -∗
+  %     ((cr cr3) ↦ᵣ (num cr3val)) cr3val -∗
+   %    (r ↦ᵣ (num maddr)) cr3val -∗
+    %   (wtraversal_mapsto maddr entry entry0 entry1 paddr v) cr3val
