@@ -60,9 +60,9 @@ We abstract physical memory addressing and registers naming with well-known sepa
 \caption{Physical Points-to with Nested Masking}
   \label{fig:physicalpointsto}
 \end{figure}
-Given the definition of physical page-pointsto assertion and the root address of virtual-address space kept in the control register \textsf{CR3} as shown in Figure \ref{fig:pagetable},  one can build the physical address-translation for a virtual address (e.g. \textsf{va}) via abstracting the L4-L1 table traversal as the following:
+Given the definition of physical page-pointsto assertion and the root address of virtual-address space kept in the control register \lstinline{cr3} as shown in Figure \ref{fig:pagetable},  one can build the physical address-translation for a virtual address (e.g. \textsf{va}) via abstracting the L4-L1 table traversal as the following:
 \begin{itemize}
-  \item Page Map Level-4 Translation (L4): Performs the first level address translation to get the PML4 entry (PML4E) in Figure \ref{fig:pagetables} by using the masks(\textsf{va}$|^{52}$(\textsf{CR3}) to get the starting address of the PML4 table (PLM4T) and using the offset mask \textsf{va}$|^{12}$(\textsf{CR3}). It is worth noting that our offset indices are 12 bits as all physical memory pointsto assertions has to satisfy being \textsf{\textit{aligned}}, e.g. [47-39] plus 3 alignment bits in Figure \ref{fig:pagetables}
+  \item Page Map Level-4 Translation (L4): Performs the first level address translation to get the PML4 entry (PML4E) in Figure \ref{fig:pagetables} by using the masks(\textsf{va}$|^{52}$(\lstinline{cr3}) to get the starting address of the PML4 table (PLM4T) and using the offset mask \textsf{va}$|^{12}$(\lstinline{cr3}). It is worth noting that our offset indices are 12 bits as all physical memory pointsto assertions has to satisfy being \textsf{\textit{aligned}}, e.g. [47-39] plus 3 alignment bits in Figure \ref{fig:pagetables}
     \[ \begin{array}{l}
       \hbox{(\TirNameStyle{{L4translate}})} \quad
       \exists \entryf \ldotp \nfpointsto{\mask\vaddr\ft\crthree}{\mask\vaddr\tw\crthree}\entryf\qfracfotsss\naddr
@@ -135,6 +135,18 @@ Given the definition of physical page-pointsto assertion and the root address of
   \item we decorate the fragmental ownership of the ghost-map ($ \sumwalkabs\vaddr\qfrac\paddr$) with the physical $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ whose ownership just ensures that the virtual address ($\vaddr$) is mapped to a page (referenced by $\paddr$)
   \item we place the authorative ownership $\mathcal{A}\textsf{PTableWalk}$ of the ghost-map in an address-space invariant ($\mathcal{I}$\textsf{ASpace} in Figure \ref{fig:peraspaceinvariant}) whose ownership grants sound update on the page table entries
   \end{itemize}
+
+  \begin{figure*}
+\[
+\begin{array}{l}
+  \mathcal{I}\textsf{ASpace} \stackrel{\triangle}{=} \lambda \; \crthree \ldotp
+  \exists\;\gammaPred \;\ldotp\; \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \ast \\
+  \bigast{(\vaddr, \entryo)\in \ptablestore}{\exists\;(\entryf\;,\entrytr\;,\entrytw)\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\crthree,\entryf,\entrytr,\entrytw,\entryo)}
+\end{array}
+\]
+\caption{Global Address-Space Invariant}
+  \label{fig:peraspaceinvariant}
+  \end{figure*}
   
 \begin{remark}[Exchanging Page-Table-Walk-Summarization Mappings (Tokens) ]
   $\mathcal{A}\textsf{PTableWalk}$'s fragmental-ownership represents an individual key-value pair (per-virtual-address) which can be handled as a \textit{look-up} resource for an individual virtual address.
@@ -351,12 +363,14 @@ In the rest of this, we explain how specifications of some selected \textsf{AMD6
 \caption{Reasoning Rules for Selected \textsf{AMD64} Instructions}
 \label{fig:wpdamd}
 \end{figure}
-\subsubsection{Register To Memory}
-\paragraph{Register To Physical Memory}
-\paragraph{Register To Virtual Memory}
 \subsubsection{Memory To Register}
-\paragraph{Physical Memory To Register}
-\paragraph{Virtual Memory To Register}
+In Figure \ref{fig:wpdamd}, we see the rules for updating the memory address ($r_a$). To do so, we essentially need page-table-walk pointsto ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}) to locate the value to be written. We mainly have two options to achieve this. 
+\paragraph{Physical Memory To Register} First one is to use  page-table-walk pointsto ($\textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v}$), which is consists of all-physical page-table memory assertions, to prove the page-table traversal \textsf{AMD64} implements, update the register $r_d$ the value obtained ($\textsf{v}$) as shown in Figure (\TirNameStyle{WriteToRegFromPhysMem}). By doing so, we expose the resources ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$) needed only for the proof of \textsf{AMD64} page-table traversal to the client of the rule. This breaks the modularity of reasoning we want to maintain in location virtualization.
+  \paragraph{Virtual Memory To Register}  Therefore, we would like to use a virtual-pointsto assertion ($\textsf{vaddr} \mapsto_{\textsf{v},\textsf{rtv}}$), which hides physical resources needed for the proof of page-table-traversal from the client, to obtain the the value ($\textsf{v}$) to update the register $r_d$ as shown in Rule (\TirNameStyle{WriteToRegFromVirtMem}). While doing the proof of page-table-traversal with a given virtual-pointsto definition in Figure \ref{fig:virtualpointstosharing}, we unfold and obtain our token ($\sumwalkabs\vaddr\qfrac\paddr$) to exchange for a physical-table mapsto assertion inside the $\mathcal{I}\textsf{ASpace}$ ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$) in Figure \ref{fig:peraspaceinvariant}, and apply Rule (\TirNameStyle{WriteToRegFromPhysMem}).
+\subsubsection{Register To Memory}
+ \paragraph{Register To Physical Memory} First one is to 
+
+\paragraph{Register To Virtual Memory}
 \subsubsection{Register To Register}
 \paragraph{Updating \lstinline|cr3|}
 
