@@ -5,12 +5,29 @@ We build our program logic, as an instantiation of Iris~\cite{iris}, and build o
 \label{sec:soundness}
 Our logic, operates on the machine state, which means we do not need to augment the machine state. The invarian that we pick, \textit{central invariant} ($\mathcal{I}$), is just semantic interpretation of stores in the machine state, $\sigma$.R and $\sigma$.M. This semantic interpratation ensures the correct lifting of mappings in the machine state to the assertions that the client of our logic uses, i.e. points-to assertions that are defined as the ownership of a fragment of the logical state.
 
-
-We prefer to skip explaining the steps used in instantiation of Iris because it is an almost standard procedure, has already been explained for many other logic \ref{}, and we are concerned with the page-count limitation. However, it is worh noting that once you instantiate Iris for your language, it comes with the semantic definition for the weakest-precondition which we can refactor into Hoare triples, $\triple\pre\instr\post$, to specify our  selected \textsf{AMD64} instructions, and show that these triples are sound. 
-
+We prefer to skip explaining the steps used in instantiation of Iris because it is an almost standard procedure, has already been explained for many other logic \ref{}, and we are concerned with the page-count limitation. However, it is worh noting that once you instantiate Iris for your language, it comes with the semantic definition for the weakest-precondition which we can refactor into Hoare triples, $\triple\pre\instr\post$, to specify our  selected \textsf{AMD64} instructions shown in Figure \ref{fig:wpdamd}, and show that these triples are sound. 
 \subsection{The Soundness Statement}
 \label{def:soundness:statement}
-The operational semantics of our simple lang just executes sequences of instructions in our x86-64 model. Therefore, our soundness argument is to show that any execution composed of instructions in our machine model (some of which are shown in Figure \sref{sec:semantics}) does not end-up in a invalid state. In other words, a~program that attempts to ... stuck~(\sref{sec:instrsemantics}).
+The operational semantics of our simple lang just executes sequences of instructions in our x86-64 model. Therefore, our soundness argument is to show that any execution composed of instructions in our machine model (some of which are shown in Figure \sref{sec:semantics}) does not end-up in a invalid state.
+\begin{figure*}
+\small
+\begin{mathpar}
+\inferrule[Skip]{}{
+  \triple\post\iskip\post
+}
+
+\inferrule[Seq]{
+  \triple\pre{\instr_1}\midpoint \\
+  \triple\midpoint{\instr_2}\post
+}{
+  \triple\pre{(\iseq{\instr_1}{\instr_2})}\post
+}
+\end{mathpar}
+\caption{Structural Rules for Executing Instructions}
+\Description{Reasoning Rules}
+\label{fig:structural}
+\end{figure*}
+
 \begin{theorem}[Soundness of the Logic]
   \label{th:adequacy}
  Together with the assumptions on the initial state hold,
@@ -18,12 +35,12 @@ The operational semantics of our simple lang just executes sequences of instruct
 \end{theorem}
 which states that if the program~$\instr$, with the given \textsf{valid\_init} asserting a valid state initialization, satisfies a semantic Hoare
 triple, then this program cannot crash: by a direct consequence of Iris's adequacy theorem~\cite[\S6.4]{iris}.
-\todo{ismail, give the real adeq. theorem here}
+
 Moreover we need to show the validity of each rules in Figures \fref{fig:reasoning} and \fref{fig:laws}.
 \begin{theorem}[Validity of the Reasoning Rules]
 \label{th:validity}
-  Each of the rules in Figures~\ref{fig:laws}
-  and~\ref{fig:reasoning} is valid.
+  Each of the rules in Figures~\ref{fig:wpdamd}
+  and~\ref{fig:structural} is valid.
 \end{theorem}
 Due to the space limits in this paper, we do not mention each proof for these rules explicitly (which are already mechanized in Coq),
 but the definitions and constructions used requires explanation.
@@ -31,8 +48,6 @@ but the definitions and constructions used requires explanation.
 Together, Theorems~\ref{th:adequacy} and~\ref{th:validity} guarantee that, if
 the Hoare triple $\textsf{valid\_init }\instrs\;\iTrue$ can be obtained by applying
 the reasoning rules of our logic, then the program~$\instrs$ is safe.
-\subsection{BI-Lifting for Address Space Modality}
-\label{sec:bilifting}
 
 \subsection{Logical Constructions}
 \label{sec:invariant}

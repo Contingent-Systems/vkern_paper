@@ -365,10 +365,9 @@ In the rest of this, we explain how specifications of some selected \textsf{AMD6
 In Figure \ref{fig:wpdamd}, we see the rules for updating the memory address ($r_a$). To do so, we essentially need page-table-walk pointsto ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}) to locate the value to be written. We mainly have two options to achieve this. 
 \paragraph{Physical Memory To Register} First one is to use  page-table-walk pointsto ($\textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v}$), which is consists of all-physical page-table memory assertions, to prove the page-table traversal \textsf{AMD64} implements, update the register $r_d$ the value obtained ($\textsf{v}$) as shown in Figure (\TirNameStyle{WriteToRegFromPhysMem}). By doing so, we expose the resources ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$) needed only for the proof of \textsf{AMD64} page-table traversal to the client of the rule. This breaks the modularity of reasoning we want to maintain in location virtualization.
   \paragraph{Virtual Memory To Register}  Therefore, we would like to use a virtual-pointsto assertion ($\textsf{vaddr} \mapsto_{\textsf{v},\textsf{rtv}}$), which hides physical resources needed for the proof of page-table-traversal from the client, to obtain the the value ($\textsf{v}$) to update the register $r_d$ as shown in Rule (\TirNameStyle{WriteToRegFromVirtMem}). While doing the proof of page-table-traversal with a given virtual-pointsto definition in Figure \ref{fig:virtualpointstosharing}, we unfold and obtain our token ($\sumwalkabs\vaddr\qfrac\paddr$) to exchange for a physical-table mapsto assertion inside the $\mathcal{I}\textsf{ASpace}$ ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$) in Figure \ref{fig:peraspaceinvariant}, and apply Rule (\TirNameStyle{WriteToRegFromPhysMem}).
-\subsubsection{Register To Memory}
- \paragraph{Register To Physical Memory} First one is to 
-
-\paragraph{Register To Virtual Memory}
-\subsubsection{Register To Register}
-\paragraph{Updating \lstinline|cr3|}
+\subsubsection{Register To Memory}\todo[inline,color=red]{Iso:explain}
+ \paragraph{Register To Physical Memory}\todo[inline,color=red]{Iso:explain}
+\paragraph{Register To Virtual Memory} \todo[inline,color=red]{Iso:explain}
+\subsubsection{Register To Register}\todo[inline,color=red]{Iso:explain}
+\paragraph{Updating \lstinline|cr3|}\todo[inline,color=red]{Iso:explain}
 
