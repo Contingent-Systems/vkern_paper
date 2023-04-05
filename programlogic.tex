@@ -222,6 +222,7 @@ Pragmatically,
 
 \subsection{Considering Hoare Doubles in the Context of Switching Address-Space}
 \subsubsection{Issues with Using Hoare Triples in Address-Space Specification}
+\label{sec:issues}
 An important subtlety arises with supporting \lstinline|mov|s into \lstinline|%cr3|. Consider the hypothetical rule:
 \begin{mathpar}
 \inferrule[Broken]{ }{
@@ -274,7 +275,7 @@ By demanding that \lstinline|cr3| be held constant (or rather, at least restored
 Readers familiar with dynamic frames~\cite{parkinson2011relationship} might find it useful to notice that a different perspective on this matter is that virtual points-to assertions are self-stable \emph{except} for changes in \lstinline|cr3|, so framing would then naturally require other means of holding \lstinline|cr3| constant (or saving and restoring it).
 Virtual points-to assertions could be made self-stable by also giving them partial ownership over \lstinline|cr3| assertions, but this would require explicitly plumbing that ownership from \emph{all} assertions back to any place an address space change might occur; this would seem to be a far graver loss of modularity than this extra quirk in framing discussions.
 \subsubsection{Defining Hoare Doubles for Address-Space Specification}
-
+Based on the issues we discuss in Section \ref{sec:issues}, and the design of the abstractions for \textsf{vProp} logic, e.g. virtual-pointsto assertion and the modal address-space abstraction, we give the unfolded Hoare-double definition in Figure \ref{fig:wpddefinition}. 
 \begin{figure}
   \[
   \begin{array}{l}
@@ -285,7 +286,7 @@ Virtual points-to assertions could be made self-stable by also giving them parti
 \caption{Unfolded Hoare-Double Definition for \textsf{vProp} Logic }
 \label{fig:wpddefinition}
 \end{figure}
-
+This definition carries only the facts ($\Phi$) that are valid under the current addresss-space -- $\Phi \; \textsf{rootaddr}$. It also helps to the agnosticism of the client on what the current address-space is by carrying the \textsf{cr3} value on the definition. 
 \begin{figure}
 \begin{mathpar}
 \inferrule[WriteToRegFromReg]{
