@@ -51,7 +51,6 @@ the reasoning rules of our logic, then the program~$\instrs$ is safe.
 
 \subsection{Logical Constructions}
 \label{sec:invariant}
-
 We already have the physical and logical stores and a simple invariant between them. Now, we can rely on the following Assumption \ref{assumption} from Iris to utilize its logical constructions.
 % The predicate gen_heap_interp.
 \newcommand{\genheapinterp}[1]{\mathit{Heap}\;#1}
@@ -89,7 +88,7 @@ Iris defines two pieces of ghost state
   in our own invariant (Definition~\ref{def:invariant}),
   where it is applied to the \logical store~$\store$.
 \item unlike the points-to relation obtained by direct interpretion of $\genheapinterp\store.\mathcal{R}$ using Iris, the existing \textsf{gen\_heap\_interp},
-  does not directly helps introducing the ghost we define a new algebra (\textsf{gen\_mem\_UR}) for abstracting the nested maps due to different levels of masking in memory mappings. 
+  does not directly helps introducing the ghost we define a new algebra (\textsf{gen\_mem\_UR}) for abstracting the nested maps due to different levels of masking in memory mappings and an interpretation for this algebra. 
 \end{enumerate}
 \end{assumption}
 
@@ -102,7 +101,15 @@ We define our custom-tailored algebra
   (\Loctw \;\fpfn\;  (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \Loc,\mathord{=}) )
   \)
   for our nested memory mapping abstracting two different machine word masking. Then, we register our \emph{authoritative camera} \cite[\S6.3.3]{iris} from this algebra
-\[\textsf{inG } \Sigma \textsf{ gen\_memUR} \]
+  \[\textsf{inG } \Sigma \textsf{ gen\_memUR} \]
+  To interpret this nested ghost map we define \textsf{to\_gen\_mem}
+  \[
+  \begin{array}{l}
+    \mathsf{to\_gen\_mem} : \textsf{ gmap L1 }(\textsf{gmap L2 V})\rightarrow \textsf{gen\_memUR L1 L2 V } := \textsf{ fmap} (\lambda \textsf{m . to\_gen\_heap m}). \\
+     \mathsf{to\_gen\_heap } : \textsf{gmap L V} \rightarrow \textsf{gen\_heapUR L V} :=  (\lambda \textsf{v }\ldotp (1, \textsf{ to\_agree } (\textsf{v} : \textsf{leibnizO V}))).
+  \end{array}
+  \]
+ throuh using \textsf{to\_gen\_heap} from previous Iris version. \todo[inline,color=red]{Ismail give exact version commit etc.}
 As a final step, we allocate an empty ghost cell $\gamma$ at the beggining of a program execution to store the element of the monoid $\textsf{inG } \Sigma \textsf{ gen\_memUR}$.
 \end{definition}
 
