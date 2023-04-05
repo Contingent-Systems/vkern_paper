@@ -127,7 +127,19 @@ Given the definition of physical page-pointsto assertion and the root address of
   \subsection{Aliasing/Sharing Physical Pages}
   \label{sec:sharingpages}  
   One might have already observed that the virtual points-to definition shown in Figure \ref{fig:strongvirtualpointsto} is too strong to specify virtual memory operations updating a page table entry. To speak more concretely, the fractional permissions on the page-table-walk assertion ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}) \textit{only} assure the existence of the certain number of mappings -- 512 at each level -- abstracting virtual address translations, and updating any of these mappings would make the other mappings, address translations sharing the page table mappings. Therefore, we need to consturct logical abstractions ensuring sound updates to the page-table entries in the existence of sharing.
-  
+\begin{figure*}
+\[
+\begin{array}{l}
+    \vaddr\mapsto_{\textsf{v,rtv}}\{\textsf{q}\}\vpage \stackrel{\triangle}{=} 
+    \exists \entryo \ldotp
+    \sumapaces\rtv\delta \ast 
+  \sumwalkabs\vaddr\qfrac\paddr \ast 
+   \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr
+\end{array}
+\]
+\caption{Virtual-Pointsto for Sharing Pages}
+  \label{fig:virtualpointstosharing}
+\end{figure*}  
   One possible approach is to abstract away the physical page-table-walk pointsto ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}) from the virtual pointsto relation. To do so, we introduce the protocol separating read-only (fragmental) and authorative (full ownership) accesses to the page tables, specifically $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$. We realize this protocol by embedding it into an already existing \textsf{Iris}'s ghost-map (or view\_maps) construction
   \[\mathcal{A}\textsf{bsPTableWalk} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \;  (\mathcal{W}_{64} \; \rightarrow_{\textrm{fin}}\;  (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \Loc,\mathord{=}) ))\]
  where
@@ -148,33 +160,19 @@ Given the definition of physical page-pointsto assertion and the root address of
   \label{fig:peraspaceinvariant}
   \end{figure*}
   
-\begin{remark}[Exchanging Page-Table-Walk-Summarization Mappings (Tokens) ]
+\begin{remark}[Exchanging Page-Table-Walk-Summarization Mappings (Tokens) under Mutation of Page Tables ]
   $\mathcal{A}\textsf{PTableWalk}$'s fragmental-ownership represents an individual key-value pair (per-virtual-address) which can be handled as a \textit{look-up} resource for an individual virtual address.
-  To build more intuition on the convenience of this protocol, we can think of the use-case \textit{unmapping-pages} as collecting the fragmental map pairs, e.g. $\sumwalkabs\vaddr\qfrac\paddr$, from collecting the assertions, removing them from the ghost map, and then updating the page tables. while Besides, y separating the virtual-points Overlapping address spaces — both shared data, and shared page tables
-which may see updates — can be coordinated with protocols to ensure those updates preserve
-address space invariants.
+  To build more intuition on the convenience of this protocol, we can think of the use-case \textit{unmapping-pages}. Normally, in the existence of shared page-tables, we need to first collect all the fragmental map pairs, e.g. $\sumwalkabs\vaddr\qfrac\paddr$, then, after making sure of non-existence of \textit{sharing}, we can \textit{unmap} the page. In this case, it would be ok to put $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ and $ \sumwalkabs\vaddr\qfrac\paddr$ side-by-side inside the virtual-pointsto definition in Figure \ref{fig:virtualpointstosharing}. However, this pattern of verifying is not only inconvenient due to requirement of extra bookkeeping, but also violates our soundness argument based on considering  mutation on the shared page-tables -- due to coalescing of page tables etc. --. In other words, physical $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ sitting aside to  $ \sumwalkabs\vaddr\qfrac\paddr$ would be made invalid by any concurrent update on the physical page-table. So there should only be one physical memory resource inside the virtual pointsto definition: from physical page address to the value stored ($   \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr$).
 \end{remark}
-\begin{figure*}
-\[
-\begin{array}{l}
-    \vaddr\mapsto_{\textsf{v,rtv}}\{\textsf{q}\}\vpage \stackrel{\triangle}{=} 
-    \exists \entryo \ldotp
-    \sumapaces\rtv\delta \ast 
-  \sumwalkabs\vaddr\qfrac\paddr \ast 
-   \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr
-\end{array}
-\]
-\caption{Virtual-Pointsto for Sharing Pages}
-  \label{fig:virtualpointstosharing}
-\end{figure*}
+
 %\subsection{Address-Space Abstraction}
 %\label{sec:aspacemodal}
 
 Relations amongst these logical constructions, for the sake making it clearly understood, outlined pictorially  in Figure \ref{fig:logicaladdrspace}:
 \begin{itemize}
 \item a global address space invariant (solid round square labelled as $\mathcal{I}$\textsf{ASpace} in Figure \ref{fig:logicaladdrspace}) asserting the authorative ownership (i.e. update capability), $\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$, of the ghost map -- shown as solid-round-head arrow to $\mathcal{A}\textsf{PTableWalk}$ Figure \ref{fig:logicaladdrspace}
-\item per-virtual-pointsto relation ((cutted round square labelled as \textsf{Virtual PointsTo} in Figure \ref{fig:peraspaceinvariant})) asserting the fragmental ownership of the ghost map, $\sumwalkabs\vaddr\qfrac\paddr$ \textit{represents} the fragmental-ownership (cutted-diamond-head arrow) of $\mathcal{A}\textsf{PTableWalk}$
-\item there exists only one persistent authorative ownership ($\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$) for all fragmental ghost page-table-walk mapping ($\sumwalkabs\vaddr\qfrac\paddr$) shown as double-ended solid arrow 1 to N
+\item per-virtual-pointsto relation ((cutted round square labelled as \textsf{Virtual PointsTo} in Figure \ref{fig:peraspaceinvariant})) asserting the fragmental ownership of the ghost map, $\sumwalkabs\vaddr\qfrac\paddr$ \textit{represents} the fragmental-ownership (cutted-diamond-head arrow) of $\mathcal{A}\textsf{PTableWalk}$ 
+\item there exists only one persistent authorative ownership ($\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$) for all fragmental ghost page-table-walk mapping ($\sumwalkabs\vaddr\qfrac\paddr$) shown as double-ended solid arrow 1 to N imposing the update protocol
 \end{itemize}
 
 \begin{figure}
