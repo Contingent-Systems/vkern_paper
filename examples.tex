@@ -23,11 +23,6 @@ One of the key tasks of a page fault handler in a general-purpose OS kernel is t
 \todo[inline]{Ismail, see notes about intermediate assertions on the Notion page}
 \begin{figure}
 \begin{lstlisting}
-;; Assume the faulting address f is in r12,
-;; a callee-save register, and f with the 
-;; lower 12 bits zeroed out (so, the virtual
-;; page containing f) is in r13 (also callee-save)
-
 ;; Ensure there's a place to put the L1 mapping
 mov %rdi, %r13
 call ensure_L1_page
