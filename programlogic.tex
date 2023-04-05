@@ -298,23 +298,23 @@ This definition carries only the facts ($\Phi$) that are valid under the current
 }
 \\
 \inferrule[WriteToMemFromReg]{
-  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs} \ast \textsf{cr3} \mapsto_{r} \textsf{cr3val}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast (\textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v})\;\textsf{cr3val} \}\;\overline{ is}  
+  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast (\textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v})\;\textsf{cr3val} \}\;\overline{ is}  
 }{
-  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs} \ast \textsf{cr3} \mapsto_{r} \textsf{cr3val}  \ast r_a \mapsto_{r}\{q\} \textsf{ vaddr} \ast (\textsf{vaddr} \mapsto_{\textsf{t}} \textsf{rvs})\;\textsf{cr3val} \}
+  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}   \ast r_a \mapsto_{r}\{q\} \textsf{ vaddr} \ast (\textsf{vaddr} \mapsto_{\textsf{t}} \textsf{rvs})\;\textsf{cr3val} \}
   \textsf{ mov}~\textsf{r}_a,~\textsf{r}_s;\;\overline{is}
 }
 \\
 \inferrule[WriteToRegFromMem]{
-  \{P \ast r_d \mapsto_{r}  \textsf{v} \ast \textsf{cr3} \mapsto_{r} \textsf{cr3val}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast (\textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v})\;\textsf{cr3val} \}\;\overline{is}
+  \{P \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast (\textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v})\;\textsf{cr3val} \}\;\overline{is}
 }{
-  \{P \ast r_d \mapsto_{r}  \textsf{rvd} \ast \textsf{cr3} \mapsto_{r} \textsf{cr3val}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast (\textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v})\;\textsf{cr3val} \}
+  \{P \ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast (\textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v})\;\textsf{cr3val} \}
   \textsf{mov}~\textsf{r}_d,~\textsf{r}_a;\;\overline{is}
 }
 \\
 \inferrule[WriteToRegCtlFromReg]{
-  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{ rvs} \ast \textsf{cr3} \mapsto_{r} \textsf{rvs}  \}\overline{is}
+  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}  \}\overline{is}
 }{
-  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{ rvs} \ast \textsf{cr3} \mapsto_{r} \textsf{cr3val}  \}
+  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}   \}
   \textsf{mov}~\textsf{cr3},~r_s;\;\overline{is}
   %\lstinline|mov %cr3, r| 
 }
@@ -322,7 +322,7 @@ This definition carries only the facts ($\Phi$) that are valid under the current
 \caption{Selected Reasoning Rules for ..}
 \label{fig:wpdamd}
 \end{figure}
-\paragraph{Register To Memory}
-\paragraph{Memory To Register}
-\paragraph{Register To Register}
 \todo[inline,color=red]{STOP HERE}
+\subsubsection{Register To Memory}
+\subsubsection{Memory To Register}
+\subsubsection{Register To Register}
