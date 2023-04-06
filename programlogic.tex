@@ -293,7 +293,9 @@ Based on the issues we discuss in Section \ref{sec:issues}, we make sure our Hoa
 \end{itemize}
 This act of separation allows client-specification to be agnostic of \lstinline|cr3| physical resource, (i.e. \lstinline|cr3| $\mapsto_{\textsf{r}} \rtv$). The context-resource (virtual-pointsto) has only the \textit{knowledge} of being in a namespace in which it is valid ($\sumapaces\rtv\gammaPred$), nothing more.
 
-In the rest of this, we explain how specifications of some selected \textsf{AMD64} instructions look like under the decisions made on the reasoning principles.
+In the rest of this, we explain how specifications of some selected \textsf{AMD64} instructions look like under the decisions made on the reasoning principles. All rules, e.g. the ones with different addressing mode, can be found in our artifact.
+
+In the general outline of the proof in Figure \ref{wpdamd}, we see that each rule annotated with an address value ($\{\rtv\}$), i.e. a root address of an address-space, under which the resources mentioned in the specification are valid. Moreover, there is a frame resource $P$ in each rule.
 \begin{figure} 
   \[
   \begin{array}{l}
@@ -307,7 +309,7 @@ In the rest of this, we explain how specifications of some selected \textsf{AMD6
 
 \begin{figure}
 \begin{mathpar}
-\inferrule[WriteToRegFromReg]{
+  \inferrule[WriteToRegFromReg | \{\textsf{rtv}\}]{
   \{P \ast r_d \mapsto_{r} \textsf{rvs} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}\;\overline{ is}
 }{
   \{P \ast r_d \mapsto_{r} \textsf{rvd} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}
@@ -315,42 +317,42 @@ In the rest of this, we explain how specifications of some selected \textsf{AMD6
   %\lstinline|mov %cr3, r| 
 }
 \\
-\inferrule[WriteToPhysMemFromReg]{
+\inferrule[WriteToPhysMemFromReg | \{\textsf{rtv}\}]{
   \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}\;\overline{ is}  
 }{
   \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}   \ast r_a \mapsto_{r}\{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{rvs} \}
   \textsf{ mov}~\textsf{r}_a,~\textsf{r}_s;\;\overline{is}
 }
 \\
-\inferrule[WriteToRegFromPhysMem]{
+\inferrule[WriteToRegFromPhysMem | \{\textsf{rtv}\}]{
   \{P \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}\;\overline{is}
 }{
   \{P \ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}
   \textsf{mov}~\textsf{r}_d,~\textsf{r}_a;\;\overline{is}
 }
 \\
-\inferrule[WriteToRegFromVirtMem]{
-  \{P \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}\;\overline{is}
+\inferrule[WriteToRegFromVirtMem | \{\textsf{rtv}\}]{
+  \{P \ast \mathcal{I}\textsf{ASpace}\ast \mathcal{I}\textsf{ASpace} \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}\;\overline{is}
 }{
-  \{P \ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}
+  \{P \ast \mathcal{I}\textsf{ASpace}\ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}
   \textsf{mov}~\textsf{r}_d,~\textsf{r}_a;\;\overline{is}
 }
 \\
-\inferrule[WriteToVirtMemFromReg]{
-  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}\;\overline{ is}  
+\inferrule[WriteToVirtMemFromReg | \{\textsf{rtv}\}]{
+  \{P \ast \mathcal{I}\textsf{ASpace}\ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}\;\overline{ is}  
 }{
-  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}   \ast r_a \mapsto_{r}\{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{rvs} \}
+  \{P \ast \mathcal{I}\textsf{ASpace}\ast r_s \mapsto_{r}\{q\}  \textsf{rvs}   \ast r_a \mapsto_{r}\{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{rvs} \}
   \textsf{ mov}~\textsf{r}_a,~\textsf{r}_s;\;\overline{is}
 }
 \\
-\inferrule[WriteToRegCtlFromReg]{
+\inferrule[WriteToRegCtlFromReg | \{\textsf{rtv}\} / \{\textsf{rvs}\}]{
   \{P \ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}  \}\overline{is}
 }{
   \{P \ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}   \}
   \textsf{mov}~\textsf{cr3},~r_s;\;\overline{is}
   %\lstinline|mov %cr3, r| 
 }\\
-\inferrule[WriteToRegFromRegCtl]{
+\inferrule[WriteToRegFromRegCtl | \{\textsf{rtv}\}]{
   \{P \ast r_d \mapsto_{r} \textsf{rvs} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}\;\overline{ is}
 }{
   \{P \ast r_d \mapsto_{r} \textsf{rvd} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}
