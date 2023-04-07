@@ -27,7 +27,7 @@ Based on these perspectives, we coneptualize truth on an address-space through t
 \begin{figure}[!ht]
 \[
 \begin{array}{cl}
-\textsf{vProp } \Sigma \; : \; \textsf{bi} \; \stackrel{def}{=} \mathcal{W}_{64} \rightarrow_{\textsf{b}} \textsf{iPropI } \Sigma
+\textsf{vProp } \Sigma \; : \; \textsf{bi} \; \stackrel{{\triangle}}{:=} \mathcal{W}_{64} \rightarrow_{\textsf{b}} \textsf{iPropI } \Sigma
 \end{array}
 \]
 \caption{$\textsf{vProp }\Sigma$: Root-Address Indexed Address-Space Proposition}
@@ -54,7 +54,7 @@ We abstract physical memory addressing and registers naming with well-known sepa
 \begin{figure}[!ht]
 \[
 \begin{array}{cl}
-\pfpointsto\locsf\vpts\qfrac\ppts \stackrel{def}{=} & \nfpointsto{\mask\locsf\ft\generalentry}{\mask\locsf\tw\generalentry}\vpts\qfrac\naddr
+\pfpointsto\locsf\vpts\qfrac\ppts \stackrel{{\triangle}}{:=} & \nfpointsto{\mask\locsf\ft\generalentry}{\mask\locsf\tw\generalentry}\vpts\qfrac\naddr
 \end{array}
 \]
 \caption{Physical Points-to with Nested Masking}
@@ -102,7 +102,7 @@ Given the definition of physical page-pointsto assertion and the root address of
   \[
   \begin{array}{l}
 \begin{array}{l}
-  \vaddr\mapsto_{\textsf{t}}\{\textsf{q}\}\vpage\; : \mathsf{vProp} \; \Sigma \;  \stackrel{def}{:=}  \lambda \crthree. \;\; \\
+  \vaddr\mapsto_{\textsf{t}}\{\textsf{q}\}\vpage\; : \mathsf{vProp} \; \Sigma \;  \stackrel{{\triangle}}{:=}  \lambda \crthree. \;\; \\
   \exists_{\entryf \;, \entrytr \;, \entrytw \;,\entryo} \ldotp 
 
   \ulcorner \textsf{aligned } \vaddr \urcorner \ast  \\
@@ -130,7 +130,7 @@ Given the definition of physical page-pointsto assertion and the root address of
 \begin{figure*}
 \[
 \begin{array}{l}
-    \vaddr\mapsto_{\textsf{v,rtv}}\{\textsf{q}\}\vpage \stackrel{\triangle}{=} 
+    \vaddr\mapsto_{\textsf{v,rtv}}\{\textsf{q}\}\vpage \stackrel{\triangle}{:=} 
     \exists \entryo \ldotp
     \sumapaces\rtv\delta \ast 
   \sumwalkabs\vaddr\qfrac\paddr \ast 
@@ -151,7 +151,7 @@ Given the definition of physical page-pointsto assertion and the root address of
   \begin{figure*}
 \[
 \begin{array}{l}
-  \mathcal{I}\textsf{ASpace} \stackrel{\triangle}{=} \lambda \; \crthree \ldotp
+  \mathcal{I}\textsf{ASpace} \stackrel{\triangle}{:=} \lambda \; \crthree \ldotp
   \exists\;\gammaPred \;\ldotp\; \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \ast \\
   \bigast{(\vaddr, \entryo)\in \ptablestore}{\exists\;(\entryf\;,\entrytr\;,\entrytw)\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\crthree,\entryf,\entrytr,\entrytw,\entryo)}
 \end{array}
@@ -198,7 +198,7 @@ In Figure \ref{fig:addrswitch}, we see two different address-spaces rooted at R0
 \[
   \begin{array}{l}
     \hbox{(\TirNameStyle{ModalAddressSpace)}} \qquad
-         [r](P) \; \mathsf{vProp} \; \Sigma \; := \; \lambda \mathsf{P},\; \mathsf{P r}. 
+         [r](P) \; \mathsf{vProp} \; \Sigma \; \stackrel{\triangle}{:=} \; \lambda \mathsf{P},\; \mathsf{P r}. 
   \end{array}
   \]
   \label{fig:modaldef}
