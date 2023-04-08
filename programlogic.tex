@@ -65,7 +65,7 @@ Given the definition of physical page-pointsto assertion and the root address of
   \item Page Map Level-4 Translation (L4): Performs the first level address translation to get the PML4 entry (PML4E) in Figure \ref{fig:pagetables} by using the masks (\textsf{va}$|^{52}$(\lstinline{cr3}) to get the starting address of the PML4 table (PLM4T) and using the offset mask \textsf{va}$|^{12}$(\lstinline{cr3}). It is worth noting that our offset indices are 12 bits as all physical memory pointsto assertions has to satisfy being \textsf{\textit{aligned}}, e.g. [47-39] plus 3 alignment bits in Figure \ref{fig:pagetables}
     \[ \begin{array}{l}
       \hbox{(\TirNameStyle{{L4translate}})} \quad
-      \exists \entryf \ldotp \nfpointsto{\mask\vaddr\ft\crthree}{\mask\vaddr\tw\crthree}\entryf\qfracfotsss\naddr
+      \exists \entryf \ldotp \nfpointsto{\mask\vaddr\ft\rtv}{\mask\vaddr\tw\rtv}\entryf\qfracfotsss\naddr
       \end{array}
       \]
   \item Page Directory Pointer Level Translation (L3): Performs the second level address translation to get the PDP entry (PDPE) in Figure \ref{fig:pagetables} by using the masks(\textsf{va}$|^{52}$(\textsf{PLM4E}) to get the starting address of the PDP table (PDPT) and using the offset mask \textsf{va}$|^{12}$(\textsf{PLM4E})
@@ -102,15 +102,15 @@ Given the definition of physical page-pointsto assertion and the root address of
   \[
   \begin{array}{l}
 \begin{array}{l}
-  \vaddr\mapsto_{\textsf{t}}\{\textsf{q}\}\vpage\; : \mathsf{vProp} \; \Sigma \;  \stackrel{{\triangle}}{:=}  \lambda \crthree. \;\; \\
+  \vaddr\mapsto_{\textsf{t}}\{\textsf{q}\}\vpage\; : \mathsf{vProp} \; \Sigma \;  \stackrel{{\triangle}}{:=} 
   \exists_{\entryf \;, \entrytr \;, \entrytw \;,\entryo} \ldotp 
 
   \ulcorner \textsf{aligned } \vaddr \urcorner \ast  \\
- \quad \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\crthree,\entryf,\entrytr,\entrytw,\entryo) \ast \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr 
+ \quad \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\rtv,\entryf,\entrytr,\entrytw,\entryo) \ast \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr 
 \end{array} \\
 \\
-\textsf{where   }\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\crthree,\entryf,\entrytr,\entrytw,\entryo) \stackrel{\triangle}{=} \\
- \qquad\qquad \nfpointsto{\mask\vaddr\ft\crthree}{\mask\vaddr\tw\crthree}\entryf\qfracfotsss\naddr \ast \\ 
+\textsf{where   }\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\rtv,\entryf,\entrytr,\entrytw,\entryo) \stackrel{\triangle}{=} \\
+ \qquad\qquad \nfpointsto{\mask\vaddr\ft\rtv}{\mask\vaddr\tw\rtv}\entryf\qfracfotsss\naddr \ast \\ 
  \qquad\qquad  \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qfracfotss\naddr  \ast  \\
   \qquad\qquad \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qfracfots\naddr \ast \\
   \qquad\qquad \nfpointsto{\mask\vaddr\ft\entrytw}{\mask\vaddr\tw\entrytw}\entryo\qfracfot\naddr 
@@ -151,9 +151,9 @@ Given the definition of physical page-pointsto assertion and the root address of
   \begin{figure*}
 \[
 \begin{array}{l}
-  \mathcal{I}\textsf{ASpace} \stackrel{\triangle}{:=} \lambda \; \crthree \ldotp
+  \mathcal{I}\textsf{ASpace} \stackrel{\triangle}{:=} 
   \exists\;\gammaPred \;\ldotp\; \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \ast \\
-  \bigast{(\vaddr, \entryo)\in \ptablestore}{\exists\;(\entryf\;,\entrytr\;,\entrytw)\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\crthree,\entryf,\entrytr,\entrytw,\entryo)}
+  \bigast{(\vaddr, \entryo)\in \ptablestore}{\exists\;(\entryf\;,\entrytr\;,\entrytw)\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\rtv,\entryf,\entrytr,\entrytw,\entryo)}
 \end{array}
 \]
 \caption{Global Address-Space Invariant}
@@ -198,7 +198,7 @@ In Figure \ref{fig:addrswitch}, we see two different address-spaces rooted at R0
 \[
   \begin{array}{l}
     \hbox{(\TirNameStyle{ModalAddressSpace)}} \qquad
-         [r](P) \; \mathsf{vProp} \; \Sigma \; \stackrel{\triangle}{:=} \; \lambda \mathsf{P},\; \mathsf{P r}. 
+         [r](P) \;: \mathsf{vProp} \; \Sigma \; \stackrel{\triangle}{:=} \; \lambda \mathsf{P},\; \mathsf{P r}. 
   \end{array}
   \]
   \label{fig:modaldef}
