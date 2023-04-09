@@ -21,19 +21,74 @@ Let's call this v2.
 \subsection{Mapping a New Page}
 One of the key tasks of a page fault handler in a general-purpose OS kernel is to map new pages into an address space by writing into an existing page table.
 \todo[inline]{Ismail, see notes about intermediate assertions on the Notion page}
+%\begin{figure*}\small
+%\[
+%\proofoutstep{x:\isolated\;\texttt{Node},y:\INT,z:\bool}
+%{
+ %   \proofoutstep{x:\isolated\;\texttt{Node},y:\INT,z:\bool}
+  %  {
+   %     \proofoutstep{x:\writable\;\texttt{Node},y:\INT,z:\bool}
+    %    {
+     %       \proofoutstep{x:\writable\;\texttt{Node},y:\INT,z:\bool}
+      %      {
+       %       mov\texttt{ }rdi \; r13
+        %    }{\textsc{T-Alloc}}
+         %   {x:\writable\;\texttt{Node},y:\writable\;\texttt{Node},z:\bool}\\
+          %  \;\;\;z\texttt{=}x\texttt{.next;}\\
+           % \specline{x:\writable\;\texttt{Node},y:\writable\;\texttt{Node},z:\writable\;\texttt{Node}}\\
+            %\;\;\;y\texttt{.next=}z\texttt{;}\\
+            %\specline{x:\writable\;\texttt{Node},y:\writable\;\texttt{Node},z:\writable\;\texttt{Node}}\\
+            %\;\;\;z\texttt{.prev=}y\texttt{;}\\
+            %\specline{x:\writable\;\texttt{Node},y:\writable\;\texttt{Node},z:\writable\;\texttt{Node}}\\
+            %\;\;\;y\texttt{.prev=}x\texttt{;}\\
+         %\specline{x:\writable\;\texttt{Node},y:\writable\;\texttt{Node},z:\writable\;\texttt{Node}}\\
+          %  \;\;\;x\texttt{.next=}y\texttt{;}\\
+         %\specline{x:\writable\;\texttt{Node},y:\writable\;\texttt{Node},z:\writable\;\texttt{Node}}
+        %}
+        %{\textsc{T-Seq}*~\textrm{across}~\textsc{T-FieldRead}\\\textrm{and}~\textsc{T-FieldWrite}}
+        %{x:\writable\;\texttt{Node},y:\writable\;\texttt{Node},z:\writable\;\texttt{Node}}
+    %}
+    %{\textsc{T-SubEnv}}
+    %{x:\writable\;\texttt{Node}}
+%}
+%{\textsc{T-RecovIso}}
+%{x:\isolated\;\texttt{Node}}
+%\]
+%\caption{Typing derivation for adding a node to an isolated doubly-linked list.}
+%\label{fig:recoviso_example}
+%\end{figure*}
+\lstset{
+  columns=fullflexible,
+  numbers=left,
+  basicstyle=\ttfamily,
+  keywordstyle=\color{blue}\bfseries,
+  morekeywords={mov,add,call},
+  emph={rsp,rdx,rax,rbx,rbp,rsi,rdi,rcx,r8,r9,r10,r11,r12,r13,r14,r15},
+  emphstyle=\color{green},
+  emph={[2]cr3},
+  emphstyle={[2]\color{violet}},
+  morecomment=[l]{;;}
+}
 \begin{figure}
-\begin{lstlisting}
-;; Ensure there's a place to put the L1 mapping
-mov %rdi, %r13
+  \begin{lstlisting}
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred,\rtv)  \ast  \texttt{r14}\mapsto_{r} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ \ast \texttt{aligned va}}$
 call ensure_L1_page
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred,\rtv) \ast  \texttt{r14}\mapsto_{r} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ \ast \texttt{aligned va}}$
+$\specline{\exists (\entryf ,\;\entrytr,\; \entrytw,\;  \texttt{pte\_addr}: \texttt{word 64}) \ldotp \nfpointsto{\mask\vaddr\ft\rtv}{\mask\vaddr\tw\rtv}\entryf\qfracfotsss\naddr \ast}$ 
+$\specline{  \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qfracfotss\naddr \ast \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qfracfots\naddr \ast}$
+$\specline{\exists \gammaPreds}$
 ;; Returns the virtual address of the L1 entry in rax
 mov %r14, %rax ;; Save that before another call
+$\specline{x:\writable\;\texttt{Node},y:\writable\;\texttt{Node},z:\writable\;\texttt{Node}}$
 call alloc_phys_page_or_panic
+$\specline{x:\writable\;\texttt{Node},y:\writable\;\texttt{Node},z:\writable\;\texttt{Node}}$
 ;; Calculate new PTE by setting the low-order bits
 ;; of the physical page
 add %rax, 3
+$\specline{x:\writable\;\texttt{Node},y:\writable\;\texttt{Node},z:\writable\;\texttt{Node}}$
 ;; update the page table entry, mapping the page
 mov (%r14), %rax
+$\specline{x:\writable\;\texttt{Node},y:\writable\;\texttt{Node},z:\writable\;\texttt{Node}}$
 \end{lstlisting}
 \caption{Distilled code for mapping a new page}
 \label{fig:mapping_code}
