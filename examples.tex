@@ -69,6 +69,7 @@ One of the key tasks of a page fault handler in a general-purpose OS kernel is t
   emphstyle={[2]\color{violet}},
   morecomment=[l]{;;}
 }
+\newcommand{\fpaddr}{\texttt{fpaddr}}
 \begin{figure}
   \begin{lstlisting}
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred,\rtv)  \ast  \texttt{r14}\mapsto_{r} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ \ast \texttt{aligned va} \ast \ulcorner \theta !! \texttt{maddr} = \texttt{None}\urcorner}$
@@ -97,10 +98,11 @@ add %rax, 3
 mov (%r14), %rax
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta),\gammaPred,\rtv) \ast  \texttt{r14}\mapsto_{r} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ \ast \texttt{aligned va}}$
 $\specline{\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\rtv,\entryf,\entrytr,\entrytw,\entryo) \ast \ulcorner \theta !! \texttt{maddr} = \texttt{None}\urcorner}$
-$\specline{\exists \texttt{fpaddr} \ldotp \ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{r} \texttt{fpaddr} \ast \texttt{fpaddr} \mapsto_{a} (\texttt{wzero 64})}$
+$\specline{\ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{r} \texttt{fpaddr} \ast \texttt{fpaddr} \mapsto_{a} (\texttt{wzero 64})}$
 $\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \sqsubseteq $
-$\specline{\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\rtv,\entryf,\entrytr,\entrytw,\entryo) \ast \ulcorner \theta !! \texttt{maddr} = \texttt{None}\urcorner}$
-$\specline{\exists \texttt{fpaddr} \ldotp \ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{r} \texttt{fpaddr} \ast \texttt{fpaddr} \mapsto_{a} (\texttt{wzero 64})}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta<[\vaddr:=\texttt{fpaddr}]>),\gammaPred,\rtv) \ast  \texttt{r14}\mapsto_{r} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ }$
+$\specline{\ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{r} \texttt{fpaddr} \ast \texttt{aligned va}}$
+$\specline{\sumwalkabs\vaddr\qfrac\fpaddr}$
 \end{lstlisting}
 \caption{Distilled code for mapping a new page}
 \label{fig:mapping_code}
