@@ -76,19 +76,19 @@ $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred,\rtv)  \
 call ensure_L1_page
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred,\rtv) \ast  \texttt{r14}\mapsto_{r} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ \ast \texttt{aligned va}}$
 $\specline{\exists (\entryf ,\;\entrytr,\; \entrytw,\; \entryo: \texttt{word 64}) \ldotp \ulcorner (\texttt{addr\_L1 }\vaddr) = \entryo\urcorner \ast }$
-$\specline{\nfpointsto{\mask\vaddr\ft\rtv}{\mask\vaddr\tw\rtv}\entryf\qfracfotsss\naddr \ast}$ 
-$\specline{  \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qfracfotss\naddr \ast \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qfracfots\naddr \ast}$
+$\specline{\nfpointsto{\mask\vaddr\ft\rtv}{\mask\vaddr\tw\rtv}\entryf\qone\naddr \ast}$ 
+$\specline{  \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qthree\naddr \ast}$
 $\specline{\texttt{pte\_addr} \mapsto_{\texttt{vpte},\rtv} \entryo \;(\texttt{wzero 64}) \ast \texttt{rax}\mapsto_{r} \texttt{pte\_addr}  }$
 ;; Returns the virtual address of the L1 entry in rax
 mov %r14, %rax ;; Save that before another call
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred,\rtv) \ast  \texttt{r14}\mapsto_{r} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ \ast \texttt{aligned va}}$
-$\specline{ \nfpointsto{\mask\vaddr\ft\rtv}{\mask\vaddr\tw\rtv}\entryf\qfracfotsss\naddr \ast}$ 
-$\specline{  \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qfracfotss\naddr \ast \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qfracfots\naddr \ast}$
+$\specline{ \nfpointsto{\mask\vaddr\ft\rtv}{\mask\vaddr\tw\rtv}\entryf\qone\naddr \ast}$ 
+$\specline{  \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qthree\naddr \ast}$
 $\specline{\texttt{pte\_addr} \mapsto_{\texttt{vpte},\rtv} \entryo \;(\texttt{wzero 64}) \ast \texttt{rax}\mapsto_{r} \texttt{pte\_addr}  }$
 call alloc_phys_page_or_panic
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred,\rtv) \ast  \texttt{r14}\mapsto_{r} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ \ast \texttt{aligned va}}$
-$\specline{ \nfpointsto{\mask\vaddr\ft\rtv}{\mask\vaddr\tw\rtv}\entryf\qfracfotsss\naddr \ast}$ 
-$\specline{  \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qfracfotss\naddr \ast \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qfracfots\naddr \ast}$
+$\specline{ \nfpointsto{\mask\vaddr\ft\rtv}{\mask\vaddr\tw\rtv}\entryf\qone\naddr \ast}$ 
+$\specline{  \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qthree\naddr \ast}$
 $\specline{\texttt{pte\_addr} \mapsto_{\texttt{vpte},\rtv} \entryo \;(\texttt{wzero 64}) \ast \texttt{rax}\mapsto_{r} \texttt{pte\_addr}  }$
 $\specline{\exists \texttt{fpaddr} \ldotp \ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{r} \texttt{fpaddr} \ast \texttt{fpaddr} \mapsto_{a} (\texttt{wzero 64})}$
 ;; Calculate new PTE by setting the low-order bits
@@ -96,15 +96,14 @@ $\specline{\exists \texttt{fpaddr} \ldotp \ulcorner \texttt{aligned fpaddr} \urc
 add %rax, 3
 ;; update the page table entry, mapping the page
 mov (%r14), %rax
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta),\gammaPred,\rtv) \ast  \texttt{r14}\mapsto_{r} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ \ast \texttt{aligned va}}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred,\rtv) \ast  \texttt{r14}\mapsto_{r} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ \ast \texttt{aligned va}}$
 $\specline{\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\rtv,\entryf,\entrytr,\entrytw,\entryo) \ast \ulcorner \theta !! \texttt{maddr} = \texttt{None}\urcorner}$
 $\specline{\ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{r} \texttt{fpaddr} \ast \texttt{fpaddr} \mapsto_{a} (\texttt{wzero 64})}$
 $\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \sqsubseteq $
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta<[\vaddr:=\texttt{fpaddr}]>),\gammaPred,\rtv) \ast  \texttt{r14}\mapsto_{r} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ }$
-$\specline{\ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{r} \texttt{fpaddr} \ast \texttt{aligned va}}$
-$\specline{\sumwalkabs\vaddr\qfrac\fpaddr}$
+$\specline{\ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{r} \texttt{fpaddr} \ast \texttt{aligned va} \ast\sumwalkabs\vaddr\qfrac\fpaddr}$
 \end{lstlisting}
-\caption{Distilled code for mapping a new page}
+\caption{Proof of distilled code for mapping a new page under $\textsf{wpd\_def }_{\rtv}$}
 \label{fig:mapping_code}
 \todo[inline]{this is terribly ugly, should switch to minted}
 \end{figure}
