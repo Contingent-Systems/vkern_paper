@@ -70,7 +70,7 @@ One of the key tasks of a page fault handler in a general-purpose OS kernel is t
   morecomment=[l]{;;}
 }
 \newcommand{\fpaddr}{\texttt{fpaddr}}
-\begin{figure}
+\begin{figure}\footnotesize
   \begin{lstlisting}
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred)  \ast  \texttt{r14}\mapsto_{r} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ \ast \ulcorner \texttt{aligned va} \land  \theta \; !!\; \texttt{maddr} = \texttt{None}\urcorner}_{\rtv}$
 call ensure_L1_page
@@ -119,7 +119,7 @@ A critical piece of \emph{trusted} code in verified OS kernels is the assembly c
 
 \todo[inline]{probably not much more than just the cr3 update, but could be extended to a full context switch since the instruction pointer isn't updated in a swtch}
 
-\begin{figure}
+\begin{figure}\footnotesize
 \begin{lstlisting}
 ;; Assume the save-space is in rdi,
 ;; load-space in rsi
@@ -163,10 +163,10 @@ $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred,\rtv) \a
 $\specline{ \texttt{rdi}\mapsto_{r} \_ \ast \texttt{rbx}\mapsto_{r} \rtv'+0 \ast  \texttt{rsp}\mapsto_{r} \rtv'+8 \ast \texttt{rbp}\mapsto_{r} \rtv'+16 }_{\rtv}$
 $\specline{\texttt{r12}\mapsto_{r} \rtv'+24 \ast \texttt{r13}\mapsto_{r} \rtv'+32 \ast \texttt{r14}\mapsto_{r} \rtv'+40 \ast \texttt{r15}\mapsto_{r} \rtv'+48}_{\rtv}$
 $\specline{\texttt{rdi+0} \mapsto_{v,\rtv} \texttt{rbxv} \ast \texttt{rdi+8} \mapsto_{v,\rtv} \texttt{rspv} \ast \texttt{rdi+16} \mapsto_{v,\rtv} \texttt{rbpv} \ast \texttt{rdi+24} \mapsto_{v,\rtv} \texttt{r12v} \ast }_{\rtv}$
-$\specline{\texttt{rdi+32} \mapsto_{v,\rtv} \texttt{r13v} \ast \texttt{rdi+40} \mapsto_{v,\rtv} \texttt{r14v} \ast \texttt{rdi+48} \mapsto_{v,\rtv} \texttt{r15v}\ast \texttt{rdi+56} \mapsto_{v,\rtv} \rtv}_{\rtv}$    
+$\specline{\texttt{rdi+32} \mapsto_{v,\rtv} \texttt{r13v} \ast \texttt{rdi+40} \mapsto_{v,\rtv} \texttt{r14v} \ast \texttt{rdi+48} \mapsto_{v,\rtv} \texttt{r15v}\ast \texttt{rdi+56} \mapsto_{v,\rtv} \rtv}_{\rtv}$
 ;; Switch to the new address space
 mov %cr3, 56[%rsi]
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred) \ast [\rtv'+56](\mathcal{I}\texttt{ASpace}(\theta,\gammaPred') \ast \texttt{Pother})}_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred) \ast [\rtv'+56](\mathcal{I}\texttt{ASpace}(\theta,\gammaPred') \ast \texttt{Pother}) }_{\rtv}$
 $\specline{ \texttt{rdi}\mapsto_{r} \_ \ast \texttt{rbx}\mapsto_{r} \rtv'+0 \ast  \texttt{rsp}\mapsto_{r} \rtv'+8 \ast \texttt{rbp}\mapsto_{r} \rtv'+16 }_{\rtv}$
 $\specline{\texttt{r12}\mapsto_{r} \rtv'+24 \ast \texttt{r13}\mapsto_{r} \rtv'+32 \ast \texttt{r14}\mapsto_{r} \rtv'+40 \ast \texttt{r15}\mapsto_{r} \rtv'+48}_{\rtv}$
 $\specline{\texttt{rdi+0} \mapsto_{v,\rtv} \texttt{rbxv} \ast \texttt{rdi+8} \mapsto_{v,\rtv} \texttt{rspv} \ast \texttt{rdi+16} \mapsto_{v,\rtv} \texttt{rbpv} \ast  \texttt{rdi+24} \mapsto_{v,\rtv} \texttt{r12v} \ast }_{\rtv}$
