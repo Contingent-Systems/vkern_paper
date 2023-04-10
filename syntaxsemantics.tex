@@ -1,10 +1,14 @@
 \section{Machine State \& Syntax}
 \label{sec:syntax}
-To develop our core logical ideas, we instantiate \textsf{Iris} with a simple language for streams of instructions, and a logical machine model corresponding to execution of x86-64 assembly instructions with virtual memory enabled on the CPU.
+To develop our core logical ideas, we instantiate \textsf{Iris} with a simple language for streams of instructions, 
+and a logical machine model corresponding to execution of x86-64 assembly instructions with virtual memory enabled on the 
+CPU.
 
 \subsection{Registers and Memory}
-Programs we demonstrate in this paper requires accessing two types of computer resource: registers and memory. A register identifier, $\reg$, is chosen from a fixed finite set of register identifiers,$\regset$. We use these identifiers to access the register values, $\regval \in \regvaltype$.
-\begin{figure}[!ht]
+Programs we demonstrate in this paper requires accessing two types of computer resource: registers and memory.
+ A register identifier, $\reg$, is chosen from a fixed finite set of register identifiers, $\regset$. 
+We use these identifiers to access the register values, $\regval \in \regvaltype$.
+\begin{figure}[t]
 \newcommand{\commentary}[1]{ & \text{\small\it #1} \\}
 \[
   \begin{array}{r@{\;}c@{\;}l}
@@ -21,8 +25,8 @@ Programs we demonstrate in this paper requires accessing two types of computer r
                    \commentary{no-op}
       \iseq\instr\instrs
                    \commentary{sequencing}
-      \ising\instr
-                   \commentary{executing}             
+      % \ising\instr
+                   % \commentary{executing}             
     \end{array}
     %&
     %\begin{array}[t]{@{}ll@{}}
@@ -39,15 +43,20 @@ Programs we demonstrate in this paper requires accessing two types of computer r
   \end{array}
 \]
 \caption{Syntax}
+\todo[inline]{Colin says: I removed the 'sexec' thing because I'm pretty sure it's an old remnant of an old Iris instantiation}
 \Description{Syntax}
 \label{fig:syntax}
 \end{figure}
 Unlike registers, we do not abstract the memory indices as a special type but instead, for the sake of clarity and ease of representation, we show differently masked machine words, $\loc \in \Loc$, with the subscripts showing the length of a 64-bit machine word after masking, e.g. $\kw{w}_{12}$ is a 12-bit resource which can be obtained after masking 52-bit of a 64-bit word.
-This simple syntax in \ref{fig:syntax} includes a simple syntax for values because our language is purely \textit{imperative}, i.e. an instruction does not return a value. Intentionally, we restrict any stream of instruction, $\instrs$, to eventually reduce to $\iskip$ instruction. Our syntax capture the no-op ``$\iskip$'' and the sequencing construct ``$\iseq{\instr}{\instrs}$'' in their standard forms.
-\todo[inline]{Ismail: this paper is not about the binding of the machine model to Iris. Low-level details like ``injected into unit'' are not really important unless someone asks.}
+This simple syntax in Figure \ref{fig:syntax} includes a simple syntax for values because our language is purely \textit{imperative}, i.e. an instruction does not return a value. Intentionally, we restrict any stream of instruction, $\instrs$, to eventually reduce to $\iskip$ instruction. Our syntax capture the no-op ``$\iskip$'' and the sequencing construct ``$\iseq{\instr}{\instrs}$'' in their standard forms.
+
 \subsection{State}
 \label{sec:state}
 \todo[inline]{I don't think we need or want to describe the operational semantics in detail in the submission. It adds a lot of formalization that doen'st necessarily contribute to reader understanding. We should describe the runtime \emph{state} $\sigma$ of memory and registers, since that is directly used in interpreting assertions. But the reduction rules will mostly add mental overhead here.}
+\todo[inline,color=red]{Colin says: On the contrary, we must describe assembly instructions in enough detail for readers
+who aren't already assembly programmers to decode our examples! We don't have to talk about details of the formalization
+of the semantics, but we do need to talk about basic instructions we cover, basic patterns (like destination on the left),
+and just a bit about how all memory accesses implement Figure \ref{fig:pagetables}'s semantics.}
 We represent the machine state mainly as a finite map of registers to register values and a map of masked physical memory addresses to 64-bit physical memory values. Together with default def\textsf{CPU} instantiation, we end up having our state with following pieces:
 \begin{itemize}
 \item A constant cpu initialized with default value: $\sigma.\mathcal{C}$
