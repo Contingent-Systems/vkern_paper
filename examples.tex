@@ -103,7 +103,8 @@ $\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta<[\vaddr:=\texttt{fpaddr}]>),\gammaPred,\rtv) \ast  \texttt{r14}\mapsto_{r} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ }$
 $\specline{\ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{r} \texttt{fpaddr} \ast \texttt{aligned va} \ast\sumwalkabs\vaddr\qfrac\fpaddr}$
 \end{lstlisting}
-\caption{Specification and proof of distilled code for mapping a new page with $\textsf{wpd\_def }_{\rtv}$}
+  \caption{Specification and proof of distilled code for mapping a new page with $\textsf{wpd\_def }_{\rtv}$}
+  \todo[inline,color=yellow]{Colin, could you speak about the fact that we have wpd in iProp so that's the reason to have rtval whereever table traversal is needed}
 \label{fig:mapping_code}
 \todo[inline]{this is terribly ugly, should switch to minted}
 \end{figure}
@@ -124,7 +125,11 @@ A critical piece of \emph{trusted} code in verified OS kernels is the assembly c
 ;; load-space in rsi
 ;; No need to save/restore caller-save regs
 ;; Save yielding context
-$\specline{}$  
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred,\rtv)}$
+$\specline{ \texttt{rsi}\mapsto_{r} \rtv' \ast \texttt{rdi}\mapsto_{r} \_ \ast \texttt{rbx}\mapsto_{r} \texttt{rbxv} \ast  \texttt{rsp}\mapsto_{r} \texttt{rspv} \ast \texttt{rbp}\mapsto_{r} \texttt{rbpv} }$
+$\specline{\texttt{r12}\mapsto_{r} \texttt{r12v} \ast \texttt{r13}\mapsto_{r} \texttt{r13v} \ast \texttt{r14}\mapsto_{r} \texttt{r14v} \ast \texttt{r15}\mapsto_{r} \texttt{r15v}}$
+$\specline{\texttt{rdi+0} \mapsto_{v,\rtv} \_ \ast \texttt{rdi+8} \mapsto_{v,\rtv} \_ \ast \texttt{rdi+16} \mapsto_{v,\rtv} \_ \ast \texttt{rdi+24} \mapsto_{v,\rtv} \_ \ast \texttt{rdi+32} \mapsto_{v,\rtv} \_}$
+$\specline{\texttt{rdi+40} \mapsto_{v,\rtv} \_ \ast \texttt{rdi+48} \mapsto_{v,\rtv} \_\ast \texttt{rdi+56} \mapsto_{v,\rtv} \_}$
 mov 0[%rdi], %rbx
 mov 8[%rdi], %rsp
 mov 16[%rdi], %rbp
@@ -132,7 +137,17 @@ mov 24[%rdi], %r12
 mov 32[%rdi], %r13
 mov 40[%rdi], %r14
 mov 48[%rdi], %r15
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred,\rtv)}$
+$\specline{ \texttt{rdi}\mapsto_{r} \_ \ast \texttt{rbx}\mapsto_{r} \texttt{rbxv} \ast  \texttt{rsp}\mapsto_{r} \texttt{rspv} \ast \texttt{rbp}\mapsto_{r} \texttt{rbpv} }$
+$\specline{\texttt{r12}\mapsto_{r} \texttt{r12v} \ast \texttt{r13}\mapsto_{r} \texttt{r13v} \ast \texttt{r14}\mapsto_{r} \texttt{r14v} \ast \texttt{r15}\mapsto_{r} \texttt{r15v}}$
+$\specline{\texttt{rdi+0} \mapsto_{v,\rtv} \texttt{rbxv} \ast \texttt{rdi+8} \mapsto_{v,\rtv} \texttt{rspv} \ast \texttt{rdi+16} \mapsto_{v,\rtv} \texttt{rbpv} \ast \texttt{rdi+24} \mapsto_{v,\rtv} \texttt{r12v} \ast \texttt{rdi+32} \mapsto_{v,\rtv} \texttt{r13v}}$
+$\specline{\texttt{rdi+40} \mapsto_{v,\rtv} \texttt{r14v} \ast \texttt{rdi+48} \mapsto_{v,\rtv} \texttt{r15v}\ast \texttt{rdi+56} \mapsto_{v,\rtv} \_}$
 mov 56[%rdi], %cr3
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred,\rtv)}$
+$\specline{ \texttt{rdi}\mapsto_{r} \_ \ast \texttt{rbx}\mapsto_{r} \texttt{rbxv} \ast  \texttt{rsp}\mapsto_{r} \texttt{rspv} \ast \texttt{rbp}\mapsto_{r} \texttt{rbpv} }$
+$\specline{\texttt{r12}\mapsto_{r} \texttt{r12v} \ast \texttt{r13}\mapsto_{r} \texttt{r13v} \ast \texttt{r14}\mapsto_{r} \texttt{r14v} \ast \texttt{r15}\mapsto_{r} \texttt{r15v}}$
+$\specline{\texttt{rdi+0} \mapsto_{v,\rtv} \texttt{rbxv} \ast \texttt{rdi+8} \mapsto_{v,\rtv} \texttt{rspv} \ast \texttt{rdi+16} \mapsto_{v,\rtv} \texttt{rbpv} \ast \texttt{rdi+24} \mapsto_{v,\rtv} \texttt{r12v} \ast \texttt{rdi+32} \mapsto_{v,\rtv} \texttt{r13v}}$
+$\specline{\texttt{rdi+40} \mapsto_{v,\rtv} \texttt{r14v} \ast \texttt{rdi+48} \mapsto_{v,\rtv} \texttt{r15v}\ast \texttt{rdi+56} \mapsto_{v,\rtv} \rtv}$    
 ;; Restore target context
 mov %rbx, 0[%rsi] 
 ;; This switches to a new stack
@@ -144,6 +159,11 @@ mov %r12, 24[%rsi]
 mov %r13, 32[%rsi]
 mov %r14, 40[%rsi]
 mov %r15, 48[%rsi]
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred,\rtv)}$
+$\specline{ \texttt{rdi}\mapsto_{r} \_ \ast \texttt{rbx}\mapsto_{r} \texttt{rbxv} \ast  \texttt{rsp}\mapsto_{r} \texttt{rspv} \ast \texttt{rbp}\mapsto_{r} \texttt{rbpv} }$
+$\specline{\texttt{r12}\mapsto_{r} \texttt{r12v} \ast \texttt{r13}\mapsto_{r} \texttt{r13v} \ast \texttt{r14}\mapsto_{r} \texttt{r14v} \ast \texttt{r15}\mapsto_{r} \texttt{r15v}}$
+$\specline{\texttt{rdi+0} \mapsto_{v,\rtv} \texttt{rbxv} \ast \texttt{rdi+8} \mapsto_{v,\rtv} \texttt{rspv} \ast \texttt{rdi+16} \mapsto_{v,\rtv} \texttt{rbpv} \ast \texttt{rdi+24} \mapsto_{v,\rtv} \texttt{r12v} \ast \texttt{rdi+32} \mapsto_{v,\rtv} \texttt{r13v}}$
+$\specline{\texttt{rdi+40} \mapsto_{v,\rtv} \texttt{r14v} \ast \texttt{rdi+48} \mapsto_{v,\rtv} \texttt{r15v}\ast \texttt{rdi+56} \mapsto_{v,\rtv} \rtv}$    
 ;; Switch to the new address space
 mov %cr3, 56[%rsi]
 \end{lstlisting}
