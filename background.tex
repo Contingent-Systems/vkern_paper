@@ -139,8 +139,11 @@ the notion that we can represent contingent truth of an assertion via $[r](P)$ i
 space rooted at physical address $r$.
 The typical hybrid modality introduction rule, that $P$ and $\ell$ (indicating the current world is $\ell$) imply 
 $[\ell](P)$, has a natural analogue: knowing $P$ and that the current address space is $r$ (i.e., that $r$ is the 
-current \texttt{cr3} value) suggests a way to construct $[r](P)$. By the choice of \texttt{cr3} identifying the contingency,
-we can also identify a fact as a \textit{pure} fact as long as it does not \textit{necessarily} depend on \texttt{cr3}: a truth representing a raw physical memory addressing, unlike virtual-address translation, does not need the \textit{knowledge} of \texttt{cr3}, therefore it can be introduce into the modal context as a pure fact.
+current \texttt{cr3} value) suggests a way to construct $[r](P)$. By the choice of \texttt{cr3} identifying the contingency, we can identify a fact
+\begin{itemize}
+  \item as a \textit{context} fact if its validity depends on \texttt{cr3} when it is outside the modality (i.e. modal context), and made \texttt{cr3} independent as a part of custom-tailored modal logic for virtual-memory: a truth representing a virtual-memory addressing depends \texttt{cr3} due to address-translation operation, is dependent on \texttt{cr3} in the ambient-logic (e.g. separation-logic), and is made \textit{independent} of the facts related to \texttt{cr3} by being introduced into the modal context identified with \texttt{cr3} under the assumption that it conveys the knowledge related to the \texttt{cr3} in the ambient logic.
+  \item as a \textit{pure} fact as long as it does not \textit{necessarily} depend on any fact related to \texttt{cr3}: a truth representing a raw physical memory addressing, unlike virtual-address translation, does not need the \textit{knowledge} of \texttt{cr3}, therefore it can be introduce into the modal context as a pure fact
+\end{itemize}
 
 A relatively under-explored space of modal logics is the interaction of modal and substructural logics, 
 in particular hybrid-style modalities in substructural logics, which has seen only minimal exploration~\todo{copy refs from fs paper} and no prior 
