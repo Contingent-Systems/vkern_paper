@@ -4,6 +4,10 @@
 \newcommand{\gammaPred}{\delta}
 \newcommand{\gammaPreds}{\delta\textsf{s}}
 \newcommand{\rtv}{\textsf{rtv}}
+\newcommand{\qone}{\texttt{q1}}
+\newcommand{\qtwo}{\texttt{q2}}
+\newcommand{\qthree}{\texttt{q3}}
+\newcommand{\qfour}{\texttt{q4}}
 
 \newcommand{\sumwalkabs}[3]{
   \ownGhost\gammaPred{\authfrag{\singletonMap{#1}{(#2, #3)}}}
@@ -81,25 +85,25 @@ Given the definition of physical page-pointsto assertion and the root address of
   \item Page Map Level-4 Translation (L4): Performs the first level address translation to get the PML4 entry (PML4E) in Figure \ref{fig:pagetables} by using the masks (\textsf{va}$|^{52}$(\lstinline{cr3}) to get the starting address of the PML4 table (PLM4T) and using the offset mask \textsf{va}$|^{12}$(\lstinline{cr3}). It is worth noting that our offset indices are 12 bits as all physical memory pointsto assertions has to satisfy being \textsf{\textit{aligned}}, e.g. [47-39] plus 3 alignment bits in Figure \ref{fig:pagetables}
     \[ \begin{array}{l}
       \hbox{(\TirNameStyle{{L4translate}})} \quad
-      \exists \entryf \ldotp \nfpointsto{\mask\vaddr\ft\rtv}{\mask\vaddr\tw\rtv}\entryf\qfracfotsss\naddr
+      \exists \entryf \ldotp \nfpointsto{\mask\vaddr\ft\rtv}{\mask\vaddr\tw\rtv}\entryf\qone\naddr
       \end{array}
       \]
   \item Page Directory Pointer Level Translation (L3): Performs the second level address translation to get the PDP entry (PDPE) in Figure \ref{fig:pagetables} by using the masks(\textsf{va}$|^{52}$(\textsf{PLM4E}) to get the starting address of the PDP table (PDPT) and using the offset mask \textsf{va}$|^{12}$(\textsf{PLM4E})
     \[\begin{array}{l}
     \hbox{(\TirNameStyle{{L3translate}})} \quad
-    \exists \entrytr \ldotp \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qfracfotss\naddr
+    \exists \entrytr \ldotp \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qtwo\naddr
     \end{array}
     \]
   \item Page Directory Table Level Translation (L2): Performs the second level address translation to get the PD entry (PDE) in Figure \ref{fig:pagetables} by using the masks(\textsf{va}$|^{52}$(\textsf{PDPE}) to get the starting address of the PD table and using the offset mask \textsf{va}$|^{12}$(\textsf{PDPE})
     \[ \begin{array}{l}
             \hbox{(\TirNameStyle{{L2translate}})} \quad 
-       \exists \entrytw \ldotp \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qfracfots\naddr
+       \exists \entrytw \ldotp \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qthree\naddr
       \end{array}
       \]
   \item Page Table Level Translation (L1): Performs the second level address translation to get the PT entry (PTE) in Figure \ref{fig:pagetables} by using the masks(\textsf{va}$|^{52}$(\textsf{PDE}) to get the starting address of the Page table (PT) and using the offset mask \textsf{va}$|^{12}$(\textsf{PDE})
     \[ \begin{array}{l}
       \hbox{(\TirNameStyle{{L1translate}})} \quad
-      \exists \entryo \ldotp \nfpointsto{\mask\vaddr\ft\entrytw}{\mask\vaddr\tw\entrytw}\entryo\qfracfot\naddr
+      \exists \entryo \ldotp \nfpointsto{\mask\vaddr\ft\entrytw}{\mask\vaddr\tw\entrytw}\entryo\qfour\naddr
       \end{array}
       \]
   \item Page Address Level Translation: Performs the second level address translation to get the physical page address in Figure \ref{fig:pagetables} by using the masks(\textsf{va}$|^{52}$(\textsf{PTE}) to get the starting address of the physical page address table and using the offset mask \textsf{va}$|^{12}$(\textsf{PTE})
@@ -133,10 +137,10 @@ address space.}
 \end{array} \\
 \\
 \textsf{where   }\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\rtv,\entryf,\entrytr,\entrytw,\entryo) \stackrel{\triangle}{=} \\
- \qquad\qquad \nfpointsto{\mask\vaddr\ft\rtv}{\mask\vaddr\tw\rtv}\entryf\qfracfotsss\naddr \ast \\ 
- \qquad\qquad  \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qfracfotss\naddr  \ast  \\
-  \qquad\qquad \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qfracfots\naddr \ast \\
-  \qquad\qquad \nfpointsto{\mask\vaddr\ft\entrytw}{\mask\vaddr\tw\entrytw}\entryo\qfracfot\naddr 
+ \qquad\qquad \nfpointsto{\mask\vaddr\ft\rtv}{\mask\vaddr\tw\rtv}\entryf\qone\naddr \ast \\ 
+ \qquad\qquad  \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qtwo\naddr  \ast  \\
+  \qquad\qquad \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qthree\naddr \ast \\
+  \qquad\qquad \nfpointsto{\mask\vaddr\ft\entrytw}{\mask\vaddr\tw\entrytw}\entryo\qfour\naddr 
    \end{array}
 \]
 \caption{A Strong Virtual Points-to Relation}
