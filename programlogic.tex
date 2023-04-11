@@ -298,8 +298,8 @@ In the general outline of the proof in Figure \ref{wpdamd}, we see that each rul
 \begin{figure} 
   \[
   \begin{array}{l}
-    \textsf{wpd\_def e s E1 } \Phi \;\mathsf{ cr3val } : \textsf{iProp }\Sigma := \\
-   \qquad ((\textsf{cr cr3}) \mapsto_{\textsf{r}} (\textsf{num cr3val)}) \textsf{ cr3val}) \ast (\Phi \textsf{ cr3val}) \wand \textsf{WP e E } @ \textsf{s ; E1 } \{\{\_, \textsf{True} \}\}
+    \textsf{wpd\_def e s E1 } \Phi \;\mathsf{ rtv } : \textsf{iProp }\Sigma := \\
+   \qquad ((\textsf{cr cr3}) \mapsto_{\textsf{r}} (\textsf{num rtv)}) \textsf{ cr3val}) \ast (\Phi \textsf{ rtv}) \wand \textsf{WP e E } @ \textsf{s ; E1 } \{\{\_, \textsf{True} \}\}
     \end{array}
   \]
 \caption{Unfolded Hoare-Double Definition for \textsf{vProp} Logic }
@@ -308,53 +308,53 @@ In the general outline of the proof in Figure \ref{wpdamd}, we see that each rul
 
 \begin{figure}
 \begin{mathpar}
-  \inferrule[WriteToRegFromReg | \{\textsf{rtv}\}]{
-  \{P \ast r_d \mapsto_{r} \textsf{rvs} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}\;\overline{ is}
+  \inferrule[WriteToRegFromReg]{
+  \{P \ast r_d \mapsto_{r} \textsf{rvs} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}_{\textsf{rtv}}\;\overline{ is}
 }{
-  \{P \ast r_d \mapsto_{r} \textsf{rvd} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}
+  \{P \ast r_d \mapsto_{r} \textsf{rvd} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}_{\textsf{rtv}}
   \textsf{ mov}~\textsf{r}_d,~\textsf{r}_s;\;\overline{is}
   %\lstinline|mov %cr3, r| 
 }
 \\
-\inferrule[WriteToPhysMemFromReg | \{\textsf{rtv}\}]{
-  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}\;\overline{ is}  
+\inferrule[WriteToPhysMemFromReg]{
+  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}_{\textsf{rtv}}\;\overline{ is}  
 }{
-  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}   \ast r_a \mapsto_{r}\{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{rvs} \}
+  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}   \ast r_a \mapsto_{r}\{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{rvs} \}_{\textsf{rtv}}
   \textsf{ mov}~\textsf{r}_a,~\textsf{r}_s;\;\overline{is}
 }
 \\
-\inferrule[WriteToRegFromPhysMem | \{\textsf{rtv}\}]{
-  \{P \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}\;\overline{is}
+\inferrule[WriteToRegFromPhysMem]{
+  \{P \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}_{\textsf{rtv}}\;\overline{is}
 }{
-  \{P \ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}
+  \{P \ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}_{\textsf{rtv}}
   \textsf{mov}~\textsf{r}_d,~\textsf{r}_a;\;\overline{is}
 }
 \\
-\inferrule[WriteToRegFromVirtMem | \{\textsf{rtv}\}]{
-  \{P \ast \mathcal{I}\textsf{ASpace}\ast \mathcal{I}\textsf{ASpace} \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}\;\overline{is}
+\inferrule[WriteToRegFromVirtMem]{
+  \{P \ast \mathcal{I}\textsf{ASpace}\ast \mathcal{I}\textsf{ASpace} \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}_{\textsf{rtv}}\;\overline{is}
 }{
-  \{P \ast \mathcal{I}\textsf{ASpace}\ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}
+  \{P \ast \mathcal{I}\textsf{ASpace}\ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}_{\textsf{rtv}}
   \textsf{mov}~\textsf{r}_d,~\textsf{r}_a;\;\overline{is}
 }
 \\
-\inferrule[WriteToVirtMemFromReg | \{\textsf{rtv}\}]{
-  \{P \ast \mathcal{I}\textsf{ASpace}\ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}\;\overline{ is}  
+\inferrule[WriteToVirtMemFromReg]{
+  \{P \ast \mathcal{I}\textsf{ASpace}\ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}_{\textsf{rtv}}\;\overline{ is}  
 }{
-  \{P \ast \mathcal{I}\textsf{ASpace}\ast r_s \mapsto_{r}\{q\}  \textsf{rvs}   \ast r_a \mapsto_{r}\{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{rvs} \}
+  \{P \ast \mathcal{I}\textsf{ASpace}\ast r_s \mapsto_{r}\{q\}  \textsf{rvs}   \ast r_a \mapsto_{r}\{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{rvs} \}_{\textsf{rtv}}
   \textsf{ mov}~\textsf{r}_a,~\textsf{r}_s;\;\overline{is}
 }
 \\
-\inferrule[WriteToRegCtlFromReg | \{\textsf{rtv}\} / \{\textsf{rvs}\}]{
-  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}  \}\overline{is}
+\inferrule[WriteToRegCtlFromReg]{
+  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}  \}_{\textsf{rvs}} \overline{is}
 }{
-  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}   \}
+  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}   \}_{\textsf{rtv}}
   \textsf{mov}~\textsf{cr3},~r_s;\;\overline{is}
   %\lstinline|mov %cr3, r| 
 }\\
-\inferrule[WriteToRegFromRegCtl | \{\textsf{rtv}\}]{
-  \{P \ast r_d \mapsto_{r} \textsf{rvs} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}\;\overline{ is}
+\inferrule[WriteToRegFromRegCtl]{
+  \{P \ast r_d \mapsto_{r} \textsf{rvs} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}_{\textsf{rtv}}\;\overline{ is}
 }{
-  \{P \ast r_d \mapsto_{r} \textsf{rvd} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}
+  \{P \ast r_d \mapsto_{r} \textsf{rvd} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}_{\textsf{rtv}}
   \textsf{ mov}~\textsf{r}_d,~\textsf{r}_s;\;\overline{is}
   %\lstinline|mov %cr3, r| 
 }
