@@ -65,10 +65,6 @@ We abstract physical memory addressing and registers naming with well-known sepa
 \item Register points-to, $\pfpointsto\rg\rv\qfrac\rpts$
 \end{enumerate}
 \paragraph{Register points-to} The assertion $\pfpointsto\rg\rv\rpts\qfrac$ ensures the ownership of the register $\rg$ naming the register value $\rv$. The fraction $\qfrac$ with value 1 asserts the unique ownership of the register mapping, and grants update permission on it, otherwise, any value $0 < \qfrac <1$ represents partial ownership granting readonly permission on the mapping.
-
-\todo[inline]{We should drop all talk about PDE, PDPT, etc., and just use L1-L4}
-\paragraph{Physical-Memory points-to} Our physical memory points-to relation in Figure \ref{fig:physicalpointsto} for a page table entry (e.g. \textsf{PDE} in Figure \ref{fig:pagetables}) abstracts masking -- $|^{52}$ for frame for and $|^{12}$ for offset -- through logical nested maps.
-
 \begin{figure*}
   \begin{lstlisting}[language=Coq]
  Definition $\pfpointsto\locsf\vpts\qfrac\ppts$ :vProp $\Sigma$ := pmapsto_def_v (pfn w) (page_off w) q v.
