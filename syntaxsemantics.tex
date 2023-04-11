@@ -188,29 +188,23 @@ we see translation physical memory $\mathsf{load}$ for each level of page-table-
       | Some (inl page) => inl (page (page_off (proj1_sig w)))
       | Some (inr fault) => inr fault
       end.
-
   Definition store (mem: $\sigma.\mathcal{M}$) (w: { w: word 64 | aligned w }) (v: word 64):mem64 * (unit + MemFail) :=
     match $\sigma$.mem !! (pfn (proj1_sig w)) mem with
       | None =>
-        (($\sigma.\mathcal{M}$<[(pfn (proj1_sig w)) := 
-             (inl (fun off =>
-                  if (word_dec off (page_off (proj1_sig w))) then v else zero 64))]> mem
-         ), inl tt)
+        (($\sigma.\mathcal{M}$<[(pfn (proj1_sig w)) := (inl (fun off =>
+           if (word_dec off (page_off (proj1_sig w))) then v else zero 64))]> mem), inl tt)
       | Some (inl page) => (* update page contents *)
-        (($\sigma.\mathcal{M}$<[(pfn (proj1_sig w)) := 
-             (inl (fun off =>
-                  if (word_dec off (page_off (proj1_sig w))) then v else zero 64))]> mem
-         ), inl tt)
+        (($\sigma.\mathcal{M}$<[(pfn (proj1_sig w)) := (inl (fun off =>
+           if (word_dec off (page_off (proj1_sig w))) then v else zero 64))]> mem), inl tt)
       | Some (inr fault) => (mem, inr fault)
     end.
-    
   Program Definition pfn (w : word 64) := shift_dropn w 12 _.
   Program Definition page_off (w : word 64) := bottomn w 12 _.
 \end{lstlisting}
 with frame and offset masking applied on the physical address being loaded. As expected \textsf{store} would be the update on the memory map entry
 \todo[inline,color=yellow]{Colin, could you mention that we simplified the maps here to get rid of MemFail?}
 After defining the translation in terms of physical load and store action, now we can define our \lstinline|mov| instructions.
-STOP HERE
+
 
 %
 %\subsection{Machine State under Address Translation}
