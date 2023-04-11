@@ -206,9 +206,9 @@ with frame and offset masking applied on the physical address being loaded. As e
 After defining the translation in terms of physical load and store action, now we can define our memory \lstinline|mov| instructions
 \[
 \begin{array}{l}
-  \hbox{(\TirNameStyle{WriteToMemFromReg})} \qquad \qquad\qquad\qquad 
+  \hbox{(\TirNameStyle{WriteToMemFromReg})} \qquad
   \textsf{mov mem64 srcreg64} \\
-  \hbox{(\TirNameStyle{WriteToRegFromMem})} \qquad \qquad\qquad\qquad 
+  \hbox{(\TirNameStyle{WriteToRegFromMem})} \qquad 
   \textsf{mov reg64 mem64}
   \end{array}
   \]
@@ -217,11 +217,11 @@ After defining the translation in terms of physical load and store action, now w
   Register instructions, on the other hand, are implemented as $\sigma.\mathcal{R}$ lookup and store
 \[
 \begin{array}{l}
-  \hbox{(\TirNameStyle{WriteToRegFromReg})} \qquad \qquad\qquad\qquad 
+  \hbox{(\TirNameStyle{WriteToRegFromReg})} \qquad 
   \textsf{mov ireg64 ireg64} \\
-  \hbox{(\TirNameStyle{WriteToCtlRegFromReg})} \qquad \qquad\qquad\qquad 
-  \textsf{mov creg64 ireg64}
-    \hbox{(\TirNameStyle{WriteToRegFromCtlReg})} \qquad \qquad\qquad\qquad 
+  \hbox{(\TirNameStyle{WriteToCtlRegFromReg})} \qquad 
+  \textsf{mov creg64 ireg64}\\
+    \hbox{(\TirNameStyle{WriteToRegFromCtlReg})} \qquad 
   \textsf{mov ireg64 creg64}
   \end{array}
 \]
