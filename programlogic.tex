@@ -124,18 +124,11 @@ we can obtain and update the value mapped value at this physical page address th
 address space.}
 
 \begin{figure*}
-  \[
-\begin{array}{l}
-  \vaddr\mapsto_{\textsf{t}}\{\textsf{q}\}\vpage\; : \mathsf{vProp} \; \Sigma \;  \stackrel{{\triangle}}{:=} 
-  \exists_{\entryf \;, \entrytr \;, \entrytw \;,\entryo} \ldotp 
-
-  \ulcorner \textsf{aligned } \vaddr \urcorner \ast  \\
- \quad \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\rtv,\entryf,\entrytr,\entrytw,\entryo) \ast \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr 
-\end{array}
-\]
 \begin{lstlisting}[language=Coq]
- Definition L4_L1_PointsTo (cr3val maddr entry entry0 entry1 pte :word 64) : vProp $\Sigma$ :=
-  ((l4M52 maddr cr3val) \$\sim$\ (l4off maddr cr3val) $\mapsto_{a}$ {q1} entry  $\ast$
+ Definition $\vaddr\mapsto_{\textsf{t}}\{\textsf{q}\}\vpage$ :vProp $\Sigma$ := 
+  $\exists_{\entryf \;, \entrytr \;, \entrytw \;,\entryo} \ldotp$  $\ulcorner$ aligned $\vaddr \urcorner \ast$ L4_L1_PointsTo($\rtv,\entryf,\entrytr,\entrytw,\entryo$) $\ast \entryo \mapsto_{p} \vpage$.
+ Definition L4_L1_PointsTo (rtv maddr entry entry0 entry1 pte :word 64) : vProp $\Sigma$ :=
+  ((l4M52 maddr rtv) \$\sim$\ (l4off maddr rtv) $\mapsto_{a}$ {q1} entry  $\ast$
   (l3M52 maddr entry) \$\sim$\ (l3off maddr entry)  $\mapsto_{a}$ {q2} entry0 $\ast$ 
   (l2M52 maddr entry0) \$\sim$\ (l2off maddr entry0) $\mapsto_{a}$ {q3} entry1 $\ast$
   (l1M52 maddr entry1) \$\sim$\ (l1off maddr entry1) $\mapsto_{a}$ {q4} pte ).
