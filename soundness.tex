@@ -174,12 +174,7 @@ Now, we have well-enough definition for giving an outline for the proof of \TirN
    \item Step 1: we apply the head step relation and obtain the current valid state $\sigma1$ interpretation : $\textsf{x64\_h}\;\store$
    \item Step 2: we unfold the virtual-pointsto ($\vaddr \mapsto_{\textsf{v,rtv}} \textsf{v}$) definition, and for an existential physical page address $\paddr$, we exchange our fragmental toke ($\sumwalkabs\vaddr\qfrac\paddr$) to obtain physical table-pointsto ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}) relation
    \item Step 3: for each physical pointsto inside $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$, we obtain
-\[
-       \ulcorner \sigma.\mathcal{M } !! (\textsf{ va}|^{52}(\textsf{ent}_i) = \textsf{Some } \sigma\textsf{d}_i \land
-       \sigma\textsf{d }_i !! (\textsf{ va}|^{12}(\textsf{ent}_i)  = \textsf{Some entry}_{i+1} \urcorner
-       \]
-       where $\sigma.\textsf{d}_i$ in type \textsf{gmap (word 12) (word 64)} for our offset mappings. 
-     \item Step 4: use these concrete lookups to traverse the page tables to obtain the value \textsf{v}
+   \item Step 4: use these concrete lookups to traverse the page tables to obtain the value \textsf{v}
      \item Step 5: do the map update the $\sigma.\mathcal{R}$ for relevant register mapping ($r_d$) with the value \textsf{v} 
    \end{itemize}
    

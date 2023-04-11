@@ -1,3 +1,108 @@
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{ltblue}{rgb}{0,0.4,0.4}
+\definecolor{dkviolet}{rgb}{0.3,0,0.5}
+
+% lstlisting coq style (inspired from a file of Assia Mahboubi)
+\lstdefinelanguage{Coq}{ 
+    % Anything betweeen $ becomes LaTeX math mode
+    mathescape=true,
+    % Comments may or not include Latex commands
+    texcl=false, 
+    % Vernacular commands
+    morekeywords=[1]{Section, Module, End, Require, Import, Export,
+        Variable, Variables, Parameter, Parameters, Axiom, Hypothesis,
+        Hypotheses, Notation, Local, Tactic, Reserved, Scope, Open, Close,
+        Bind, Delimit, Definition, Let, Ltac, Fixpoint, CoFixpoint, Add,
+        Morphism, Relation, Implicit, Arguments, Unset, Contextual,
+        Strict, Prenex, Implicits, Inductive, CoInductive, Record,
+        Structure, Canonical, Coercion, Context, Class, Global, Instance,
+        Program, Infix, Theorem, Lemma, Corollary, Proposition, Fact,
+        Remark, Example, Proof, Goal, Save, Qed, Defined, Hint, Resolve,
+        Rewrite, View, Search, Show, Print, Printing, All, Eval, Check,
+        Projections, inside, outside, Def},
+    % Gallina
+    morekeywords=[2]{forall, exists, exists2, fun, fix, cofix, struct,
+        match, with, end, as, in, return, let, if, is, then, else, for, of,
+        nosimpl, when},
+    % Sorts
+    morekeywords=[3]{Type, Prop, Set, true, false, option},
+    % Various tactics, some are std Coq subsumed by ssr, for the manual purpose
+    morekeywords=[4]{pose, set, move, case, elim, apply, clear, hnf,
+        intro, intros, generalize, rename, pattern, after, destruct,
+        induction, using, refine, inversion, injection, rewrite, congr,
+        unlock, compute, ring, field, fourier, replace, fold, unfold,
+        change, cutrewrite, simpl, have, suff, wlog, suffices, without,
+        loss, nat_norm, assert, cut, trivial, revert, bool_congr, nat_congr,
+        symmetry, transitivity, auto, split, left, right, autorewrite},
+    % Terminators
+    morekeywords=[5]{by, done, exact, reflexivity, tauto, romega, omega,
+        assumption, solve, contradiction, discriminate},
+    % Control
+    morekeywords=[6]{do, last, first, try, idtac, repeat},
+    % Comments delimiters, we do turn this off for the manual
+    morecomment=[s]{(*}{*)},
+    % Spaces are not displayed as a special character
+    showstringspaces=false,
+    % String delimiters
+    morestring=[b]",
+    morestring=[d],
+    % Size of tabulations
+    tabsize=3,
+    % Enables ASCII chars 128 to 255
+    extendedchars=false,
+    % Case sensitivity
+    sensitive=true,
+    % Automatic breaking of long lines
+    breaklines=false,
+    % Default style fors listings
+    basicstyle=\small,
+    % Position of captions is bottom
+    captionpos=b,
+    % flexible columns
+    columns=[l]flexible,
+    % Style for (listings') identifiers
+    identifierstyle={\ttfamily\color{black}},
+    % Style for declaration keywords
+    keywordstyle=[1]{\ttfamily\color{dkviolet}},
+    % Style for gallina keywords
+    keywordstyle=[2]{\ttfamily\color{dkgreen}},
+    % Style for sorts keywords
+    keywordstyle=[3]{\ttfamily\color{ltblue}},
+    % Style for tactics keywords
+    keywordstyle=[4]{\ttfamily\color{dkblue}},
+    % Style for terminators keywords
+    keywordstyle=[5]{\ttfamily\color{dkred}},
+    %Style for iterators
+    %keywordstyle=[6]{\ttfamily\color{dkpink}},
+    % Style for strings
+    stringstyle=\ttfamily,
+    % Style for comments
+    commentstyle={\ttfamily\color{dkgreen}},
+    %moredelim=**[is][\ttfamily\color{red}]{/&}{&/},
+    literate=
+    {\\forall}{{\color{dkgreen}{$\forall\;$}}}1
+    {\\exists}{{$\exists\;$}}1
+    {<-}{{$\leftarrow\;$}}1
+    {=>}{{$\Rightarrow\;$}}1
+    {==}{{\code{==}\;}}1
+    {==>}{{\code{==>}\;}}1
+    %    {:>}{{\code{:>}\;}}1
+    {->}{{$\rightarrow\;$}}1
+    {<->}{{$\leftrightarrow\;$}}1
+    {<==}{{$\leq\;$}}1
+    {\#}{{$^\star$}}1 
+    {\\o}{{$\circ\;$}}1 
+    {\@}{{$\cdot$}}1 
+    {\/\\}{{$\wedge\;$}}1
+    {\\\/}{{$\vee\;$}}1
+    {++}{{\code{++}}}1
+    {~}{{\ }}1
+    {\@\@}{{$@$}}1
+    {\\mapsto}{{$\mapsto\;$}}1
+    {\\hline}{{\rule{\linewidth}{0.5pt}}}1
+    %
+}[keywords,comments,strings]
+
 \section{Machine State \& Syntax}
 \label{sec:syntax}
 To develop our core logical ideas, we instantiate \textsf{Iris} with a simple language for streams of instructions, 
@@ -48,21 +153,65 @@ We use these identifiers to access the register values, $\regval \in \regvaltype
 \end{figure}
 Unlike registers, we do not abstract the memory indices as a special type but instead, for the sake of clarity and ease of representation, we show differently masked machine words, $\loc \in \Loc$, with the subscripts showing the length of a 64-bit machine word after masking, e.g. $\kw{w}_{12}$ is a 12-bit resource which can be obtained after masking 52-bit of a 64-bit word.
 This simple syntax in Figure \ref{fig:syntax} includes a simple syntax for values because our language is purely \textit{imperative}, i.e. an instruction does not return a value. Intentionally, we restrict any stream of instruction, $\instrs$, to eventually reduce to $\iskip$ instruction. Our syntax capture the no-op ``$\iskip$'' and the sequencing construct ``$\iseq{\instr}{\instrs}$'' in their standard forms.
-
 \subsection{State}
 \label{sec:state}
-\todo[inline]{I don't think we need or want to describe the operational semantics in detail in the submission. It adds a lot of formalization that doen'st necessarily contribute to reader understanding. We should describe the runtime \emph{state} $\sigma$ of memory and registers, since that is directly used in interpreting assertions. But the reduction rules will mostly add mental overhead here.}
-\todo[inline,color=red]{Colin says: On the contrary, we must describe assembly instructions in enough detail for readers
-who aren't already assembly programmers to decode our examples! We don't have to talk about details of the formalization
-of the semantics, but we do need to talk about basic instructions we cover, basic patterns (like destination on the left),
-and just a bit about how all memory accesses implement Figure \ref{fig:pagetables}'s semantics.}
-We represent the machine state mainly as a finite map of registers to register values and a map of masked physical memory addresses to 64-bit physical memory values. Together with default def\textsf{CPU} instantiation, we end up having our state with following pieces:
+%\todo[inline]{I don't think we need or want to describe the operational semantics in detail in the submission. It adds a lot of formalization that doen'st necessarily contribute to reader understanding. We should describe the runtime \emph{state} $\sigma$ of memory and registers, since that is directly used in interpreting assertions. But the reduction rules will mostly add mental overhead here.}
+%\todo[inline,color=red]{Colin says: On the contrary, we must describe assembly instructions in enough detail for readers
+%who aren't already assembly programmers to decode our examples! We don't have to talk about details of the formalization
+%of the semantics, but we do need to talk about basic instructions we cover, basic patterns (like destination on the left),
+%and just a bit about how all memory accesses implement Figure \ref{fig:pagetables}'s semantics.}
+We represent the machine state mainly as a finite map of registers to register values and a map of masked physical memory addresses to 64-bit physical memory values. Together with default \textsf{CPU} instantiation, we end up having our state with following pieces:
 \begin{itemize}
 \item A constant cpu initialized with default value: $\sigma.\mathcal{C}$
 \item A register map: $\sigma.\mathcal{R}: \kw{greg} \rightarrow_{\textrm{fin}} \kw{regval} $
 \item A memory map: $\sigma.\mathcal{M}: \Locft \rightharpoonup_{\textrm{fin}} (\Loctw \rightharpoonup_{\textrm{fin}} \Locsf )$
 \end{itemize}
-As one might have already anticipated from the syntax we introduce, we do not bind any value of an evaluated expression. All the indices and accessed values are treated as globally referenced. In align with this design choice, our expression is a stream of instructions, which is not evaluated to a value to be bound, but changes the machine state through the indices (e.g. $\kw{r}\in\kw{greg}$) -- to the global maps. 
+As one might have already anticipated from the syntax we introduce, we do not bind any value of an evaluated expression. All the indices and accessed values are treated as globally referenced. In align with this design choice, our expression is a stream of instructions, which is not evaluated to a value to be bound, but changes the machine state through the indices (e.g. $\kw{r}\in\kw{greg}$) -- to the global maps.
+\subsection{Instructions}
+\label{sec:instructions}
+Page-table walk shown in Figure \ref{fig:pagetables} is realized with physical memory \texttt{load}s and \textsf{store}s for the entries in the page-tables which are simply modelled as lookup and updates to an instance of a memory map with 64 bit entries. In the address translation,
+\begin{lstlisting}[language=Coq]
+ Definition translate (m: $\sigma.\mathcal{M}$) (root: word 64) (w: word 64): address :=
+      let plm4e := translate_top_level m root  w in
+      let pdpte := translate_from_l4e m pml4e w in 
+      let pde := translate_from_l3e m pdpte w in
+      let pte: = translate_from_l2e m pde w in
+      let addr := translate_from_l1e m pte w in
+      concat (shift_dropn addr 3 three_lt64) low3.
+    end.
+\end{lstlisting}
+we see translation physical memory $\mathsf{load}$ for each level of page-table-walk, which is basically a table lookup with
+\begin{lstlisting}[language=Coq]
+   Definition load (mem: $\sigma.\mathcal{M}$) (w: { w: word 64 | aligned w }):word 64 + MemFail :=
+    match  $\sigma$.mem !! (pfn (proj1_sig w)) with
+      | None => inl (zero 64)
+      | Some (inl page) => inl (page (page_off (proj1_sig w)))
+      | Some (inr fault) => inr fault
+      end.
+
+  Definition store (mem: $\sigma.\mathcal{M}$) (w: { w: word 64 | aligned w }) (v: word 64):mem64 * (unit + MemFail) :=
+    match $\sigma$.mem !! (pfn (proj1_sig w)) mem with
+      | None =>
+        (($\sigma.\mathcal{M}$<[(pfn (proj1_sig w)) := 
+             (inl (fun off =>
+                  if (word_dec off (page_off (proj1_sig w))) then v else zero 64))]> mem
+         ), inl tt)
+      | Some (inl page) => (* update page contents *)
+        (($\sigma.\mathcal{M}$<[(pfn (proj1_sig w)) := 
+             (inl (fun off =>
+                  if (word_dec off (page_off (proj1_sig w))) then v else zero 64))]> mem
+         ), inl tt)
+      | Some (inr fault) => (mem, inr fault)
+    end.
+    
+  Program Definition pfn (w : word 64) := shift_dropn w 12 _.
+  Program Definition page_off (w : word 64) := bottomn w 12 _.
+\end{lstlisting}
+with frame and offset masking applied on the physical address being loaded. As expected \textsf{store} would be the update on the memory map entry
+\todo[inline,color=yellow]{Colin, could you mention that we simplified the maps here to get rid of MemFail?}
+After defining the translation in terms of physical load and store action, now we can define our \lstinline|mov| instructions.
+STOP HERE
+
 %
 %\subsection{Machine State under Address Translation}
 %\label{sec:selectedinstrsemantics}
