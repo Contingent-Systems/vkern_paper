@@ -68,16 +68,8 @@ We abstract physical memory addressing and registers naming with well-known sepa
 \paragraph{Register points-to} The assertion $\pfpointsto\rg\rv\rpts\qfrac$ ensures the ownership of the register $\rg$ naming the register value $\rv$. The fraction $\qfrac$ with value 1 asserts the unique ownership of the register mapping, and grants update permission on it, otherwise, any value $0 < \qfrac <1$ represents partial ownership granting readonly permission on the mapping.
 
 \todo[inline]{We should drop all talk about PDE, PDPT, etc., and just use L1-L4}
-\paragraph{Physical-Memory points-to} Our physical memory points-to relation in Figure \ref{fig:physicalpointsto} for a page table entry (e.g. \textsf{PDE} in Figure \ref{fig:pagetables}) abstracts masking -- $|^{52}$ for frame for and $|^{12}$ for offset -- through logical nested maps.  
-\begin{figure}[t]
-\[
-\begin{array}{cl}
-\pfpointsto\locsf\vpts\qfrac\ppts \stackrel{{\triangle}}{:=} & \nfpointsto{\mask\locsf\ft\generalentry}{\mask\locsf\tw\generalentry}\vpts\qfrac\naddr
-\end{array}
-\]
-\caption{Physical Points-to with Nested Masking}
-  \label{fig:physicalpointsto}
-\end{figure}
+\paragraph{Physical-Memory points-to} Our physical memory points-to relation in Figure \ref{fig:physicalpointsto} for a page table entry (e.g. \textsf{PDE} in Figure \ref{fig:pagetables}) abstracts masking -- $|^{52}$ for frame for and $|^{12}$ for offset -- through logical nested maps.
+
 Given the definition of physical page-pointsto assertion and the root address of virtual-address space kept in the control register \lstinline{cr3} as shown in Figure \ref{fig:pagetable},  one can build the physical address-translation for a virtual address (e.g. \textsf{va}) via abstracting the L4-L1 table traversal as the following:
 \begin{itemize}
   \item Page Map Level-4 Translation (L4): Performs the first level address translation to get the PML4 entry (PML4E) in Figure \ref{fig:pagetables} by using the masks (\textsf{va}$|^{52}$(\lstinline{cr3}) to get the starting address of the PML4 table (PLM4T) and using the offset mask \textsf{va}$|^{12}$(\lstinline{cr3}). It is worth noting that our offset indices are 12 bits as all physical memory pointsto assertions has to satisfy being \textsf{\textit{aligned}}, e.g. [47-39] plus 3 alignment bits in Figure \ref{fig:pagetables}
@@ -124,9 +116,10 @@ we can obtain and update the value mapped value at this physical page address th
 address space.}
 
 \begin{figure*}
-\begin{lstlisting}[language=Coq]
+  \begin{lstlisting}[language=Coq]
+ Definition $\pfpointsto\locsf\vpts\qfrac\ppts$ :vProp $\Sigma$ := pmapsto_def_v (pfn w) (page_off w) q v.
  Definition $\vaddr\mapsto_{\textsf{t}}\{\textsf{q}\}\vpage$ :vProp $\Sigma$ := 
-  $\exists_{\entryf \;, \entrytr \;, \entrytw \;,\entryo} \ldotp$  $\ulcorner$ aligned $\vaddr \urcorner \ast$ L4_L1_PointsTo($\rtv,\entryf,\entrytr,\entrytw,\entryo$) $\ast \entryo \mapsto_{p} \vpage$.
+  $\exists_{\entryf \;, \entrytr \;, \entrytw \;,\entryo} \ldotp$  $\ulcorner$ aligned $\vaddr \urcorner \ast$ L4_L1_PointsTo($\rtv,\entryf,\entrytr,\entrytw,\entryo$) $\ast$ addr_L1$(\vaddr,\entryo) \mapsto_{p} \vpage$.
  Definition L4_L1_PointsTo (rtv maddr entry entry0 entry1 pte :word 64) : vProp $\Sigma$ :=
   ((l4M52 maddr rtv) \$\sim$\ (l4off maddr rtv) $\mapsto_{a}$ {q1} entry  $\ast$
   (l3M52 maddr entry) \$\sim$\ (l3off maddr entry)  $\mapsto_{a}$ {q2} entry0 $\ast$ 
@@ -138,10 +131,7 @@ address space.}
   \label{fig:strongvirtualpointsto}
 \end{figure*}
 
-%then we reach to a physical page addr (e.g. \textsf{pa}) 
-%\[  \paddr\mapsto_{\textsf{a}}\{1\}\vsome \ast \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfrac\naddr \]
-
-  \subsection{Aliasing/Sharing Physical Pages}
+\subsection{Aliasing/Sharing Physical Pages}
   \label{sec:sharingpages}  
   One might have already observed that the virtual points-to definition shown in Figure \ref{fig:strongvirtualpointsto} 
   is too strong to specify some operations updating a page table entry.
