@@ -182,13 +182,13 @@ Page-table walk shown in Figure \ref{fig:pagetables} is realized with physical m
 \end{lstlisting}
 we see physical memory $\mathsf{load}$ for each level of page-table-walk concluded with alignment of the returned address.
 \begin{lstlisting}[language=Coq]
-   Definition load (w: { w: word 64 | aligned w }):word 64 + MemFail :=
+   Definition load (w:{w: word 64 | aligned w}):word 64 + MemFail :=
     match  $\sigma.\mathcal{M}$ !! (pfn (proj1_sig w)) with
       | None => inl (zero 64)
       | Some (inl page) => inl (page (page_off (proj1_sig w)))
       | Some (inr fault) => inr fault
       end.
-  Definition store (w: { w: word 64 | aligned w }) (v: word 64):mem64 * (unit + MemFail) :=
+  Definition store (w:{w: word 64 | aligned w}) (v:word 64):mem64 * (unit + MemFail) :=
     match $\sigma.\mathcal{M}$ !! (pfn (proj1_sig w)) with
       | None =>
         ((<[(pfn (proj1_sig w)) := (inl (fun off => if (word_dec off (page_off (proj1_sig w)))
