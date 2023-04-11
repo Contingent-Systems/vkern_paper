@@ -36,11 +36,9 @@ Therefore, as a first step, we work in a pointwise lifting of Iris's standard BI
 essentially working with separation logic assertions indexed by a page table root as a $\mathcal{W}_{64}$
 (Figure \ref{fig:vprop}), which we call $\textsf{vProp }\Sigma$; this is the (\textsc{Coq}) type of assertions in our logic.
 \begin{figure}[t]
-\[
-\begin{array}{cl}
-\textsf{vProp } \Sigma \; : \; \textsf{bi} \; \stackrel{{\triangle}}{:=} \mathcal{W}_{64} \rightarrow_{\textsf{b}} \textsf{iPropI } \Sigma
-\end{array}
-\]
+\begin{lstlisting}[language=Coq]
+  Definition vProp  $\Sigma$ : bi := word 64 $\rightarrow$_{b} iPropI  $\Sigma$.
+  \end{lstlisting}
 \caption{$\textsf{vProp }\Sigma$: Root-Address Indexed Address-Space Proposition}
   \label{fig:vprop}
 \end{figure}
@@ -127,22 +125,21 @@ address space.}
 
 \begin{figure*}
   \[
-  \begin{array}{l}
 \begin{array}{l}
   \vaddr\mapsto_{\textsf{t}}\{\textsf{q}\}\vpage\; : \mathsf{vProp} \; \Sigma \;  \stackrel{{\triangle}}{:=} 
   \exists_{\entryf \;, \entrytr \;, \entrytw \;,\entryo} \ldotp 
 
   \ulcorner \textsf{aligned } \vaddr \urcorner \ast  \\
  \quad \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\rtv,\entryf,\entrytr,\entrytw,\entryo) \ast \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr 
-\end{array} \\
-\\
-\textsf{where   }\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\rtv,\entryf,\entrytr,\entrytw,\entryo) \stackrel{\triangle}{=} \\
- \qquad\qquad \nfpointsto{\mask\vaddr\ft\rtv}{\mask\vaddr\tw\rtv}\entryf\qone\naddr \ast \\ 
- \qquad\qquad  \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qtwo\naddr  \ast  \\
-  \qquad\qquad \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qthree\naddr \ast \\
-  \qquad\qquad \nfpointsto{\mask\vaddr\ft\entrytw}{\mask\vaddr\tw\entrytw}\entryo\qfour\naddr 
-   \end{array}
+\end{array}
 \]
+\begin{lstlisting}[language=Coq]
+ Definition L4_L1_PointsTo (cr3val maddr entry entry0 entry1 pte :word 64) : vProp $\Sigma$ :=
+  ((l4M52 maddr cr3val) \$\sim$\ (l4off maddr cr3val) $\mapsto_{a}$ {q1} entry  $\ast$
+  (l3M52 maddr entry) \$\sim$\ (l3off maddr entry)  $\mapsto_{a}$ {q2} entry0 $\ast$ 
+  (l2M52 maddr entry0) \$\sim$\ (l2off maddr entry0) $\mapsto_{a}$ {q3} entry1 $\ast$
+  (l1M52 maddr entry1) \$\sim$\ (l1off maddr entry1) $\mapsto_{a}$ {q4} pte ).
+\end{lstlisting}
 \caption{A Strong Virtual Points-to Relation}
 \todo[inline,color=red]{Colin says: shouldn't that fraction be a q, not a 1, in the second line?}
   \label{fig:strongvirtualpointsto}

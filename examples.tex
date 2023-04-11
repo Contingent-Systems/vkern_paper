@@ -71,7 +71,7 @@ One of the key tasks of a page fault handler in a general-purpose OS kernel is t
 
 \begin{figure}\footnotesize
   \begin{lstlisting}
-\{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred)  \ast  \texttt{r14}\mapsto_{r} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ \ast \ulcorner \texttt{aligned va} \land  \theta \; !!\; \texttt{maddr} = \texttt{None}\urcorner\}_{\rtv}
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred)  \ast  \texttt{r14}\mapsto_{r} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ \ast \ulcorner \texttt{aligned va} \land  \theta \; !!\; \texttt{maddr} = \texttt{None}\urcorner}_{\rtv}$
 call ensure_L1_page
 $\{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred) \ast  \texttt{r14}\mapsto_{r} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ \ast \}_{\rtv}$
 $\specline{\exists (\entryf ,\;\entrytr,\; \entrytw,\; \entryo: \texttt{word 64}) \ldotp \ulcorner (\texttt{addr\_L1 }\vaddr) = \entryo\urcorner \ast }_{\rtv}$
