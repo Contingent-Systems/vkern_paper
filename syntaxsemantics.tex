@@ -171,12 +171,12 @@ As one might have already anticipated from the syntax we introduce, we do not bi
 \label{sec:instructions}
 Page-table walk shown in Figure \ref{fig:pagetables} is realized with physical memory \texttt{load}s and \textsf{store}s for the entries in the page-tables which are simply modelled as lookup and updates to an instance of a memory map with 64 bit entries. In the address translation,
 \begin{lstlisting}[language=Coq]
- Definition translate (root: word 64) (w: word 64): address :=
-      l4e $\leftarrow$ translate_top_level $\sigma.\mathcal{M}$ root w; 
-      l3e $\leftarrow$ translate_from_l4e $\sigma.\mathcal{M}$ pml4e w; 
-      l2e $\leftarrow$ translate_from_l3e $\sigma.\mathcal{M}$ pdpte w;
-      l1e $\leftarrow$ translate_from_l2e $\sigma.\mathcal{M}$ pde w;
-      addr $\leftarrow$ translate_from_l1e $\sigma.\mathcal{M}$ pte w;
+ Definition translate (rtv: word 64) (w: word 64): address :=
+      l4e $\leftarrow$ translate_top_level $\sigma.\mathcal{M}$ rtv w; 
+      l3e $\leftarrow$ translate_from_l4e $\sigma.\mathcal{M}$ l4e w; 
+      l2e $\leftarrow$ translate_from_l3e $\sigma.\mathcal{M}$ l3e w;
+      l1e $\leftarrow$ translate_from_l2e $\sigma.\mathcal{M}$ l2e w;
+      addr $\leftarrow$ translate_from_l1e $\sigma.\mathcal{M}$ l1e w;
       concat (shift_dropn addr 3 three_lt64) low3.
 \end{lstlisting}
 we see physical memory $\mathsf{load}$ for each level of page-table-walk concluded with alignment of the returned address.
