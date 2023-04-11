@@ -1,9 +1,8 @@
+\newcommand{\specline}[1]{{\color{blue}\left\{#1\right\}}}
 %$\assert{\ulcorner \mathsf{aligned maddr} \urcorner \ast \mathsf{r14} \mapsto_{\textsf{r}} \textsf{r14v} \ast \mathsf{r13} \mapsto_{\textsf{r}} \textsf{maddr} \ast \mathsf{rdi} \mapsto_{\textsf{r}} \textsf{rdiv} \ast \mathsf{rax} \mapsto_{\textsf{r}} \textsf{raxv}}$
 %$\assert{\ulcorner \ptablestore !! \textsf{maddr} = \textsf{None} \urcorner \ast \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \ast \textsf{Pf}} $
 \section{Experiment}
 \label{sec:experiment}
-\mytodo{Mechanization is Ismail's Part -- Discussing and putting in here is Colin's}
-
 To both validate and demonstrate the value of the modal approach to reasoning about virtual memory management, we study several distillations of real concerns of virtual memory managers.
 Recall from Section \ref{sec:logic} that virtual points-to assertions work just like regular points-to assertions, by design.
 
