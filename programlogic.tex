@@ -86,23 +86,23 @@ We abstract physical memory addressing and registers naming with well-known sepa
 \end{figure*}
 Given the definition of physical page-pointsto assertion and the root address of virtual-address space kept in the control register \lstinline{cr3} as shown in Figure \ref{fig:pagetable},  one can build the physical address-translation for a virtual address (e.g. \textsf{va}) via abstracting the L4-L1 table traversal as the following:
 \begin{itemize}
-  \item Page Map Level-4 Translation (L4): Performs the first level address translation to get the PML4 entry (PML4E) in Figure \ref{fig:pagetables} by using the masks (\textsf{va}$|^{52}$(\lstinline{cr3}) to get the starting address of the PML4 table (PLM4T) and using the offset mask \textsf{va}$|^{12}$(\lstinline{cr3}). It is worth noting that our offset indices are 12 bits as all physical memory pointsto assertions has to satisfy being \textsf{\textit{aligned}}, e.g. [47-39] plus 3 alignment bits in Figure \ref{fig:pagetables}
+  \item Level-4 Translation (L4): Performs the first level address translation to get the L4 entry (L4E) in Figure \ref{fig:pagetables} by using the masks l4M52 and l4off with \textsf{rtv} virtual base address to get the starting address of the L4 table (L4T), and locate the entry respectively.
     \begin{lstlisting}[language=Coq]
       $\hbox{(\TirNameStyle{{L4translate}})} \quad$ (l4M52 maddr rtv) \$\sim$\ (l4off maddr rtv) $\mapsto_{a}$ {q1} l4e 
     \end{lstlisting}
- \item Page Directory Pointer Level Translation (L3): Performs the second level address translation to get the PDP entry (PDPE) in Figure \ref{fig:pagetables} by using the masks(\textsf{va}$|^{52}$(\textsf{PLM4E}) to get the starting address of the PDP table (PDPT) and using the offset mask \textsf{va}$|^{12}$(\textsf{PLM4E})
+ \item Level-3 Translation (L3): Performs the second level address translation to get the L3 entry (L3E) in Figure \ref{fig:pagetables} by using the masks l3M52 and l3off with L4 entry (l4e) to get the starting address of the L3 table (L3T), and locate the entry respectively.
     \begin{lstlisting}[language=Coq]
-    $\hbox{(\TirNameStyle{{L3translate}})}$ (l3M52 maddr entry) \$\sim$\ (l3off maddr entry)  $\mapsto_{a}$ {q2} l3e
+    $\hbox{(\TirNameStyle{{L3translate}})}$ (l3M52 maddr l4e) \$\sim$\ (l3off maddr l4e)  $\mapsto_{a}$ {q2} l3e
     \end{lstlisting}
-  \item Page Directory Table Level Translation (L2): Performs the second level address translation to get the PD entry (PDE) in Figure \ref{fig:pagetables} by using the masks(\textsf{va}$|^{52}$(\textsf{PDPE}) to get the starting address of the PD table and using the offset mask \textsf{va}$|^{12}$(\textsf{PDPE})
+  \item Level-2 Translation (L2): Performs the second level address translation to get the L2 entry (L2E) in Figure \ref{fig:pagetables} by using the masks l2M52 and l2off with L3 entry (l3e) to get the starting address of the L2 table (L2T), and locate the entry respectively.
 \begin{lstlisting}[language=Coq]
-    $\hbox{(\TirNameStyle{{L2translate}})}$ (l2M52 maddr entry) \$\sim$\ (l2off maddr entry)  $\mapsto_{a}$ {q2} l2e
+    $\hbox{(\TirNameStyle{{L2translate}})}$ (l2M52 maddr l3e) \$\sim$\ (l2off maddr l3e)  $\mapsto_{a}$ {q2} l2e
     \end{lstlisting}
-  \item Page Table Level Translation (L1): Performs the second level address translation to get the PT entry (PTE) in Figure \ref{fig:pagetables} by using the masks(\textsf{va}$|^{52}$(\textsf{PDE}) to get the starting address of the Page table (PT) and using the offset mask \textsf{va}$|^{12}$(\textsf{PDE})
+  \item Level-1 Translation (L1): Performs the second level address translation to get the L1 entry (L1E) in Figure \ref{fig:pagetables} by using the masks l1M52 and l1off with L2 entry (l2e) to get the starting address of the L1 table (L1T), and locate the entry respectively.
    \begin{lstlisting}[language=Coq]
-    $\hbox{(\TirNameStyle{{L1translate}})}$ (l1M52 maddr entry) \$\sim$\ (l1off maddr entry)  $\mapsto_{a}$ {q2} l1e
+    $\hbox{(\TirNameStyle{{L1translate}})}$ (l1M52 maddr l2e) \$\sim$\ (l1off maddr l2e)  $\mapsto_{a}$ {q2} l1e
     \end{lstlisting}
-  \item Page Address Level Translation: Performs the second level address translation to get the physical page address in Figure \ref{fig:pagetables} by using the masks(\textsf{va}$|^{52}$(\textsf{PTE}) to get the starting address of the physical page address table and using the offset mask \textsf{va}$|^{12}$(\textsf{PTE})
+  \item Page Address Level Translation: Final computed physical page-address ($\textsf{addr\_L1}(\vaddr$,$\textsf{l1e}$)) points-to the value stored in the address ($\vpage$).
    \begin{lstlisting}[language=Coq]
     $\hbox{(\TirNameStyle{{PageLabelAccess}})}$ addr_L1$(\vaddr$,\textsf{l1e}$) \mapsto_{p} \vpage$.
     \end{lstlisting} 
