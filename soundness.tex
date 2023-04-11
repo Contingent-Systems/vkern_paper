@@ -211,7 +211,6 @@ We define our custom-tailored algebra
     Definition to_gen_heap : gmap L V $\rightarrow$ gen_heapUR L V :=  $\lambda$  v $\ldotp$ (1, to_agree (v :leibnizO V)).
   \end{lstlisting}
  throuh using \textsf{to\_gen\_heap} from previous Iris version. \todo[inline,color=red]{Ismail give exact version commit etc.}
-As a final step, we allocate an empty ghost cell $\gamma$ at the beggining of a program execution to store the element of the monoid $\textsf{inG } \Sigma \textsf{ gen\_memUR}$.
 \end{definition}
 
 \begin{definition}[Ghost State - Register Mappings]
@@ -235,12 +234,10 @@ element of the monoid
 The central invariant of our logic is, due to lack of need for augmenting the machine state, simply the state interpretation: 
 \[
 \textsf{x64\_h}\;\store \triangleq
-\left\{
 \def\arraystretch{1.2}
 \begin{array}{l@{\quad\star\quad}l@{\quad}l}
   \textsf{to\_gen\_heap} \;\store.\mathcal{R} & \textsf{to\_gen\_mem} \; \store.\mathcal{M}
 \end{array}
-\right.
 \]
 \end{definition}
 
@@ -250,9 +247,9 @@ Definition exec_step (i: instr) ($\sigma$:state) : option state :=
     exec_state (exec_instr i $\sigma\mathcal{C}$ $\sigma.\mathcal{R}$ ((memToPhysMem $\sigma.\mathcal{M}$) (exist _ ($\sigma.\mathcal{R}$ !!  cr3)))).
 
 \end{lstlisting}
-\todo[inline,color=yellow]{Colin, in case needed,not proven, could you simply say that we assume these map equalities or a paper proof etc.}. Since the focus of this paper is not explaining our \textsf{AMD64} model, we prefer not to get into the details due to space limits. However, Coq formalization of our operational semantics is a part of our submission artifact.
+\todo[inline,color=yellow]{Colin, in case needed,not proven, could you simply say that we assume these map equalities or a paper proof etc.}. Due to the page limitation, we can only give the outline of a selected instruction (\TirNameStyle{WriteToRegFromVirtMem}) from our \textsf{AMD64} model. However, mechanized soundness proofs of other instructions can be found as a part of our submission artifact.
 
-Now, we have well-enough definition for giving an outline for the proof of \TirNameStyle{WriteToRegFromVirtMem}.
+After obtaining ownership (points-to) predicates from application of state interpretation, now, we have well-enough definition for giving an outline for the proof of \TirNameStyle{WriteToRegFromVirtMem}.
  \begin{lemma}[\textsc{\TirNameStyle{WriteToRegFromVirtMem}}]
    \label{lemma:unlink}
 \begin{align*}
@@ -272,7 +269,7 @@ Now, we have well-enough definition for giving an outline for the proof of \TirN
    \begin{itemize}
    \item Step 1: we apply the head step relation and obtain the current valid state $\sigma1$ interpretation : $\textsf{x64\_h}\;\store$
    \item Step 2: we unfold the virtual-pointsto ($\vaddr \mapsto_{\textsf{v,rtv}} \textsf{v}$) definition, and for an existential physical page address $\paddr$, we exchange our fragmental toke ($\sumwalkabs\vaddr\qfrac\paddr$) to obtain physical table-pointsto ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}) relation
-   \item Step 3: for each physical pointsto inside $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$, we obtain
+   \item Step 3: for each physical pointsto inside $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$, there exists a \textsf{load}, i.e. a concrete memory lookup
    \item Step 4: use these concrete lookups to traverse the page tables to obtain the value \textsf{v}
      \item Step 5: do the map update the $\sigma.\mathcal{R}$ for relevant register mapping ($r_d$) with the value \textsf{v} 
    \end{itemize}
