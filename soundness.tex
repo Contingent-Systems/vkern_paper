@@ -1,11 +1,116 @@
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{ltblue}{rgb}{0,0.4,0.4}
+\definecolor{dkviolet}{rgb}{0.3,0,0.5}
+
+% lstlisting coq style (inspired from a file of Assia Mahboubi)
+\lstdefinelanguage{Coq}{ 
+    % Anything betweeen $ becomes LaTeX math mode
+    mathescape=true,
+    % Comments may or not include Latex commands
+    texcl=false, 
+    % Vernacular commands
+    morekeywords=[1]{Section, Module, End, Require, Import, Export,
+        Variable, Variables, Parameter, Parameters, Axiom, Hypothesis,
+        Hypotheses, Notation, Local, Tactic, Reserved, Scope, Open, Close,
+        Bind, Delimit, Definition, Let, Ltac, Fixpoint, CoFixpoint, Add,
+        Morphism, Relation, Implicit, Arguments, Unset, Contextual,
+        Strict, Prenex, Implicits, Inductive, CoInductive, Record,
+        Structure, Canonical, Coercion, Context, Class, Global, Instance,
+        Program, Infix, Theorem, Lemma, Corollary, Proposition, Fact,
+        Remark, Example, Proof, Goal, Save, Qed, Defined, Hint, Resolve,
+        Rewrite, View, Search, Show, Print, Printing, All, Eval, Check,
+        Projections, inside, outside, Def},
+    % Gallina
+    morekeywords=[2]{forall, exists, exists2, fun, fix, cofix, struct,
+        match, with, end, as, in, return, let, if, is, then, else, for, of,
+        nosimpl, when},
+    % Sorts
+    morekeywords=[3]{Type, Prop, Set, true, false, option},
+    % Various tactics, some are std Coq subsumed by ssr, for the manual purpose
+    morekeywords=[4]{pose, set, move, case, elim, apply, clear, hnf,
+        intro, intros, generalize, rename, pattern, after, destruct,
+        induction, using, refine, inversion, injection, rewrite, congr,
+        unlock, compute, ring, field, fourier, replace, fold, unfold,
+        change, cutrewrite, simpl, have, suff, wlog, suffices, without,
+        loss, nat_norm, assert, cut, trivial, revert, bool_congr, nat_congr,
+        symmetry, transitivity, auto, split, left, right, autorewrite},
+    % Terminators
+    morekeywords=[5]{by, done, exact, reflexivity, tauto, romega, omega,
+        assumption, solve, contradiction, discriminate},
+    % Control
+    morekeywords=[6]{do, last, first, try, idtac, repeat},
+    % Comments delimiters, we do turn this off for the manual
+    morecomment=[s]{(*}{*)},
+    % Spaces are not displayed as a special character
+    showstringspaces=false,
+    % String delimiters
+    morestring=[b]",
+    morestring=[d],
+    % Size of tabulations
+    tabsize=3,
+    % Enables ASCII chars 128 to 255
+    extendedchars=false,
+    % Case sensitivity
+    sensitive=true,
+    % Automatic breaking of long lines
+    breaklines=false,
+    % Default style fors listings
+    basicstyle=\small,
+    % Position of captions is bottom
+    captionpos=b,
+    % flexible columns
+    columns=[l]flexible,
+    % Style for (listings') identifiers
+    identifierstyle={\ttfamily\color{black}},
+    % Style for declaration keywords
+    keywordstyle=[1]{\ttfamily\color{dkviolet}},
+    % Style for gallina keywords
+    keywordstyle=[2]{\ttfamily\color{dkgreen}},
+    % Style for sorts keywords
+    keywordstyle=[3]{\ttfamily\color{ltblue}},
+    % Style for tactics keywords
+    keywordstyle=[4]{\ttfamily\color{dkblue}},
+    % Style for terminators keywords
+    keywordstyle=[5]{\ttfamily\color{dkred}},
+    %Style for iterators
+    %keywordstyle=[6]{\ttfamily\color{dkpink}},
+    % Style for strings
+    stringstyle=\ttfamily,
+    % Style for comments
+    commentstyle={\ttfamily\color{dkgreen}},
+    %moredelim=**[is][\ttfamily\color{red}]{/&}{&/},
+    literate=
+    {\\forall}{{\color{dkgreen}{$\forall\;$}}}1
+    {\\exists}{{$\exists\;$}}1
+    {<-}{{$\leftarrow\;$}}1
+    {=>}{{$\Rightarrow\;$}}1
+    {==}{{\code{==}\;}}1
+    {==>}{{\code{==>}\;}}1
+    %    {:>}{{\code{:>}\;}}1
+    {->}{{$\rightarrow\;$}}1
+    {<->}{{$\leftrightarrow\;$}}1
+    {<==}{{$\leq\;$}}1
+    {\#}{{$^\star$}}1 
+    {\\o}{{$\circ\;$}}1 
+    {\@}{{$\cdot$}}1 
+    {\/\\}{{$\wedge\;$}}1
+    {\\\/}{{$\vee\;$}}1
+    {++}{{\code{++}}}1
+    {~}{{\ }}1
+    {\@\@}{{$@$}}1
+    {\\mapsto}{{$\mapsto\;$}}1
+    {\\hline}{{\rule{\linewidth}{0.5pt}}}1
+    %
+}[keywords,comments,strings]
+
 \section{Implementing Logical Machinery \& Soundness}
-We build our program logic, as an instantiation of Iris~\cite{iris}, and build our modal abstractions on top of it. 
+We build our program logic, as an instantiation of Iris~\cite{iris}, and construct our reasoning principles including the modal one on top of it. 
 \mytodo{we should put some stuff here}
 \subsection{Soundness}
 \label{sec:soundness}
-Our logic, operates on the machine state, which means we do not need to augment the machine state. The invarian that we pick, \textit{central invariant} ($\mathcal{I}$\textsf{ASpace}), is just semantic interpretation of stores in the machine state, $\sigma$.R and $\sigma$.M. This semantic interpratation ensures the correct lifting of mappings in the machine state to the assertions that the client of our logic uses, i.e. points-to assertions that are defined as the ownership of a fragment of the logical state.
+Our logic, operates on the machine state, which means we do not need to augment the machine state. The invarian that we pick, \textit{central invariant} ($\textsf{x64\_h}$), is just semantic interpretation of stores in the machine state, $\sigma.\mathcal{R}$ and $\sigma.\mathcal{M}$. This semantic interpratation ensures the correct lifting of mappings in the machine state to the assertions that the client of our logic uses, i.e. points-to assertions that are defined as the ownership of a fragment of the logical state.
 
-We prefer to skip explaining the steps used in instantiation of Iris because it is an almost standard procedure, has already been explained for many other logic \ref{}, and we are concerned with the page-count limitation. However, it is worh noting that once you instantiate Iris for your language, it comes with the semantic definition for the weakest-precondition which we can refactor into Hoare triples, $\triple\pre\instr\post$, to specify our  selected \textsf{AMD64} instructions shown in Figure \ref{fig:wpdamd}, and show that these triples are sound. 
+We prefer to skip explaining the steps used in instantiation of Iris because it is an almost standard procedure, has already been explained for many other logic \ref{}, and we are concerned with the page-count limitation. However, it is worh noting that once you instantiate Iris for your language, it comes with the semantic definition for the weakest-precondition which we can refactor into Hoare-Doubles to specify our  selected \textsf{AMD64} instructions shown in Figure \ref{fig:wpdamd}, and show that these triples are sound.
 \subsection{The Soundness Statement}
 \label{def:soundness:statement}
 The operational semantics of our simple lang just executes sequences of instructions in our x86-64 model. Therefore, our soundness argument is to show that any execution composed of instructions in our machine model (some of which are shown in Figure \sref{sec:semantics}) does not end-up in a invalid state.
@@ -95,20 +200,16 @@ Iris defines two pieces of ghost state
 \begin{definition}[Ghost State - Memory with Nested Mappings]
 We define our custom-tailored algebra 
 \newcommand\fpfn{\rightarrow_{\textrm{fin}}}
-\( \textsf{gen\_memUR} \stackrel{def}{=}
+\( \textsf{gen\_memUR} \stackrel{\triangle}{=}
   \authm(\;
   \Locft \;\fpfn\;
   (\Loctw \;\fpfn\;  (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \Loc,\mathord{=}) )
   \)
-  for our nested memory mapping abstracting two different machine word masking. Then, we register our \emph{authoritative camera} \cite[\S6.3.3]{iris} from this algebra
-  \[\textsf{inG } \Sigma \textsf{ gen\_memUR} \]
-  To interpret this nested ghost map we define \textsf{to\_gen\_mem}
-  \[
-  \begin{array}{l}
-    \mathsf{to\_gen\_mem} : \textsf{ gmap L1 }(\textsf{gmap L2 V})\rightarrow \textsf{gen\_memUR L1 L2 V } := \textsf{ fmap} (\lambda \textsf{m . to\_gen\_heap m}). \\
-     \mathsf{to\_gen\_heap } : \textsf{gmap L V} \rightarrow \textsf{gen\_heapUR L V} :=  (\lambda \textsf{v }\ldotp (1, \textsf{ to\_agree } (\textsf{v} : \textsf{leibnizO V}))).
-  \end{array}
-  \]
+  for our nested memory mapping abstracting two different machine word masking. To interpret this nested ghost map, i.e. obtain points-to assertions out of mappings in an ordinary \textsf{gmap}, we define \textsf{to\_gen\_mem}
+  \begin{lstlisting}[language=Coq]
+    Definition to_gen_mem : gmap L1 ( gmap L2 V) $\rightarrow$ gen_memUR L1 L2 V := fmap ($\lambda$ m . to_gen_heap m).
+    Definition to_gen_heap : gmap L V $\rightarrow$ gen_heapUR L V :=  $\lambda$  v $\ldotp$ (1, to_agree (v :leibnizO V)).
+  \end{lstlisting}
  throuh using \textsf{to\_gen\_heap} from previous Iris version. \todo[inline,color=red]{Ismail give exact version commit etc.}
 As a final step, we allocate an empty ghost cell $\gamma$ at the beggining of a program execution to store the element of the monoid $\textsf{inG } \Sigma \textsf{ gen\_memUR}$.
 \end{definition}
@@ -137,20 +238,18 @@ The central invariant of our logic is, due to lack of need for augmenting the ma
 \left\{
 \def\arraystretch{1.2}
 \begin{array}{l@{\quad\star\quad}l@{\quad}l}
-  \textsf{to\_gen\_heap} \;\store.\mathcal{R} &  \\
-   \textsf{to\_gen\_mem} \; \store.\mathcal{M}
+  \textsf{to\_gen\_heap} \;\store.\mathcal{R} & \textsf{to\_gen\_mem} \; \store.\mathcal{M}
 \end{array}
 \right.
 \]
 \end{definition}
 
 As a last definition, we give the head step relation required for the Iris instantiation for our simple language in Figure \ref{} to sequence instructions. This relation allows lifting the program expression to enables the application of changes imposed by the operational semantics on the program state $\sigma$ when applied for an insturction (\textsf{i}).
-\[
-\begin{array}{l}
-\textsf{exec\_step} (\textsf{i}: \textsf{ instr}) (\sigma:\textsf{ state}):\textsf{ option state} \stackrel{def}{=} \\
-\qquad \textsf{exec\_state} (\textsf{exec\_instr i } \sigma.(\textsf{cpu})  \\ \qquad (\textsf{regToregset } \sigma.(\mathcal{R}))  \\ \qquad ((\textsf{memToPhysMem }\sigma.(\mathcal{M})) (\textsf{exist \_}  \\ \qquad (\textsf{ regset\_get\_num }(\textsf{regToregset }\sigma.(\mathcal{R}))  (\textsf{ cr cr3}))))).
-\end{array}
-\]
+\begin{lstlisting}[language=Coq]
+Definition exec_step (i: instr) ($\sigma$:state) : option state :=
+    exec_state (exec_instr i $\sigma\mathcal{C}$ $\sigma.\mathcal{R}$ ((memToPhysMem $\sigma.\mathcal{M}$) (exist _ ($\sigma.\mathcal{R}$ !!  cr3)))).
+
+\end{lstlisting}
 \todo[inline,color=yellow]{Colin, in case needed,not proven, could you simply say that we assume these map equalities or a paper proof etc.}. Since the focus of this paper is not explaining our \textsf{AMD64} model, we prefer not to get into the details due to space limits. However, Coq formalization of our operational semantics is a part of our submission artifact.
 
 Now, we have well-enough definition for giving an outline for the proof of \TirNameStyle{WriteToRegFromVirtMem}.
