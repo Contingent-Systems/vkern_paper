@@ -171,32 +171,32 @@ As one might have already anticipated from the syntax we introduce, we do not bi
 \label{sec:instructions}
 Page-table walk shown in Figure \ref{fig:pagetables} is realized with physical memory \texttt{load}s and \textsf{store}s for the entries in the page-tables which are simply modelled as lookup and updates to an instance of a memory map with 64 bit entries. In the address translation,
 \begin{lstlisting}[language=Coq]
- Definition translate (m: $\sigma.\mathcal{M}$) (root: word 64) (w: word 64): address :=
-      let plm4e := translate_top_level m root  w in
-      let pdpte := translate_from_l4e m pml4e w in 
-      let pde := translate_from_l3e m pdpte w in
-      let pte: = translate_from_l2e m pde w in
-      let addr := translate_from_l1e m pte w in
+ Definition translate (root: word 64) (w: word 64): address :=
+      let plm4e := translate_top_level $\sigma.\mathcal{M}$ root  w in
+      let pdpte := translate_from_l4e $\sigma.\mathcal{M}$ pml4e w in 
+      let pde := translate_from_l3e $\sigma.\mathcal{M}$ pdpte w in
+      let pte: = translate_from_l2e $\sigma.\mathcal{M}$ pde w in
+      let addr := translate_from_l1e $\sigma.\mathcal{M}$ pte w in
       concat (shift_dropn addr 3 three_lt64) low3.
     end.
 \end{lstlisting}
-we see translation physical memory $\mathsf{load}$ for each level of page-table-walk, which is basically a table lookup with
+we see physical memory $\mathsf{load}$ for each level of page-table-walk concluded with alignment of the returned address.
 \begin{lstlisting}[language=Coq]
-   Definition load (mem: $\sigma.\mathcal{M}$) (w: { w: word 64 | aligned w }):word 64 + MemFail :=
-    match  $\sigma$.mem !! (pfn (proj1_sig w)) with
+   Definition load (w: { w: word 64 | aligned w }):word 64 + MemFail :=
+    match  $\sigma.\mathcal{M}$ !! (pfn (proj1_sig w)) with
       | None => inl (zero 64)
       | Some (inl page) => inl (page (page_off (proj1_sig w)))
       | Some (inr fault) => inr fault
       end.
-  Definition store (mem: $\sigma.\mathcal{M}$) (w: { w: word 64 | aligned w }) (v: word 64):mem64 * (unit + MemFail) :=
-    match $\sigma$.mem !! (pfn (proj1_sig w)) mem with
+  Definition store (w: { w: word 64 | aligned w }) (v: word 64):mem64 * (unit + MemFail) :=
+    match $\sigma.\mathcal{M}$ !! (pfn (proj1_sig w)) with
       | None =>
-        (($\sigma.\mathcal{M}$<[(pfn (proj1_sig w)) := (inl (fun off =>
-           if (word_dec off (page_off (proj1_sig w))) then v else zero 64))]> mem), inl tt)
+        ((<[(pfn (proj1_sig w)) := (inl (fun off => if (word_dec off (page_off (proj1_sig w)))
+                                        then v else zero 64))]> $\sigma.\mathcal{M}$), inl tt)
       | Some (inl page) => (* update page contents *)
-        (($\sigma.\mathcal{M}$<[(pfn (proj1_sig w)) := (inl (fun off =>
-           if (word_dec off (page_off (proj1_sig w))) then v else zero 64))]> mem), inl tt)
-      | Some (inr fault) => (mem, inr fault)
+        ((<[(pfn (proj1_sig w)) := (inl (fun off => if (word_dec off (page_off (proj1_sig w)))
+                                        then v else zero 64))]> $\sigma.\mathcal{M}$), inl tt)
+      | Some (inr fault) => ($\sigma.\mathcal{M}$, inr fault)
     end.
   Program Definition pfn (w : word 64) := shift_dropn w 12 _.
   Program Definition page_off (w : word 64) := bottomn w 12 _.
