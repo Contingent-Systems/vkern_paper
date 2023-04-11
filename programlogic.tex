@@ -37,7 +37,7 @@ essentially working with separation logic assertions indexed by a page table roo
 (Figure \ref{fig:vprop}), which we call $\textsf{vProp }\Sigma$; this is the (\textsc{Coq}) type of assertions in our logic.
 \begin{figure}[t]
 \begin{lstlisting}[language=Coq]
-  Definition vProp  $\Sigma$ : bi := word 64 $\rightarrow$_{b} iPropI  $\Sigma$.
+  Definition vProp  $\Sigma$ : bi := word 64 $\rightarrow_{b}$ iPropI  $\Sigma$.
   \end{lstlisting}
 \caption{$\textsf{vProp }\Sigma$: Root-Address Indexed Address-Space Proposition}
   \label{fig:vprop}
@@ -51,7 +51,6 @@ essentially working with separation logic assertions indexed by a page table roo
 %\item translating from PD entry: performs the third level of address translation, to retrieve starting at the PDP table entry, and interprets a PDPTE that references a PD table. Likewise, we obtain the PD offset which exhibits itself as 9 bit offset in $\kw{maddr}$ to obtain the address of the next level page directory table (PT) \mytodo{iso:put move }
 %\item translate from PT entry: performs final level of address translation, starting from the PT entry, with a given 12 bit page offset, we can compute the physical address referencing $\locsf$ \mytodo{ismo: put mov}
 %\end{itemize}
-
 \subsection{Points-To Assertions}
 \label{sec:pointsto}
 \todo[inline]{Colin says: Current limit of \emph{thorough} revisions}
@@ -70,39 +69,43 @@ We abstract physical memory addressing and registers naming with well-known sepa
 \todo[inline]{We should drop all talk about PDE, PDPT, etc., and just use L1-L4}
 \paragraph{Physical-Memory points-to} Our physical memory points-to relation in Figure \ref{fig:physicalpointsto} for a page table entry (e.g. \textsf{PDE} in Figure \ref{fig:pagetables}) abstracts masking -- $|^{52}$ for frame for and $|^{12}$ for offset -- through logical nested maps.
 
+\begin{figure*}
+  \begin{lstlisting}[language=Coq]
+ Definition $\pfpointsto\locsf\vpts\qfrac\ppts$ :vProp $\Sigma$ := pmapsto_def_v (pfn w) (page_off w) q v.
+ Definition $\vaddr\mapsto_{\textsf{t}}\{\textsf{q}\}\vpage$ :vProp $\Sigma$ := 
+  $\exists_{\entryf \;, \entrytr \;, \entrytw \;,\entryo} \ldotp$  $\ulcorner$ aligned $\vaddr \urcorner \ast$ L4_L1_PointsTo($\rtv,\entryf,\entrytr,\entrytw,\entryo$) $\ast$ addr_L1$(\vaddr,\entryo) \mapsto_{p} \vpage$.
+ Definition L4_L1_PointsTo (rtv maddr l4e l3e l2e l1e :word 64) : vProp $\Sigma$ :=
+  (l4M52 maddr rtv) \$\sim$\ (l4off maddr rtv) $\mapsto_{a}$ {q1} l4e  $\ast$
+  (l3M52 maddr entry) \$\sim$\ (l3off maddr entry)  $\mapsto_{a}$ {q2} l3e $\ast$ 
+  (l2M52 maddr entry0) \$\sim$\ (l2off maddr entry0) $\mapsto_{a}$ {q3} l2e $\ast$
+  (l1M52 maddr entry1) \$\sim$\ (l1off maddr entry1) $\mapsto_{a}$ {q4} l1e.
+\end{lstlisting}
+\caption{A Strong Virtual Points-to Relation}
+\todo[inline,color=red]{Colin says: shouldn't that fraction be a q, not a 1, in the second line?}
+  \label{fig:strongvirtualpointsto}
+\end{figure*}
 Given the definition of physical page-pointsto assertion and the root address of virtual-address space kept in the control register \lstinline{cr3} as shown in Figure \ref{fig:pagetable},  one can build the physical address-translation for a virtual address (e.g. \textsf{va}) via abstracting the L4-L1 table traversal as the following:
 \begin{itemize}
   \item Page Map Level-4 Translation (L4): Performs the first level address translation to get the PML4 entry (PML4E) in Figure \ref{fig:pagetables} by using the masks (\textsf{va}$|^{52}$(\lstinline{cr3}) to get the starting address of the PML4 table (PLM4T) and using the offset mask \textsf{va}$|^{12}$(\lstinline{cr3}). It is worth noting that our offset indices are 12 bits as all physical memory pointsto assertions has to satisfy being \textsf{\textit{aligned}}, e.g. [47-39] plus 3 alignment bits in Figure \ref{fig:pagetables}
-    \[ \begin{array}{l}
-      \hbox{(\TirNameStyle{{L4translate}})} \quad
-      \exists \entryf \ldotp \nfpointsto{\mask\vaddr\ft\rtv}{\mask\vaddr\tw\rtv}\entryf\qone\naddr
-      \end{array}
-      \]
-  \item Page Directory Pointer Level Translation (L3): Performs the second level address translation to get the PDP entry (PDPE) in Figure \ref{fig:pagetables} by using the masks(\textsf{va}$|^{52}$(\textsf{PLM4E}) to get the starting address of the PDP table (PDPT) and using the offset mask \textsf{va}$|^{12}$(\textsf{PLM4E})
-    \[\begin{array}{l}
-    \hbox{(\TirNameStyle{{L3translate}})} \quad
-    \exists \entrytr \ldotp \nfpointsto{\mask\vaddr\ft\entryf}{\mask\vaddr\tw\entryf}\entrytr\qtwo\naddr
-    \end{array}
-    \]
+    \begin{lstlisting}[language=Coq]
+      $\hbox{(\TirNameStyle{{L4translate}})} \quad$ (l4M52 maddr rtv) \$\sim$\ (l4off maddr rtv) $\mapsto_{a}$ {q1} l4e 
+    \end{lstlisting}
+ \item Page Directory Pointer Level Translation (L3): Performs the second level address translation to get the PDP entry (PDPE) in Figure \ref{fig:pagetables} by using the masks(\textsf{va}$|^{52}$(\textsf{PLM4E}) to get the starting address of the PDP table (PDPT) and using the offset mask \textsf{va}$|^{12}$(\textsf{PLM4E})
+    \begin{lstlisting}[language=Coq]
+    $\hbox{(\TirNameStyle{{L3translate}})}$ (l3M52 maddr entry) \$\sim$\ (l3off maddr entry)  $\mapsto_{a}$ {q2} l3e
+    \end{lstlisting}
   \item Page Directory Table Level Translation (L2): Performs the second level address translation to get the PD entry (PDE) in Figure \ref{fig:pagetables} by using the masks(\textsf{va}$|^{52}$(\textsf{PDPE}) to get the starting address of the PD table and using the offset mask \textsf{va}$|^{12}$(\textsf{PDPE})
-    \[ \begin{array}{l}
-            \hbox{(\TirNameStyle{{L2translate}})} \quad 
-       \exists \entrytw \ldotp \nfpointsto{\mask\vaddr\ft\entrytr}{\mask\vaddr\tw\entrytr}\entrytw\qthree\naddr
-      \end{array}
-      \]
+\begin{lstlisting}[language=Coq]
+    $\hbox{(\TirNameStyle{{L2translate}})}$ (l2M52 maddr entry) \$\sim$\ (l2off maddr entry)  $\mapsto_{a}$ {q2} l2e
+    \end{lstlisting}
   \item Page Table Level Translation (L1): Performs the second level address translation to get the PT entry (PTE) in Figure \ref{fig:pagetables} by using the masks(\textsf{va}$|^{52}$(\textsf{PDE}) to get the starting address of the Page table (PT) and using the offset mask \textsf{va}$|^{12}$(\textsf{PDE})
-    \[ \begin{array}{l}
-      \hbox{(\TirNameStyle{{L1translate}})} \quad
-      \exists \entryo \ldotp \nfpointsto{\mask\vaddr\ft\entrytw}{\mask\vaddr\tw\entrytw}\entryo\qfour\naddr
-      \end{array}
-      \]
+   \begin{lstlisting}[language=Coq]
+    $\hbox{(\TirNameStyle{{L1translate}})}$ (l1M52 maddr entry) \$\sim$\ (l1off maddr entry)  $\mapsto_{a}$ {q2} l1e
+    \end{lstlisting}
   \item Page Address Level Translation: Performs the second level address translation to get the physical page address in Figure \ref{fig:pagetables} by using the masks(\textsf{va}$|^{52}$(\textsf{PTE}) to get the starting address of the physical page address table and using the offset mask \textsf{va}$|^{12}$(\textsf{PTE})
-    \[ \begin{array}{l}
-      \hbox{(\TirNameStyle{{PageLebelAccess}})} \quad
-      \exists \vpage \ldotp \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr
-      \end{array}
-      \]
-    
+   \begin{lstlisting}[language=Coq]
+    $\hbox{(\TirNameStyle{{PageLabelAccess}})}$ addr_L1$(\vaddr$,\textsf{l1e}$) \mapsto_{p} \vpage$.
+    \end{lstlisting} 
 \end{itemize}
 \subsection{An Overly-Restrictive Definition for Virtual Memory Addressing}
 One could give a naive logical definition to the virtual mememory addressing as conjuctions of each level translation 
@@ -114,23 +117,6 @@ we can obtain and update the value mapped value at this physical page address th
 
 \todo[inline]{Cite Kolanski here; not all of them, but some actually defined it exactly this way, for the current
 address space.}
-
-\begin{figure*}
-  \begin{lstlisting}[language=Coq]
- Definition $\pfpointsto\locsf\vpts\qfrac\ppts$ :vProp $\Sigma$ := pmapsto_def_v (pfn w) (page_off w) q v.
- Definition $\vaddr\mapsto_{\textsf{t}}\{\textsf{q}\}\vpage$ :vProp $\Sigma$ := 
-  $\exists_{\entryf \;, \entrytr \;, \entrytw \;,\entryo} \ldotp$  $\ulcorner$ aligned $\vaddr \urcorner \ast$ L4_L1_PointsTo($\rtv,\entryf,\entrytr,\entrytw,\entryo$) $\ast$ addr_L1$(\vaddr,\entryo) \mapsto_{p} \vpage$.
- Definition L4_L1_PointsTo (rtv maddr entry entry0 entry1 pte :word 64) : vProp $\Sigma$ :=
-  ((l4M52 maddr rtv) \$\sim$\ (l4off maddr rtv) $\mapsto_{a}$ {q1} entry  $\ast$
-  (l3M52 maddr entry) \$\sim$\ (l3off maddr entry)  $\mapsto_{a}$ {q2} entry0 $\ast$ 
-  (l2M52 maddr entry0) \$\sim$\ (l2off maddr entry0) $\mapsto_{a}$ {q3} entry1 $\ast$
-  (l1M52 maddr entry1) \$\sim$\ (l1off maddr entry1) $\mapsto_{a}$ {q4} pte ).
-\end{lstlisting}
-\caption{A Strong Virtual Points-to Relation}
-\todo[inline,color=red]{Colin says: shouldn't that fraction be a q, not a 1, in the second line?}
-  \label{fig:strongvirtualpointsto}
-\end{figure*}
-
 \subsection{Aliasing/Sharing Physical Pages}
   \label{sec:sharingpages}  
   One might have already observed that the virtual points-to definition shown in Figure \ref{fig:strongvirtualpointsto} 
