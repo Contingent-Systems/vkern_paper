@@ -132,10 +132,9 @@ address space.}
 \[
 \begin{array}{l}
     \vaddr\mapsto_{\textsf{v,rtv}}\{\textsf{q}\}\vpage \stackrel{\triangle}{:=} 
-    \exists \entryo \ldotp
+    \exists \paddr\ldotp
     \sumapaces\rtv\delta \ast 
-  \sumwalkabs\vaddr\qfrac\paddr \ast 
-   \nfpointsto{\mask\vaddr\ft\entryo}{\mask\vaddr\tw\entryo}\vpage\qfracone\naddr
+  \sumwalkabs\vaddr\qfrac\paddr \ast \paddr \mapsto_{p} \vpage
 \end{array}
 \]
 \caption{Virtual-Pointsto for Sharing Pages}
@@ -154,7 +153,7 @@ address space.}
 \begin{array}{l}
   \mathcal{I}\textsf{ASpace} \stackrel{\triangle}{:=} 
   \exists\;\gammaPred \;\ldotp\; \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \ast \\
-  \bigast{(\vaddr, \entryo)\in \ptablestore}{\exists\;(\entryf\;,\entrytr\;,\entrytw)\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\rtv,\entryf,\entrytr,\entrytw,\entryo)}
+  \bigast{(\vaddr, \textsf{l1e})\in \ptablestore}{\exists\;(\textsf{l4e l3e l2e})\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\rtv,\textsf{ maddr, l4e, l3e, l2e, l1e})}
 \end{array}
 \]
 \caption{Global Address-Space Invariant}
