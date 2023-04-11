@@ -100,7 +100,7 @@ Given the definition of physical page-pointsto assertion and the root address of
     \end{lstlisting}
   \item Page Address Level Translation: Final computed physical page-address ($\textsf{addr\_L1}(\vaddr$,$\textsf{l1e}$)) points-to the value stored in the address ($\vpage$).
    \begin{lstlisting}[language=Coq]
-    $\hbox{(\TirNameStyle{{PageLabelAccess}})}$ addr_L1$(\vaddr$,\textsf{l1e}$) \mapsto_{p} \vpage$.
+    $\hbox{(\TirNameStyle{{PageLabelAccess}})} \qquad$ addr_L1($\vaddr,\textsf{l1e}$) $\mapsto_{p} \vpage$.
     \end{lstlisting} 
 \end{itemize}
 \subsection{An Overly-Restrictive Definition for Virtual Memory Addressing}
