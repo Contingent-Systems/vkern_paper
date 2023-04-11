@@ -72,9 +72,9 @@ We abstract physical memory addressing and registers naming with well-known sepa
   $\exists_{\textsf{l4e l3e l2e l1}} \ldotp$  $\ulcorner$ aligned $\vaddr \urcorner \ast$ L4_L1_PointsTo(rtv maddr l4e l3e l2e l1e) $\ast$ addr_L1$(\vaddr,\textsf{l1e}) \mapsto_{p} \vpage$.
  Definition L4_L1_PointsTo (rtv maddr l4e l3e l2e l1e :word 64) : vProp $\Sigma$ :=
   (l4M52 maddr rtv) \$\sim$\ (l4off maddr rtv) $\mapsto_{a}$ {q1} l4e  $\ast$
-  (l3M52 maddr entry) \$\sim$\ (l3off maddr entry)  $\mapsto_{a}$ {q2} l3e $\ast$ 
-  (l2M52 maddr entry0) \$\sim$\ (l2off maddr entry0) $\mapsto_{a}$ {q3} l2e $\ast$
-  (l1M52 maddr entry1) \$\sim$\ (l1off maddr entry1) $\mapsto_{a}$ {q4} l1e.
+  (l3M52 maddr l4e) \$\sim$\ (l3off maddr l4e)  $\mapsto_{a}$ {q2} l3e $\ast$ 
+  (l2M52 maddr l3e) \$\sim$\ (l2off maddr l3e) $\mapsto_{a}$ {q3} l2e $\ast$
+  (l1M52 maddr l2e) \$\sim$\ (l1off maddr l2e) $\mapsto_{a}$ {q4} l1e.
 \end{lstlisting}
 \caption{A Strong Virtual Points-to Relation}
 \todo[inline,color=red]{Colin says: shouldn't that fraction be a q, not a 1, in the second line?}
