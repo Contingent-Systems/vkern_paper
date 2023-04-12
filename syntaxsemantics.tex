@@ -171,7 +171,7 @@ As one might have already anticipated from the syntax we introduce, we do not bi
 \label{sec:instructions}
 Page-table walk shown in Figure \ref{fig:pagetables} is realized with physical memory \texttt{load}s and \textsf{store}s for the entries in the page-tables which are simply modelled as lookup and updates to an instance of a memory map with 64 bit entries. In the address translation,
 \begin{lstlisting}[language=Coq]
- Definition translate (rtv: word 64) (w: word 64): address :=
+ Definition translate (rtv: word 64) (w: word 64): word 64 + MemFail :=
       l4e $\leftarrow$ translate_top_level $\sigma.\mathcal{M}$ rtv w; 
       l3e $\leftarrow$ translate_from_l4e $\sigma.\mathcal{M}$ l4e w; 
       l2e $\leftarrow$ translate_from_l3e $\sigma.\mathcal{M}$ l3e w;
@@ -179,7 +179,7 @@ Page-table walk shown in Figure \ref{fig:pagetables} is realized with physical m
       addr $\leftarrow$ translate_from_l1e $\sigma.\mathcal{M}$ l1e w;
       concat (shift_dropn addr 3 three_lt64) low3.
 \end{lstlisting}
-we see physical memory $\mathsf{load}$ for each level of page-table-walk concluded with alignment of the returned address.
+we see a physical memory $\mathsf{load}$ (i.e. physical memory map ($\sigma.\mathcal{M}$) for each level) for each level of page-table-walk concluded with alignment of the returned address for each \textit{successful} page-table-walk traversal.
 
 As expected \textsf{store} would be the update on the memory map entry
 \todo[inline,color=yellow]{Colin, could you mention that we simplified the maps here to get rid of MemFail?}
