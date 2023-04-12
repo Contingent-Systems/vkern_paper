@@ -62,9 +62,13 @@ artifact docs). I also don't know what the `ent' and `rtv' and similar are in th
 We abstract physical memory addressing and registers naming with well-known separation logic assertion \textit{points-to} assertions.
 \begin{enumerate}
 \item Physical address points-to, $\pfpointsto\locsf\vpts\qfrac\ppts$
+\todo[inline,color=red]{Colin says: This syntax is what most readers would expect for physical poinst-tos, but it's
+inconsistent with the split 52+12  stuff later... Whatever we do, we need to be consistent}
 \item Register points-to, $\pfpointsto\rg\rv\qfrac\rpts$
 \end{enumerate}
+
 \paragraph{Register points-to} The assertion $\pfpointsto\rg\rv\rpts\qfrac$ ensures the ownership of the register $\rg$ naming the register value $\rv$. The fraction $\qfrac$ with value 1 asserts the unique ownership of the register mapping, and grants update permission on it, otherwise, any value $0 < \qfrac <1$ represents partial ownership granting readonly permission on the mapping.
+
 \begin{figure*}
   \begin{lstlisting}[language=Coq]
  Definition $\pfpointsto\locsf\vpts\qfrac\ppts$ :vProp $\Sigma$ := pmapsto_def_v (pfn w) (page_off w) q v.
@@ -77,9 +81,22 @@ We abstract physical memory addressing and registers naming with well-known sepa
   (l1M52 maddr l2e) \$\sim$\ (l1off maddr l2e) $\mapsto_{a}$ {q4} l1e.
 \end{lstlisting}
 \caption{A Strong Virtual Points-to Relation}
-\todo[inline,color=red]{Colin says: shouldn't that fraction be a q, not a 1, in the second line?}
+\todo[inline,color=red]{Colin says: shouldn't ther be a fraction q in the body of the virtual pointsto def?
+I know this is just a sketch that we then move away from, but it's worth getting accurate.}
+\todo[inline,color=cyan]{Colin says: the virtual points-to here is not defined as a vprop! the body is an iProp,
+containing an unbound variable rtv, which should be the cr3val taken as an argument. (Also, rtv doesn't make sense to me
+as a shorthand, why not cr3val?). I'm also pretty sure the maddr in the virtual points-to definition should be va.}
   \label{fig:strongvirtualpointsto}
 \end{figure*}
+
+\todo[inline,color=red]{Colin says: Ismail, I think you accidentally deleted discussion of physical points-tos here?}
+
+
+\todo[inline,color=red]{Colin says: Why are we talking about assertions for address translations here? It seems like we should
+\todo[inelin]{Colin says: There's no explanation of the split 52+12 \emph{notation} here. If we added such an explanation
+(maybe to where physical points-tos are introduced?) and moved this discussion to \ref{sec:overly-restrictive}, this is otherwise
+a nice explanation}
+discuss physical memory pointsto assertions in general first, then talk about this in \ref{sec:overly-restrictive}}
 Given the definition of physical page-pointsto assertion and the root address of virtual-address space as shown in Figure \ref{fig:pagetable}, one can build the physical address-translation for a virtual address (e.g. \textsf{va}) via abstracting the L4-L1 table traversal as the following:
 \begin{itemize}
   \item Level-4 Translation (L4): Performs the first level address translation to get the L4 entry (L4E) in Figure \ref{fig:pagetables} by using the masks l4M52 and l4off with \textsf{rtv} virtual base address to get the starting address of the L4 table (L4T), and locate the entry entry amongst 512 (q1) respectively.
@@ -103,7 +120,9 @@ Given the definition of physical page-pointsto assertion and the root address of
     $\hbox{(\TirNameStyle{{PageLabelAccess}})} \qquad$ addr_L1($\vaddr,\textsf{l1e}$) $\mapsto_{p} \vpage$.
     \end{lstlisting} 
 \end{itemize}
+
 \subsection{An Overly-Restrictive Definition for Virtual Memory Addressing}
+\label{sec:overly-restrictive}
 One could give a naive logical definition to the virtual mememory addressing as conjuctions of each level translation 
 (Figure \fref{fig:strongvirtualpointsto}). The very first assurance our logical constructions need to be able assert is 
 the \textit{existence} of the page table walk. Our naive attempt shown in Figure \ref{figure:strongvirtualpointsto}, 
@@ -116,7 +135,12 @@ address space.}
 \subsection{Aliasing/Sharing Physical Pages}
   \label{sec:sharingpages}  
   One might have already observed that the virtual points-to definition shown in Figure \ref{fig:strongvirtualpointsto} 
-  is too strong to specify some operations updating a page table entry.
+  is too strong to specify some operations a virtual memory manager may need to do, such as
+  move one level of the page table to a different physical location while preserving all virtual-to-physical mappings.\footnote{
+    x86-64 hardware, like other architectures, includes a feature (which we do not formalize assertions for) to
+    replace an L1 page table address in an L2 entry with a pointer to a \emph{larger} 2MB page (called super-pages), 
+    or replace an L2 page table address in an L3 entry with a pointer to a 1GB page (called huge-pages).
+  }
    To speak more concretely, the fractional permissions on the page-table-walk assertion ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}) 
   ensure fractional ownership of the four physical page table entries accessed by the hardware during address translation,
   as well as the physical memory holding the data of the virtual points-to.
@@ -137,10 +161,65 @@ address space.}
   \sumwalkabs\vaddr\qfrac\paddr \ast \paddr \mapsto_{p} \vpage
 \end{array}
 \]
+\todo[inline]{Colin says: again, this is supposed to be a vprop, but isn't doing anything with a cr3val argument.
+I realize the GASI and per-address-space invariants, and therefore machinery to tie the virtual points-to
+to the GASI, hasn't been introduced yet. Is there a short-hand here we can use to be ``more complete'' until the later text
+that fills in these details?
+}
+\todo[inline,color=cyan]{Colin says: Oh!!! I see. You have that extremely subtle rtv subscript on the virtual points-to
+syntax! Don't do that. First, it's really subtle and wasn't explained anywhere, so even I missed it. Second,
+we're very explicitly describing vProps as functions from root to iProp. Sticking the rtv on the arrow there
+is partly weird because it obscures which argument is really the vProp argument (there are 2 other word64s in that syntax),
+partly weird because it's written next to something that \emph{isn't} a variable (the v subscript on the virtual points-to
+arrow) while using the same font, and partly weird because when you actually write these assertions, rtv doesn't show
+up in the syntax at all, which is the whole point --- virtual points-to defs shouldn't mention their cr3 or address space at
+all!
+Here's what I think it should look like (I also existentially quantified $\delta$ and fixed the p subscript on physical
+points-to):
+}
+\[
+\begin{array}{l}
+    \vaddr\mapsto_{\textsf{v}}\{\textsf{q}\}\vpage : \mathsf{vProp}~\Sigma \stackrel{\triangle}{=} 
+    \lambda \mathit{cr3val}\ldotp
+    \exists \paddr\ldotp
+    \exists \delta\ldotp
+    \sumapaces{\mathit{cr3val}}\delta \ast 
+  \sumwalkabs\vaddr\qfrac\paddr \ast \paddr \mapsto_{\mathsf{p}} \vpage
+\end{array}
+\]
+\todo[inline]{Colin says: The fact that we can't visually distinguish the variable v that is the value in memory
+from the subscript v on the virtual points-to arrow is not ideal: it makes it hard to tell what's concrete syntax
+and what's a variable. This is worth fixing, but near the bottom of the priority list}
 \caption{Virtual-Pointsto for Sharing Pages}
   \label{fig:virtualpointstosharing}
 \end{figure*}  
-  One possible approach is to abstract away the physical page-table-walk pointsto ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}) from the virtual pointsto relation. To do so, we introduce the protocol separating read-only (fragmental) and authorative (full ownership) accesses to the page tables, specifically $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$. We realize this protocol by embedding it into an already existing \textsf{Iris}'s ghost-map (or view\_maps) construction
+
+  Intuitively, the definition in Figure \ref{fig:strongvirtualpointsto} is too strong because the virtual points-to
+  assertion there tracks too much information: when writing programs that access memory via virtual addresses,
+  most code does not care \emph{which physical memory locations are involved in address translation}: it only cares
+  that virtual address translation would succeed. The necessary information about the physical page table walk
+  must still be tracked, but can be tracked separately from the virtual points-to assertion itself.
+
+  We take the approach of separating the physical page-table-walk pointsto ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}) 
+  from the virtual pointsto relation. 
+  To do so, we take advantage of an Iris construction which permits tracking a map in ghost state that maps
+  virtual addresses to the physical addresses they translate to, and has for each key in the map (i.e.,
+  each virtual address) a token. Updating the virtual-to-physical (ghost) mapping for a virtual address $va$
+  requires full ownership of the token. In addition, we keep an invariant that for each $va\mapsto pa$ mapping
+  in this map, there are \emph{physical} resources sufficient to ensure that address translation for $va$
+  will resolve in the hardware to $pa$. But these physical resources, which specify \emph{which} physical locations
+  are involved in the page table walk, are now separated from but consistent with
+  the knowledge that such resources exist (which is embodied by the token for $va$, which tracks that $va$ maps to $pa$
+  in the ghost map). Thus we can store the token which summarizes the translation and ensures it exists in the virtual
+  points-to, and keep the ghost map and the invariant that every mapping in the ghost map has corresponding physical resources
+  for translation in a separate global invariant.
+
+  \todo[inline]{Colin says: This requires explaining all the math here. Most reviewers of our paper will not be Iris
+  experts. Even the notion of an authoritative RA is something you'd need to explain (the general idea of).
+  So: write for non-Iris-expert readers. Above I explained the intuition behind the construction, so now we have to show
+  that we correctly implemented that intuition in Iris. So explain authoritative RAs, and how the line below
+  implements the intuition above.}
+  To do so, we introduce the protocol separating read-only (fragmental) and authorative (full ownership) accesses to the page tables, specifically $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$. We realize this protocol by embedding it into an already existing \textsf{Iris}'s ghost-map (or view\_maps) construction
   \[\mathcal{A}\textsf{bsPTableWalk} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \;  (\mathcal{W}_{64} \; \rightarrow_{\textrm{fin}}\;  (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \Loc,\mathord{=}) ))\]
  where
   \begin{itemize}
@@ -160,6 +239,7 @@ address space.}
   \label{fig:peraspaceinvariant}
   \end{figure*}
   
+\todo[inline]{Colin says: I can rewrite this remark into flowing text after you fully explain the math above.}
 \begin{remark}[Exchanging Page-Table-Walk-Summarization Mappings (Tokens) under Mutation of Page Tables ]
   $\mathcal{A}\textsf{PTableWalk}$'s fragmental-ownership represents an individual key-value pair (per-virtual-address) which can be handled as a \textit{look-up} resource for an individual virtual address.
   To build more intuition on the convenience of this protocol, we can think of the use-case \textit{unmapping-pages}. Normally, in the existence of shared page-tables, we need to first collect all the fragmental map pairs, e.g. $\sumwalkabs\vaddr\qfrac\paddr$, then, after making sure of non-existence of \textit{sharing}, we can \textit{unmap} the page. In this case, it would be ok to put $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ and $ \sumwalkabs\vaddr\qfrac\paddr$ side-by-side inside the virtual-pointsto definition in Figure \ref{fig:virtualpointstosharing}. However, this pattern of verifying is not only inconvenient due to requirement of extra bookkeeping, but also violates our soundness argument based on considering  mutation on the shared page-tables -- due to coalescing of page tables etc. --. In other words, physical $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ sitting aside to  $ \sumwalkabs\vaddr\qfrac\paddr$ would be made invalid by any concurrent update on the physical page-table. So there should only be one physical memory resource inside the virtual pointsto definition: from physical page address to the value stored ($ \paddr \mapsto_{p} \vpage$).
@@ -183,6 +263,8 @@ Relations amongst these logical constructions, for the sake making it clearly un
 
 \subsection{Address-Space Management}
 \label{sec:aspacemanagement}
+\todo[inline]{Colin says: I will go back and add some foreshadowing in the explanation of virtual points-to,
+which already contains the Aspaces lookup a couple pages back.}
 So far, we have introduced logical abstractions for a single address space. However, \textsf{VMM} implementations handle more than one address-space which we abstract as a ghost map from root address of an address-space to a namespace labelling the address space
 \[\mathcal{A}\textsf{spaces} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \; (\textsc{Agree } \mathsf{GName},\mathord{=}) ) \]
 
