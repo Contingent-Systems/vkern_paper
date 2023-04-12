@@ -235,28 +235,27 @@ The central invariant of our logic is, due to lack of need for augmenting the ma
 \[
 \textsf{x64\_h}\;\store \triangleq
 \def\arraystretch{1.2}
-\begin{array}{l@{\quad\star\quad}l@{\quad}l}
+\begin{array}{l@{\quad\ast\quad}l@{\quad}l}
   \textsf{to\_gen\_heap} \;\store.\mathcal{R} & \textsf{to\_gen\_mem} \; \store.\mathcal{M}
 \end{array}
 \]
 \end{definition}
 
-As a last definition, we give the head step relation required for the Iris instantiation for our simple language in Figure \ref{} to sequence instructions. This relation allows lifting the program expression to enables the application of changes imposed by the operational semantics on the program state $\sigma$ when applied for an insturction (\textsf{i}).
+As a last definition, we give the head step relation required for the Iris instantiation for our simple language in Figure \ref{} to sequence instructions. This relation allows lifting the program expression to enable the application of changes imposed by the operational semantics on the program state (for a certain cpu, a register map, and a selected memory for an address-space) when applied for an insturction (\textsf{i}).
 \begin{lstlisting}[language=Coq]
 Definition exec_step (i: instr) ($\sigma$:state) : option state :=
-    exec_state (exec_instr i $\sigma\mathcal{C}$ $\sigma.\mathcal{R}$ ((memToPhysMem $\sigma.\mathcal{M}$) (exist _ ($\sigma.\mathcal{R}$ !!  cr3)))).
-
+    exec_instr i $\sigma\mathcal{C}$ $\sigma.\mathcal{R}$ ((memToPhysMem $\sigma.\mathcal{M}$)  ($\sigma.\mathcal{R}$ !!  cr3)).
 \end{lstlisting}
-\todo[inline,color=yellow]{Colin, in case needed,not proven, could you simply say that we assume these map equalities or a paper proof etc.}. Due to the page limitation, we can only give the outline of a selected instruction (\TirNameStyle{WriteToRegFromVirtMem}) from our \textsf{AMD64} model. However, mechanized soundness proofs of other instructions can be found as a part of our submission artifact.
+\todo[inline,color=yellow]{Colin, in case needed,not proven, could you simply say that we assume these map equalities or a paper proof etc.}. Again, due to the page limits, we can only give an outline of proof for a selected instruction (\TirNameStyle{WriteToRegFromVirtMem}) from our \textsf{AMD64} model. However, mechanized soundness proofs of other instructions can be found as a part of our submission artifact.
 
 After obtaining ownership (points-to) predicates from application of state interpretation, now, we have well-enough definition for giving an outline for the proof of \TirNameStyle{WriteToRegFromVirtMem}.
  \begin{lemma}[\textsc{\TirNameStyle{WriteToRegFromVirtMem}}]
    \label{lemma:unlink}
 \begin{align*}
 \inferrule{
-  \{P \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}\;\overline{is}
+  \{P \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}_{\textsf{rtv}}\;\overline{is}
 }{
-  \{P \ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}
+  \{P \ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}_{\textsf{rtv}}
   \textsf{mov}~\textsf{r}_d,~\textsf{r}_a;\;\overline{is}
 }
 \end{align*}
