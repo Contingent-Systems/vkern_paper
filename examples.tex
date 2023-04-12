@@ -16,7 +16,7 @@ Recall from Section \ref{sec:logic} that virtual points-to assertions work just 
 %}
 %\end{comment}
 \subsection{Mapping a New Page}
-One of the key tasks of a page fault handler in a general-purpose OS kernel is to map new pages into an address space by writing into an existing page table.
+One of the key tasks of a page fault handler in a general-purpose OS kernel is to map new pages into an address space by writing into an existing page table. To do so, we first allocate a fresh page, then calculate the appropriate known-valid page table walks and update the appropriate L1 page table entry.
 \lstset{
   columns=fullflexible,
   numbers=left,
@@ -32,10 +32,9 @@ One of the key tasks of a page fault handler in a general-purpose OS kernel is t
 }
 \newcommand{\fpaddr}{\texttt{fpaddr}}
 \newcommand{\specline}[1]{{\color{blue}\left\{#1\right\}}}
-
 \begin{figure}\footnotesize
   \begin{lstlisting}
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred,\rtv)  \ast  \texttt{r14}\mapsto_{r} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ \ast \ulcorner \texttt{aligned va} \land  \theta \; !!\; \texttt{maddr} = \texttt{None}\urcorner}_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred,\rtv)  \ast  \texttt{r14}\mapsto_{r} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ \ast \ulcorner \texttt{aligned va} \land  \theta \; !!\; \vaddr = \texttt{None}\urcorner}_{\rtv}$
 call ensure_L1_page
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred),\rtv \ast  \texttt{r14}\mapsto_{r} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ \; \ast }_{\rtv}$
 $\specline{\exists (\entryf ,\;\entrytr,\; \entrytw,\; \entryo: \texttt{word 64}) \ldotp \ulcorner (\texttt{addr\_L1 }\vaddr) = \entryo\urcorner \; \ast }_{\rtv}$
@@ -71,9 +70,8 @@ $\specline{\ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_
 \label{fig:mapping_code}
 \todo[inline]{this is terribly ugly, should switch to minted}
 \end{figure}
-
-\todo[inline]{emphasize the write to the L1 page table is validated by the fact that the identity mapping exists}
-
+In Figure \ref{fig:mapping_code}, we see an address ($\vaddr$) currently not mapped to a page ($\theta \; !!\; \vaddr = \texttt{None}$). The assurance of L1 table entry is provided by a page-worth \textit{virtual-pointsto} from an address (\texttt{pte\_addr}) stored in \textsf{rax} register (Specline 7) together with the assurance on the existence of L4, L3, and L2 table lookups (Speclines 4-6).
+%\todo[inline]{emphasize the write to the L1 page table is validated by the fact that the identity mapping exists}
 \subsection{Unmapping a Page}
 The reverse operation, unmapping a designated page that is currently mapped, is pleasingly the reverse: by flipping the entry back to an invalid entry, full ownership of the updated entry reverts back to the now-invalid cell of the L1 table.
 
