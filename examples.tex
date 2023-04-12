@@ -39,23 +39,21 @@ call ensure_L1_page
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred) \ast  \texttt{r14}\mapsto_{r} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \textsf{ pte\_addr} \; \ast }_{\rtv}$
 $\specline{\exists (\entryf ,\;\entrytr,\; \entrytw,\; \entryo,\;\textsf{pte\_addr },\paddr \; : \texttt{word 64}) \ldotp \ulcorner \texttt{addr\_L1 }(\vaddr, \entryo) = \paddr \urcorner \; \ast }_{\rtv}$
 $\specline{\nfpointsto{\mask\vaddr\maskfour\rtv}{\mask\vaddr\maskfouroff\rtv}\entryf\qone\naddr \; \ast}_{\rtv}$ 
-$\specline{  \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\masktwo\entrytr}{\mask\vaddr\masktwooff\entrytr}\entryo\qthree\naddr \;\ast}_{\rtv}$
+$\specline{  \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\masktwo\entrytr}{\mask\vaddr\masktwooff\entrytr}\paddr\qthree\naddr \;\ast}_{\rtv}$
 $\specline{\texttt{pte\_addr} \mapsto_{\texttt{vpte}} \paddr \;(\texttt{wzero 64}) \ast \texttt{rax}\mapsto_{r} \texttt{pte\_addr}  }_{\rtv}$
 ;; Returns the virtual address of the L1 entry in rax
 mov %r14, %rax ;; Save that before another call
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred) \ast  \texttt{r14}\mapsto_{r} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \textsf{ pte\_addr} \; \ast }_{\rtv}$
 $\specline{ \nfpointsto{\mask\vaddr\maskfour\rtv}{\mask\vaddr\maskfouroff\rtv}\entryf\qone\naddr \; \ast}_{\rtv}$ 
-$\specline{  \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\masktwo\entrytr}{\mask\vaddr\masktwooff\entrytr}\entryo\qthree\naddr \;\ast}_{\rtv}$
+$\specline{  \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\masktwo\entrytr}{\mask\vaddr\masktwooff\entrytr}\paddr\qthree\naddr \;\ast}_{\rtv}$
 $\specline{\texttt{pte\_addr} \mapsto_{\texttt{vpte}} \paddr \;(\texttt{wzero 64}) \ast \texttt{rax}\mapsto_{r} \texttt{pte\_addr}  }_{\rtv}$
 call alloc_phys_page_or_panic
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred) \ast  \texttt{r14}\mapsto_{r} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{r} \vaddr \;\ast}_{\rtv}$
 $\specline{ \nfpointsto{\mask\vaddr\maskfour\rtv}{\mask\vaddr\maskfouroff\rtv}\entryf\qone\naddr \ast}_{\rtv}$ 
-$\specline{  \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\masktwo\entrytr}{\mask\vaddr\masktwooff\entrytr}\entryo\qthree\naddr \;\ast}_{\rtv}$
+$\specline{  \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\masktwo\entrytr}{\mask\vaddr\masktwooff\entrytr}\paddr\qthree\naddr \;\ast}_{\rtv}$
 $\specline{\texttt{pte\_addr} \mapsto_{\texttt{vpte}} \paddr \;(\texttt{wzero 64}) \; \ast }_{\rtv}$
 $\specline{\exists \texttt{ fpaddr} \ldotp \ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{r} \texttt{fpaddr} \ast \texttt{fpaddr} \mapsto_{a} (\texttt{wzero 64})}_{\rtv}$
-;; Calculate new PTE by setting the low-order bits
-;; of the physical page
-add %rax, 3
+;; Calculate new L1 entry
 ;; update the page table entry, mapping the page
 mov (%r14), %rax
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred) \ast  \texttt{r14}\mapsto_{r} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ \;\ast}_{\rtv}$
@@ -89,7 +87,8 @@ in Specification Line 7 ($\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\
 
 Then we allocate a fresh page initialized (i.e. zeroed) in Line 14 which return an \textsf{aligned} address of fresh page (\textsf{fpaddr}) in \textsf{rax} (Specification Line 19).
 
-Therefore, when we unfold the $\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\;(\texttt{wzero 64})$ we will be able obtain a full ownerhsip on the L1 table physical pointsto $\paddr \mapsto_{\mathsf{p}} \textsf{wzero 64}$ which can be split to obtain a fractional ownership (q4) on it ($\paddr \mapsto_{\mathsf{p}} \{q4\} \;\textsf{wzero 64}$) to connect it with the L4-L2 physical table pointstos (Specification Lines 4-6) to obtain the complete physical table-walk assertion (L4\_L1\_PointsTo(rtv maddr l4e l3e l2e pa)). 
+\todo{ISMAIL STOP}
+The crux point in the proof is updating the L1 entry in Line 22 Therefore, when we unfold the $\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\;(\texttt{wzero 64})$ we will be able obtain a full ownerhsip on the L1 table physical pointsto $\paddr \mapsto_{\mathsf{p}} \textsf{wzero 64}$ which can be split to obtain a fractional ownership (q4) on it ($\paddr \mapsto_{\mathsf{p}} \{q4\} \;\textsf{wzero 64}$) to connect it with the L4-L2 physical table pointstos (Specification Lines 4-6) to obtain the complete physical table-walk assertion (L4\_L1\_PointsTo(rtv maddr l4e l3e l2e pa)). 
 
 After storing $\textsf{pte\_addr}$
 %\todo[inline]{emphasize the write to the L1 page table is validated by the fact that the identity mapping exists}
