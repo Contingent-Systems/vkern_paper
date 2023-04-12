@@ -32,7 +32,6 @@ One of the key tasks of a page fault handler in a general-purpose OS kernel is t
 }
 \newcommand{\fpaddr}{\texttt{fpaddr}}
 \newcommand{\specline}[1]{{\color{blue}\left\{#1\right\}}}
-
 \begin{figure}\footnotesize
   \begin{lstlisting}
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred,\rtv)  \ast  \texttt{r14}\mapsto_{r} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ \ast \ulcorner \texttt{aligned va} \land  \theta \; !!\; \texttt{maddr} = \texttt{None}\urcorner}_{\rtv}$

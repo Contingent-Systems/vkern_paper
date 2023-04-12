@@ -179,7 +179,7 @@ Page-table walk shown in Figure \ref{fig:pagetables} is realized with physical m
       addr $\leftarrow$ translate_from_l1e $\sigma.\mathcal{M}$ l1e w;
       concat (shift_dropn addr 3 three_lt64) low3.
 \end{lstlisting}
-we see a physical memory $\mathsf{load}$ (i.e. physical memory map ($\sigma.\mathcal{M}$) for each level) for each level of page-table-walk concluded with alignment of the returned address for each \textit{successful} page-table-walk traversal.
+we see a physical memory $\mathsf{load}$ (i.e. physical memory map ($\sigma.\mathcal{M}$) for each level) for each level of page-table-walk concluded with alignment of the returned address for each \textit{successful} page-table-walk traversal what our reasoning principles only consider.
 
 As expected \textsf{store} would be the update on the memory map entry
 \todo[inline,color=yellow]{Colin, could you mention that we simplified the maps here to get rid of MemFail?}
