@@ -56,12 +56,12 @@ $\specline{\exists \texttt{ fpaddr} \ldotp \ulcorner \texttt{aligned fpaddr} \ur
 ;; Calculate new L1 entry
 ;; update the page table entry, mapping the page
 mov (%r14), %rax
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred) \ast  \texttt{r14}\mapsto_{r} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ \;\ast}_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\gammaPred) \ast  \texttt{r14}\mapsto_{r} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{r} \vaddr \ast }_{\rtv}$
 $\specline{\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\rtv,\entryf,\entrytr,\entrytw,\entryo) \ast \ulcorner \theta \;!!\; \texttt{maddr} = \texttt{None}\urcorner \; \ast}_{\rtv}$
 $\specline{\ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{r} \texttt{fpaddr} \ast \texttt{fpaddr} \mapsto_{a} (\texttt{wzero 64})}_{\rtv}$
 $\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \sqsubseteq $
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\<[\vaddr:=\texttt{fpaddr}]>\theta),\gammaPred) \ast  \texttt{r14}\mapsto_{r} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{r} \_ \; \ast}_{\rtv}$
-$\specline{\ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{r} \texttt{fpaddr} \ast \texttt{aligned va} \ast\sumwalkabs\vaddr\qfrac\fpaddr}_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace} (<[\vaddr:=\texttt{fpaddr}]> \theta,\gammaPred) \ast  \texttt{r14}\mapsto_{r} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{r} \vaddr \; \ast}_{\rtv}$
+$\specline{\ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{r} \texttt{fpaddr} \ast \texttt{aligned va} \ast\sumwalkabs\vaddr\qfrac\textsf{fpaddr}}_{\rtv}$
 \end{lstlisting}
   \caption{Specification and proof of distilled code for mapping a new page with $\textsf{wpd\_def }_{\rtv}$}
   \todo[inline,color=yellow]{Colin, could you speak about the fact that we have wpd in iProp so that's the reason to have rtval whereever table traversal is needed}
@@ -83,13 +83,16 @@ In Figure \ref{fig:mapping_code}, we see an address ($\vaddr$) currently not map
 \]
 \end{itemize}
 After obtaining an virtual address \textsf{pte\_addr} in \textsf{rax} referring to a physical address, computed from already known L4-L2 physical memory pointstos ($\texttt{addr\_L1}(\vaddr,\entryo) = \paddr$),
-in Specification Line 7 ($\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\;(\texttt{wzero 64})$), we save it to \textsf{r14} to be updated later in Line 9.
+in Specification Line 7 ($\texttt{pte\_addr} \mapsto_{\textsf{vpte}}  \; \paddr\;(\texttt{wzero 64})$), we save it to \textsf{r14} to be updated later in Line 9.
 
 Then we allocate a fresh page initialized (i.e. zeroed) in Line 14 which return an \textsf{aligned} address of fresh page (\textsf{fpaddr}) in \textsf{rax} (Specification Line 19).
 
 The crux point in the proof is updating the virtual L1 address (\textsf{pte\_addr}) to show the fresly allocated page address (\textsf{fpaddr}) in Line 22 to obtain
-\[$\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\; \textsf{fpaddr}$\]
-so that when we unfold the $\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\; \textsf{fpaddr})$ we will be able obtain a full ownerhsip on the L1 table physical pointsto $\paddr \mapsto_{\mathsf{p}} \textsf{fpaddr}$ . Then, we can split this full-ownership into to obtain a fractional ownership (q4) on it ($\paddr \mapsto_{\mathsf{p}} \{q4\} \;\textsf{fpaddr}$). Finally, we can connect this fragmental ownership with the L4-L2 physical table pointstos (Specification Lines 4-6) to obtain the complete physical table-walk assertion (L4\_L1\_PointsTo(rtv maddr l4e l3e l2e pa)). 
+\[\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\; \textsf{fpaddr}  \qquad\qquad (\textsf{by Rule} \TirNameStyle{WriteToVirtMemFromReg})\]
+by Rule \TirNameStyle{WriteToVirtMemFromReg} which allows proving virtual address updates without exposing its internal physical page-table memory accesses. 
+Consequently, right at this point in the proof, when we unfold the $\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\; \textsf{fpaddr})$ we will be able obtain a full ownerhsip on the L1 table physical pointsto $\paddr \mapsto_{\mathsf{p}} \textsf{fpaddr}$ . Then, we can split this full-ownership into to obtain a fractional ownership (q4) on it ($\paddr \mapsto_{\mathsf{p}} \{q4\} \;\textsf{fpaddr}$). Finally, we can connect this fragmental ownership with the L4-L2 physical table pointstos (Specification Lines 4-6) to obtain the complete physical table-walk assertion (L4\_L1\_PointsTo(rtv maddr l4e l3e l2e pa)). 
+
+
 
 After storing $\textsf{pte\_addr}$
 %\todo[inline]{emphasize the write to the L1 page table is validated by the fact that the identity mapping exists}
