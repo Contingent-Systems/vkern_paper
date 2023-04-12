@@ -87,8 +87,9 @@ in Specification Line 7 ($\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\
 
 Then we allocate a fresh page initialized (i.e. zeroed) in Line 14 which return an \textsf{aligned} address of fresh page (\textsf{fpaddr}) in \textsf{rax} (Specification Line 19).
 
-\todo{ISMAIL STOP}
-The crux point in the proof is updating the L1 entry in Line 22 Therefore, when we unfold the $\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\;(\texttt{wzero 64})$ we will be able obtain a full ownerhsip on the L1 table physical pointsto $\paddr \mapsto_{\mathsf{p}} \textsf{wzero 64}$ which can be split to obtain a fractional ownership (q4) on it ($\paddr \mapsto_{\mathsf{p}} \{q4\} \;\textsf{wzero 64}$) to connect it with the L4-L2 physical table pointstos (Specification Lines 4-6) to obtain the complete physical table-walk assertion (L4\_L1\_PointsTo(rtv maddr l4e l3e l2e pa)). 
+The crux point in the proof is updating the virtual L1 address (\textsf{pte\_addr}) to show the fresly allocated page address (\textsf{fpaddr}) in Line 22 to obtain
+\[$\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\; \textsf{fpaddr}$\]
+so that when we unfold the $\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\; \textsf{fpaddr})$ we will be able obtain a full ownerhsip on the L1 table physical pointsto $\paddr \mapsto_{\mathsf{p}} \textsf{fpaddr}$ . Then, we can split this full-ownership into to obtain a fractional ownership (q4) on it ($\paddr \mapsto_{\mathsf{p}} \{q4\} \;\textsf{fpaddr}$). Finally, we can connect this fragmental ownership with the L4-L2 physical table pointstos (Specification Lines 4-6) to obtain the complete physical table-walk assertion (L4\_L1\_PointsTo(rtv maddr l4e l3e l2e pa)). 
 
 After storing $\textsf{pte\_addr}$
 %\todo[inline]{emphasize the write to the L1 page table is validated by the fact that the identity mapping exists}
