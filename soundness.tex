@@ -243,8 +243,7 @@ The central invariant of our logic is, due to lack of need for augmenting the ma
 
 As a last definition, we give the head step relation required for the Iris instantiation for our simple language in Figure \ref{} to sequence instructions. This relation allows lifting the program expression to enable the application of changes imposed by the operational semantics on the program state (for a certain cpu, a register map, and a selected memory for an address-space) when applied for an insturction (\textsf{i}).
 \begin{lstlisting}[language=Coq]
-Definition exec_step (i: instr) ($\sigma$:state) : option state :=
-    exec_instr i $\sigma\mathcal{C}$ $\sigma.\mathcal{R}$ ((memToPhysMem $\sigma.\mathcal{M}$)  ($\sigma.\mathcal{R}$ !!  cr3)).
+Definition exec_step (i: instr) ($\sigma$:state) : option state :=  exec_instr i $\sigma.\mathcal{C}$ $\sigma.\mathcal{R}$ ((memToPhysMem $\sigma.\mathcal{M}$)  ($\sigma.\mathcal{R}$ !! cr3)).
 \end{lstlisting}
 \todo[inline,color=yellow]{Colin, in case needed,not proven, could you simply say that we assume these map equalities or a paper proof etc.}. Again, due to the page limits, we can only give an outline of proof for a selected instruction (\TirNameStyle{WriteToRegFromVirtMem}) from our \textsf{AMD64} model. However, mechanized soundness proofs of other instructions can be found as a part of our submission artifact.
 
