@@ -16,7 +16,7 @@ Recall from Section \ref{sec:logic} that virtual points-to assertions work just 
 %}
 %\end{comment}
 \subsection{Mapping a New Page}
-One of the key tasks of a page fault handler in a general-purpose OS kernel is to map new pages into an address space by writing into an existing page table.
+One of the key tasks of a page fault handler in a general-purpose OS kernel is to map new pages into an address space by writing into an existing page table. 
 \lstset{
   columns=fullflexible,
   numbers=left,
@@ -70,8 +70,8 @@ $\specline{\ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_
 \label{fig:mapping_code}
 \todo[inline]{this is terribly ugly, should switch to minted}
 \end{figure}
-
-\todo[inline]{emphasize the write to the L1 page table is validated by the fact that the identity mapping exists}
+In Figure \ref{fig:mapping_code}, we see the assumption our 
+%\todo[inline]{emphasize the write to the L1 page table is validated by the fact that the identity mapping exists}
 
 \subsection{Unmapping a Page}
 The reverse operation, unmapping a designated page that is currently mapped, is pleasingly the reverse: by flipping the entry back to an invalid entry, full ownership of the updated entry reverts back to the now-invalid cell of the L1 table.
