@@ -64,8 +64,18 @@
 \newcommand{\pfpointsto}[4]{#1\mapsto_{#4}\{#3\}\;#2}
 \newcommand{\ppointsto}[3]{#1\mapsto_{#3}\;#2}
 \newcommand{\npointsto}[4]{#1 / #2 \mapsto_{#4}\;#3}
-\newcommand{\nfpointsto}[5]{#1 / #2 \mapsto_{#5}\{#4\}\;#3}
-\newcommand{\mask}[3]{#1|^{#2}(#3)}
+
+\newcommand{\nfpointsto}[5]{#1\;\textbackslash\sim\textbackslash\;#2 \mapsto_{#5}\{#4\}\;#3}
+\newcommand{\maskfour}{\textsf{l4M52}}
+\newcommand{\maskfouroff}{\textsf{l4off}}
+\newcommand{\maskthree}{\textsf{l3M52}}
+\newcommand{\maskthreeoff}{\textsf{l3off}}
+\newcommand{\masktwo}{\textsf{l2M52}}
+\newcommand{\masktwooff}{\textsf{l2off}}
+\newcommand{\maskone}{\textsf{l1M52}}
+\newcommand{\maskoneoff}{\textsf{l1off}}
+%\nfpointsto{\mask\vaddr\ft\rtv}{\mask\vaddr\tw\rtv}\entryf\qone\naddr 
+\newcommand{\mask}[3]{(#2\; #1 \; #3)}
 \newcommand{\ft}{52}
 \newcommand{\tw}{12}
 \newcommand{\pointsto}{\mapsto}
