@@ -70,9 +70,8 @@ $\specline{\ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_
 \label{fig:mapping_code}
 \todo[inline]{this is terribly ugly, should switch to minted}
 \end{figure}
-In Figure \ref{fig:mapping_code}, we see
+In Figure \ref{fig:mapping_code}, we see an address ($\vaddr$) currently not mapped to a page ($\theta \; !!\; \vaddr = \texttt{None}$). The assurance of L1 table entry is provided by a page-worth \textit{virtual-pointsto} from an address (\texttt{pte\_addr}) stored in \textsf{rax} register (Specline 7) together with the assurance on the existence of L4, L3, and L2 table lookups (Speclines 4-6).
 %\todo[inline]{emphasize the write to the L1 page table is validated by the fact that the identity mapping exists}
-
 \subsection{Unmapping a Page}
 The reverse operation, unmapping a designated page that is currently mapped, is pleasingly the reverse: by flipping the entry back to an invalid entry, full ownership of the updated entry reverts back to the now-invalid cell of the L1 table.
 
