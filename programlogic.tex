@@ -69,6 +69,11 @@ inconsistent with the split 52+12  stuff later... Whatever we do, we need to be 
 
 \paragraph{Register points-to} The assertion $\pfpointsto\rg\rv\rpts\qfrac$ ensures the ownership of the register $\rg$ naming the register value $\rv$. The fraction $\qfrac$ with value 1 asserts the unique ownership of the register mapping, and grants update permission on it, otherwise, any value $0 < \qfrac <1$ represents partial ownership granting readonly permission on the mapping.
 
+\paragraph{Physical memory  points-to} Our memory design is shaped around page-table-walk accesses in Figure \ref{} where we need to mask the same address with different masks: 52 bit-masks for page-table-address and 12 bit masks offset masks for locating the entry. With being flexible on decorating these two masks with different the mask-computations, which is needed for different levels of page-tables (e.g. l4M52 and l3M52 for page table addresses of level 4 and 3 respectively), we give the physical-memory the following form
+\[ \textsf{w1} \ \sim \ \textsf{w2} \mapsto_{\textsf{a}} \; \{\textsf{q}\} \; \textsf{v} \]
+In this form, we see that \textsf{w1} could be an 52-bits masked address to level 4 table ($\textsf{w1 } =( \textsf{ l4M52 maddr cr3val}) $), and, expectedly \textsf{w2} is an address computed by page-offset computation (e.g. $\textsf{l4off maddr cr3val}$). Giving a raw 64-bits memory pointsto assertion becomes
+\[\textsf{w} \mapsto_{\textsf{p}} \{q\} \textsf{ v} \stackrel{\triangle}{=} (\textsf{drop 12} w \ \sim \ \textsf{bottom 12 } \mapsto_{\textsf{a}} \textsf{ v} \]
+trivially defining \textsf{w1} in terms of \textsf{w} by dropping its 12-bits, and taking the bottom 12-bits of \textsf{w} as \textsf{w2}.
 \begin{figure*}
   \begin{lstlisting}[language=Coq]
  Definition $\vaddr\mapsto_{\textsf{t}}\{\textsf{q}\}\; \vpage$ : vProp $\Sigma$ := 
