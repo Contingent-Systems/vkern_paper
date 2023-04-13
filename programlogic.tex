@@ -18,23 +18,37 @@
 }
 \newcommand{\ptableabswalk}[1]{\mathcal{A}\textsf{bsPTableWalk}(#1)}
 \newcommand{\ptablestore}{\theta}
-Our reasoning principles derive from the following perspectives on the virtual-memory abstraction:
+
+We derive a program logic (a separation logic) supporting the following stances and constraints:
 \begin{enumerate}
-\item \textit{logical representation of addressing}: we present physical memory addressing as separation-logic points-to relations.
-\item \textit{sharing}: the physical location backing a virtual address is located (during a page table walk) through a 
+\item \textit{address-spaces as modal contexts}: Assertions in our logic are context-dependent,
+  in the sense that their truth depends on which address space they are used in, due to the need to support virtual points-to assertions.
+\item \textit{sharing}: The physical location backing a virtual address's storage is located (during a page table walk) through a 
       set of physical page-table (L4-L1 page-tables) acceses that are shared amongst different virtual addresses (specifically,
-      those on the same page of memory). This sharing imposes constraints on giving a definition to the virtual-address 
+      those on the same page of memory\footnote{of in the case of L2 or higher levels of tables, within a given broader region.}).
+      This sharing imposes constraints on definiting points-to assertions
       in terms of physical (L4-L1) page-table memory accesses
-\item \textit{context-agnostic-resources}: each virtual address is valid under a certain address-space, but it does not represent this \textit{knowledge} of its address-space. 
-\item \textit{address-spaces as modal contexts}: we call these context-dependent\todo{Colin switched away from `agnostic', which is the opposite!} resources (virtual-address pointstos) as \textit{context-resource}, and the context identfied by a unique \textit{namespace}, and  defining the truth for these context resources as \text{modal-context}
-\item \textit{updating inter/intra address-spaces}: we present logical abstractions to enable allocating/updating pages in the existence of \textit{sharing}  
-\item \textit{address-space switch as changing the "World" of truth}: switching from one address-space to another logically becomes introduction of \textit{context-resources} to the \textit{modal-context} under which they are valid, and loading \textit{context-resources} that are valid under the \textit{currently} loaded address-space
+\item \textit{context-agnostic-resources}: each virtual address is valid under a certain address-space, 
+      but it does not represent this \textit{knowledge} of its address-space. 
+      That is, assertions are not explicitly tagged with their address space validity
+\item \textit{updating address-space mappings}: We present logical abstractions to enable 
+      updating not only pages of typical data in memory, but also page tables themselves.\footnote{Prior work relied on unfolding operational semantics
+      to verify page table updates.}
+\item \textit{explicitly-modal assertions}: Our logic includes a means to talk about facts being true
+      in another address space
+\item \textit{address-space switch as changing the "World" of truth}: Switching from one address-space to another logically
+      becomes a simultaneous introduction-and-elimination of a pair of modal assertions (for different address spaces)
 \end{enumerate}
-Based on these perspectives, we coneptualize truth in an address-space through the contingency it exhibits: 
-\textit{assertion P holds only relative to a certain address space}. 
-Therefore, as a first step, we work in a pointwise lifting of Iris's standard BI proposition,
+
+The first viewpoint, that the truth of an assertion is relative to an address space, has far-reaching consequences.
+Therefore, as a first step, we work entirely in a pointwise lifting of Iris's base BI logic,
 essentially working with separation logic assertions indexed by a page table root as a $\mathcal{W}_{64}$
 (Figure \ref{fig:vprop}), which we call $\textsf{vProp }\Sigma$; this is the (\textsc{Coq}) type of assertions in our logic.
+Most constructs in Iris's base logic are defined with respect to any BI-algebra (of \textsc{Coq} type \lstinline|bi|), so automatically
+carry over to our derived logic.
+However, be must still build up from existing Iris primitives to provide new primitives that depend on the address space --- primarily the notion
+of virtual points-to.
+
 \begin{figure}[t]
 \begin{lstlisting}[language=Coq]
   Definition vProp  $\Sigma$ : bi := word 64 -b> iPropI  $\Sigma$.
@@ -51,29 +65,37 @@ essentially working with separation logic assertions indexed by a page table roo
 %\item translating from PD entry: performs the third level of address translation, to retrieve starting at the PDP table entry, and interprets a PDPTE that references a PD table. Likewise, we obtain the PD offset which exhibits itself as 9 bit offset in $\kw{maddr}$ to obtain the address of the next level page directory table (PT) \mytodo{iso:put move }
 %\item translate from PT entry: performs final level of address translation, starting from the PT entry, with a given 12 bit page offset, we can compute the physical address referencing $\locsf$ \mytodo{ismo: put mov}
 %\end{itemize}
-\subsection{Points-To Assertions}
+
+\subsection{Base Points-To Assertions}
 \label{sec:pointsto}
-\todo[inline]{Colin says: Current limit of \emph{thorough} revisions}
-\todo[inline,color=red]{Colin says: This section at a glance looks on the right track, but none of the assertions are actually
-written as vProps, they're all still iProps. I can fix that as I go}
-\todo[inline]{Colin says: There's really no need to discuss the 52-12 split in the physical pointsto definition.
-That level of detail of the operational semantics \emph{is} too detailed for the paper (but should be mentioned in the
-artifact docs). I also don't know what the `ent' and `rtv' and similar are in those split physical pointstos}
-We abstract physical memory addressing and registers naming with well-known separation logic assertion \textit{points-to} assertions.
-\begin{enumerate}
-\item Physical address points-to, $\pfpointsto\locsf\vpts\qfrac\ppts$
-\todo[inline,color=red]{Colin says: This syntax is what most readers would expect for physical poinst-tos, but it's
-inconsistent with the split 52+12  stuff later... Whatever we do, we need to be consistent}
-\item Register points-to, $\pfpointsto\rg\rv\qfrac\rpts$
-\end{enumerate}
+We build up our context-dependent assertions from two basic types of assertions that do not care about address spaces.
+% We abstract physical memory addressing and registers naming with well-known separation logic assertion \textit{points-to} assertions.
+% \begin{enumerate}
+% \item Physical address points-to, $\pfpointsto\locsf\vpts\qfrac\ppts$
+% \todo[inline,color=red]{Colin says: This syntax is what most readers would expect for physical poinst-tos, but it's
+% inconsistent with the split 52+12  stuff later... Whatever we do, we need to be consistent}
+% \item Register points-to, $\pfpointsto\rg\rv\qfrac\rpts$
+% \end{enumerate}
 
-\paragraph{Register points-to} The assertion $\pfpointsto\rg\rv\rpts\qfrac$ ensures the ownership of the register $\rg$ naming the register value $\rv$. The fraction $\qfrac$ with value 1 asserts the unique ownership of the register mapping, and grants update permission on it, otherwise, any value $0 < \qfrac <1$ represents partial ownership granting readonly permission on the mapping.
+\paragraph{Register points-to} 
+The assertion $\pfpointsto\rg\rv\rpts\qfrac$ ensures the ownership of the register $\rg$ naming the register value $\rv$. 
+The fraction $\qfrac$ with value 1 asserts the unique ownership of the register mapping, and grants update permission on it, 
+otherwise, any value $0 < \qfrac <1$ represents partial ownership granting readonly permission on the mapping.
 
-\paragraph{Physical memory  points-to} Our memory design is shaped around page-table-walk accesses in Figure \ref{} where we need to mask the same address with different masks: 52 bit-masks for page-table-address and 12 bit masks offset masks for locating the entry. With being flexible on decorating these two masks with different the mask-computations, which is needed for different levels of page-tables (e.g. l4M52 and l3M52 for page table addresses of level 4 and 3 respectively), we give the physical-memory the following form
+\paragraph{Physical memory  points-to} The soundness proofs for our logic's rules largely center around page-table-walk accesses as in Figure \ref{fig:coq_addr_translation},
+ where (inside the helper functions) we need to split a 64-bit word representing entries in these tables into 52-bit segments
+which specify the physical page number of another page in the walk, and 12-bit segments containing various control bits.
+For this reason we have two notions of physical points-to facts. The primitive notion closest to our machine model is:
 \[ \textsf{w1} \ \sim \ \textsf{w2} \mapsto_{\textsf{a}} \; \{\textsf{q}\} \; \textsf{v} \]
-In this form, we see that \textsf{w1} could be an 52-bits masked address to level 4 table ($\textsf{w1 } =( \textsf{ l4M52 maddr cr3val}) $), and, expectedly \textsf{w2} is an address computed by page-offset computation (e.g. $\textsf{l4off maddr cr3val}$). Giving a raw 64-bits memory pointsto assertion becomes
-\[\textsf{w} \mapsto_{\textsf{p}} \{q\} \textsf{ v} \stackrel{\triangle}{=} (\textsf{drop 12} w \ \sim \ \textsf{bottom 12 } \mapsto_{\textsf{a}} \textsf{ v} \]
-trivially defining \textsf{w1} in terms of \textsf{w} by dropping its 12-bits, and taking the bottom 12-bits of \textsf{w} as \textsf{w2}.
+In this form, we see that \textsf{w1} (a $\mathcal{W}_{52}$) essentially selects a 4KB page of physical memory,
+and \textsf{w2} (a $\mathcal{W}_{12}$) is an offset within that page.
+% could be an 52-bits masked address to level 4 table 
+% ($\textsf{w1 } =( \textsf{ l4M52 maddr cr3val}) $),
+%and, expectedly \textsf{w2} is an address computed by page-offset computation (e.g. $\textsf{l4off maddr cr3val}$). 
+From this we can derive a more concise physical points-to when the split is unimportant:
+% Giving a raw 64-bits memory pointsto assertion becomes
+\[\textsf{w} \mapsto_{\textsf{p}} \{q\} \textsf{ v} \stackrel{\triangle}{=} (\textsf{drop 12}~w) \ \sim \ (\textsf{bottom 12}~w)\mapsto_{\textsf{a}} \textsf{ v} \]
+
 \begin{figure*}
   \begin{lstlisting}[language=Coq]
  Definition $\vaddr\mapsto_{\textsf{t}}\{\textsf{q}\}\; \vpage$ : vProp $\Sigma$ := 
@@ -94,14 +116,23 @@ as a shorthand, why not cr3val?). I'm also pretty sure the maddr in the virtual 
   \label{fig:strongvirtualpointsto}
 \end{figure*}
 
-\todo[inline,color=red]{Colin says: Ismail, I think you accidentally deleted discussion of physical points-tos here?}
 
 
-\todo[inline,color=red]{Colin says: Why are we talking about assertions for address translations here? It seems like we should
-\todo[inline]{Colin says: There's no explanation of the split 52+12 \emph{notation} here. If we added such an explanation
-(maybe to where physical points-tos are introduced?) and moved this discussion to \ref{sec:overly-restrictive}, this is otherwise
-a nice explanation}
-discuss physical memory pointsto assertions in general first, then talk about this in \ref{sec:overly-restrictive}}
+\subsection{An Overly-Restrictive Definition for Virtual Memory Addressing}
+\label{sec:overly-restrictive}
+One could give a naive logical definition to the virtual mememory addressing as conjuctions of each level translation 
+(Figure \fref{fig:strongvirtualpointsto}). The very first assurance our logical constructions need to be able assert is 
+the \textit{existence} of the page table walk. Our naive attempt shown in Figure \ref{figure:strongvirtualpointsto}, 
+we see that a virtual address with a certain fractional permissions at each level of the page-table walk gives us sound 
+assurance of the path existence reaching to a page table entry, consequently, with a full-ownership of page address, 
+we can obtain and update the value mapped value at this physical page address through our virtual memory address. 
+
+
+The definition in Figure \ref{fig:strongvirtualpointsto} defines a virtual points-to assertion as
+existentially quantifying the physical memory addresses of the individual entries in each page table,
+asserting that a corresponding page table walk exists (\lstinline|L4_L1_PointsTo|), and then 
+\todo[inline]{snapshot... the last bit of that assertion is weird, but I'll fix. I'll also just remove the fraction from that def since it gets
+ignored anyways and we provide a better version shortly}
 Given the definition of physical page-pointsto assertion and the root address of virtual-address space as shown in Figure \ref{fig:pagetable}, one can build the physical address-translation for a virtual address (e.g. \textsf{va}) via abstracting the L4-L1 table traversal as the following:
 \begin{itemize}
   \item Level-4 Translation (L4): Performs the first level address translation to get the L4 entry (L4E) in Figure \ref{fig:pagetables} by using the masks l4M52 and l4off with \textsf{rtv} virtual base address to get the starting address of the L4 table (L4T), and locate the entry amongst 512 (q1) ones respectively.
@@ -126,14 +157,6 @@ Given the definition of physical page-pointsto assertion and the root address of
     \end{lstlisting} 
 \end{itemize}
 
-\subsection{An Overly-Restrictive Definition for Virtual Memory Addressing}
-\label{sec:overly-restrictive}
-One could give a naive logical definition to the virtual mememory addressing as conjuctions of each level translation 
-(Figure \fref{fig:strongvirtualpointsto}). The very first assurance our logical constructions need to be able assert is 
-the \textit{existence} of the page table walk. Our naive attempt shown in Figure \ref{figure:strongvirtualpointsto}, 
-we see that a virtual address with a certain fractional permissions at each level of the page-table walk gives us sound 
-assurance of the path existence reaching to a page table entry, consequently, with a full-ownership of page address, 
-we can obtain and update the value mapped value at this physical page address through our virtual memory address. 
 
 \todo[inline]{Cite Kolanski here; not all of them, but some actually defined it exactly this way, for the current
 address space.}
