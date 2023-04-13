@@ -111,101 +111,131 @@ CPU.
 
 \subsection{Registers and Memory}
 Programs we demonstrate in this paper requires accessing two types of computer resource: registers and memory.
- A register identifier, $\reg$, is chosen from a fixed finite set of register identifiers, $\regset$. 
-We use these identifiers to access the register values, $\regval \in \regvaltype$.
-\begin{figure}[t]
-\newcommand{\commentary}[1]{ & \text{\small\it #1} \\}
-\[
-  \begin{array}{r@{\;}c@{\;}l}
-    \loc & \in & \Loc \\
-    \reg & \in & \regset \\
-    \regval & \in & \regvaltype \\
-    \val & ::= & \vunit
-
-\\
-    \instrs & ::= &
-    \begin{array}[t]{@{}l@{\hspace{10mm}}l@{}}
-    \begin{array}[t]{@{}ll@{}}
-      \iskip
-                   \commentary{no-op}
-      \iseq\instr\instrs
-                   \commentary{sequencing}
-      % \ising\instr
-                   % \commentary{executing}             
-    \end{array}
-    %&
-    %\begin{array}[t]{@{}ll@{}}
-     % \ialloc\lval\allocsize
-      %             \commentary{heap allocation}
-    %\end{array}
-    \end{array}
-    \\
-
-    \ectx & ::= &
-      \hole \mid
-      \iseq\ectx\instrs 
-    \\
-  \end{array}
-\]
-\caption{Syntax}
-\Description{Syntax}
-\label{fig:syntax}
-\end{figure}
-Unlike registers, we do not abstract the memory indices as a special type but instead, for the sake of clarity and ease of representation, we show differently masked machine words, $\loc \in \Loc$, with the subscripts showing the length of a 64-bit machine word after masking, e.g. $\kw{w}_{12}$ is a 12-bit resource which can be obtained after masking 52-bit of a 64-bit word.
-This simple syntax in Figure \ref{fig:syntax} includes a simple syntax for values because our language is purely \textit{imperative}, i.e. an instruction does not return a value. Intentionally, we restrict any stream of instruction, $\instrs$, to eventually reduce to $\iskip$ instruction. Our syntax capture the no-op ``$\iskip$'' and the sequencing construct ``$\iseq{\instr}{\instrs}$'' in their standard forms.
+A register identifier, $\reg$, is chosen from a fixed finite set of register identifiers, $\regset$. 
+We use these identifiers $\reg$ for register names such as \texttt{rax}, \texttt{r8}, or \texttt{cr3}.
+% \begin{figure}[t]
+% \newcommand{\commentary}[1]{ & \text{\small\it #1} \\}
+% \[
+%   \begin{array}{r@{\;}c@{\;}l}
+%     \loc & \in & \Loc \\
+%   \end{array}
+%   \begin{array}{r@{\;}c@{\;}l}
+%     \reg & \in & \regset \\
+%   \end{array}
+%   \begin{array}{r@{\;}c@{\;}l}
+%     \regval & \in & \regvaltype \\
+%     % \val & ::= & \vunit
+%   \end{array}
+% \quad
+%   \begin{array}{r@{\;}c@{\;}l}
+%     \instrs & ::= &
+%     \begin{array}[t]{@{}l@{\hspace{10mm}}l@{}}
+%     \begin{array}[t]{@{}ll@{}}
+%       \iskip
+%                    \commentary{no-op}
+%       \iseq\instr\instrs
+%                    \commentary{sequencing}
+%       % \ising\instr
+%                    % \commentary{executing}             
+%     \end{array}
+%     %&
+%     %\begin{array}[t]{@{}ll@{}}
+%      % \ialloc\lval\allocsize
+%       %             \commentary{heap allocation}
+%     %\end{array}
+%     \end{array}
+%     % \\
+%     % \ectx & ::= &
+%     %   \hole \mid
+%     %   \iseq\ectx\instrs 
+%     % \\
+%   \end{array}
+% \]
+% \caption{Syntax}
+% \Description{Syntax}
+% \label{fig:syntax}
+% \end{figure}
+For clarity and ease of representation, we use machine words, $\loc \in \Loc$, with the subscripts showing the number of bits in a word,
+for memory addresses, values, and offsets, rather than distinct location types that wrap machine words.
+For example, $\kw{w}_{12}$ is a 12-bit word, which can be obtained for example truncating away 52 bits of a 64-bit word ($\kw{w}_{64}$).
 \subsection{State}
 \label{sec:state}
-%\todo[inline]{I don't think we need or want to describe the operational semantics in detail in the submission. It adds a lot of formalization that doen'st necessarily contribute to reader understanding. We should describe the runtime \emph{state} $\sigma$ of memory and registers, since that is directly used in interpreting assertions. But the reduction rules will mostly add mental overhead here.}
-%\todo[inline,color=red]{Colin says: On the contrary, we must describe assembly instructions in enough detail for readers
-%who aren't already assembly programmers to decode our examples! We don't have to talk about details of the formalization
-%of the semantics, but we do need to talk about basic instructions we cover, basic patterns (like destination on the left),
-%and just a bit about how all memory accesses implement Figure \ref{fig:pagetables}'s semantics.}
-We represent the machine state mainly as a finite map of registers to register values and a map of masked physical memory addresses to 64-bit physical memory values. Together with default \textsf{CPU} instantiation, we end up having our state with following pieces:
+We represent the machine state mainly as a finite map of registers to register values and a map of word-aligned physical memory addresses 
+to 64-bit physical memory values. 
+Thus our states $\sigma$ include:
+%Together with default \textsf{CPU} instantiation, we end up having our state with following pieces:
 \begin{itemize}
-\item A constant cpu initialized with default value: $\sigma.\mathcal{C}$
+%\item A constant cpu initialized with default value: $\sigma.\mathcal{C}$
 \item A register map: $\sigma.\mathcal{R}: \kw{greg} \rightarrow_{\textrm{fin}} \kw{regval} $
 \item A memory map: $\sigma.\mathcal{M}: \Locft \rightharpoonup_{\textrm{fin}} (\Loctw \rightharpoonup_{\textrm{fin}} \Locsf )$
 \end{itemize}
-As one might have already anticipated from the syntax we introduce, we do not bind any value of an evaluated expression. All the indices and accessed values are treated as globally referenced. In align with this design choice, our expression is a stream of instructions, which is not evaluated to a value to be bound, but changes the machine state through the indices (e.g. $\kw{r}\in\kw{greg}$) -- to the global maps.
+Of particular note, \texttt{cr3}, the page table register, is included in the machine state.
+% As one might have already anticipated from the syntax we introduce, we do not bind any value of an evaluated expression. All the indices and accessed values are treated as globally referenced. In align with this design choice, our expression is a stream of instructions, which is not evaluated to a value to be bound, but changes the machine state through the indices (e.g. $\kw{r}\in\kw{greg}$) -- to the global maps.
 \subsection{Instructions}
 \label{sec:instructions}
-Page-table walk shown in Figure \ref{fig:pagetables} is realized with physical memory \texttt{load}s and \textsf{store}s for the entries in the page-tables which are simply modelled as lookup and updates to an instance of a memory map with 64 bit entries. In the address translation,
-\begin{lstlisting}[language=Coq]
- Definition translate (rtv: word 64) (w: word 64): word 64 + MemFail :=
+
+\begin{figure}[t]
+\begin{lstlisting}[language=Coq,mathescape]
+ Definition translate (rtv: word 64) ($\sigma$: state) (w: word 64): word 64 + MemFail :=
       l4e $\leftarrow$ translate_top_level $\sigma.\mathcal{M}$ rtv w; 
       l3e $\leftarrow$ translate_from_l4e $\sigma.\mathcal{M}$ l4e w; 
       l2e $\leftarrow$ translate_from_l3e $\sigma.\mathcal{M}$ l3e w;
       l1e $\leftarrow$ translate_from_l2e $\sigma.\mathcal{M}$ l2e w;
       addr $\leftarrow$ translate_from_l1e $\sigma.\mathcal{M}$ l1e w;
-      concat (shift_dropn addr 3 three_lt64) low3.
+      return concat (shift_dropn addr 3 three_lt64) low3.
 \end{lstlisting}
-we see a physical memory $\mathsf{load}$ (i.e. physical memory map ($\sigma.\mathcal{M}$) for each level) for each level of page-table-walk concluded with alignment of the returned address for each \textit{successful} page-table-walk traversal which is what our reasoning principles only consider.
+\vspace{-1em}
+\caption{\coq implementation of address translation (slightly simplified).}
+\label{fig:coq_addr_translation}
+\end{figure}
 
+Programs in our logic are instruction sequences \instrs, which are formed by either a basic instruction \iskip, or prefixing an existing instruction
+sequence with an additional instruction (\iseq\instr\instrs).
+We model (and later, give program logic rules for) instructions for basic register moves, and reading and writing memory.
+The latter require page table walks.
+Figure \ref{fig:coq_addr_translation} gives a slightly simplified version of our address translation code in monadic style:
+starting from the root page table address \textsf{rtv}, the virtual address \textsf{w} is either resolved to a physical address or an error is returned.
+The full set of possible errors is not relevant to this paper; our logic is tailored for kernel code which should not fault,
+so our proof rules guarantee no memory failures occur --- that the page table walk for any dereferenced address will succeed.
+
+% Page-table walk shown in Figure \ref{fig:pagetables} is realized with physical memory \texttt{load}s and \textsf{store}s for the entries in the 
+% page-tables which are simply modelled as lookup and updates to an instance of a memory map with 64 bit entries. In the address translation,
+% we see a physical memory $\mathsf{load}$ (i.e. physical memory map ($\sigma.\mathcal{M}$) for each level) for each level of page-table-walk 
+% concluded with alignment of the returned address for each \textit{successful} page-table-walk traversal which is what our reasoning principles 
+% only consider.
+
+The main instructions we implement are variants of the x86-64 \lstinline|mov| instruction, which we format in Intel syntax (destination on the left, source on the right).
 As expected \textsf{store} would be the update on the memory map entry
-\todo[inline,color=yellow]{Colin, could you mention that we simplified the maps here to get rid of MemFail?}
-After defining the translation in terms of physical load and store action, now we can define our memory \lstinline|mov| instructions
+% After defining the translation in terms of physical load and store action, now we can define our memory \lstinline|mov| instructions
+For memory operations, we treat
 \[
 \begin{array}{l}
   \hbox{(\TirNameStyle{WriteToMemFromReg})} \qquad
-  \textsf{mov mem64 srcreg64} \\
+  \textsf{mov}~[r_m]~r_r \\
   \hbox{(\TirNameStyle{WriteToRegFromMem})} \qquad 
-  \textsf{mov reg64 mem64}
+  \textsf{mov}~r_r~[r_m]
   \end{array}
   \]
-  which are realized by first translating the virtual-memory address to store a value from a register (\TirNameStyle{WriteToMemFromReg}) or load a value at the translated address to be stored in a register (\TirNameStyle{WriteToRegFromMem}). More \lstinline|mov| instructions operating with memory addresses can be found in the submission artifact for different addressing schemes and data sizes.
+which are realized by first translating the virtual-memory address of a memory location stored in $r_m$ to a physical memory location,
+then updating those memory contents with the contents of register $r_r$ (\TirNameStyle{WriteToMemFromReg}) 
+or loading the value at that physical memory location into the register $r_r$
+(\TirNameStyle{WriteToRegFromMem}). 
+% More \lstinline|mov| instructions operating with memory addresses can be found in the submission artifact for different addressing schemes and data sizes.
+Additional variants (such as instructions which access memory at a constant offset from the virtual address stored in a register) are also treated.
 
-  Register instructions, on the other hand, are implemented as $\sigma.\mathcal{R}$ lookup and store
-\[
-\begin{array}{l}
-  \hbox{(\TirNameStyle{WriteToRegFromReg})} \qquad 
-   \textsf{mov ireg64 ireg64} \\
-  \hbox{(\TirNameStyle{WriteToCtlRegFromReg})} \qquad 
-  \textsf{mov creg64 ireg64}\\
-    \hbox{(\TirNameStyle{WriteToRegFromCtlReg})} \qquad 
-  \textsf{mov ireg64 creg64}
-  \end{array}
-\]
-for different types of registers (e.g. control and general).
+For register operations, we support moves back and forth between any pair of registers, though the \coq formalization splits these according to whether
+the source or destination registers are standard data registers (e.g., \lstinline|rax|) or control registers (e.g., \lstinline|cr3|).
+% \[
+% \begin{array}{l}
+%   \hbox{(\TirNameStyle{WriteToRegFromReg})} \qquad 
+%    \textsf{mov ireg64 ireg64} \\
+%   \hbox{(\TirNameStyle{WriteToCtlRegFromReg})} \qquad 
+%   \textsf{mov creg64 ireg64}\\
+%     \hbox{(\TirNameStyle{WriteToRegFromCtlReg})} \qquad 
+%   \textsf{mov ireg64 creg64}
+%   \end{array}
+% \]
+% for different types of registers (e.g. control and general).
 %
 %\subsection{Machine State under Address Translation}
 %\label{sec:selectedinstrsemantics}

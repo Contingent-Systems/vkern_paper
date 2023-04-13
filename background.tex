@@ -7,6 +7,7 @@ In typical system configurations, all memory addresses seen by programs running 
 
 \begin{figure}
     \includegraphics[width=\columnwidth]{pagetables.png}
+  \todo[inline]{this image got \emph{very} pixelated. is this possible to fix?}
     \caption{x86-64 page table lookups.}
     \label{fig:pagetables}
 \end{figure}
@@ -65,44 +66,47 @@ design), are
 adding a new page mapping (whether the mapped page contains zeros, file data, or swap data), and removing an existing 
 page mapping.
 While this initially sounds like relatively modest functionality whose implementation may be complicated by hardware 
-subtleties, a number of more serious complexities must be handled.
+subtleties, even these basic operations are actually quite intrictate.
+Most notably, updates to the page tables are performed as writes to memory --- which are themselves subject to address translation.
+In the case of changing the mappings for the currently-active set of page tables, the OS kernel is modifying the tables involved in its
+own access of the tables.
 
-\todo[inline]{Colin says: we should chat about the paragraph below. We don't want to advertise too many
-challenges of VMM verification that we don't actually solve (or rather, we'd push them to the and of the paper
-as future work). But some of these I think we could split the difference with, for example by defining
-a variant of virtual-pointsto that allowed virtual address aliasing, but not actually verifying any code examples
-with it (just showing it's compatible with our approach).
-}
-For one, virtual addresses may \emph{alias} when more than one is mapped to the same physical memory. 
-This can occur when a process requests it (e.g., via \texttt{mmap} or \texttt{shm\_open} on UNIX-style kernels). 
-It also occurs automatically in most general-purpose kernels: while for normal programs the OS uses the MMU to isolate 
-and abstract physical memory, the kernel's own functionality is often easier to implement if the kernel can directly 
-access memory given its physical address, for example when interacting with hardware devices. For this reason, most 
-kernels contain an \emph{identity map} of all physical memory in a machine. 
-\todo[inline]{We should try defining an identity map on a whiteboard and see what breaks. If it's feasible we should
-tweak and get a definition in the paper. If not, we should cut the identity map discussion.}
-In some cases this is a literal identity map, 
-where for every virtual address $p$, interpreting $p$ as a virtual address instead will map back to $p$ as a physical 
-address. In other cases there is an offset involved, where to access physical address $p$ the kernel can access virtual
- address $p+\mathit{offset}$. This identity map saves the kernel the performance cost of having to continually add and
- remove transient mappings simply to briefly access a specific physical memory region. But this coexists with additional
- virtual addresses (those used by most kernel code and data structures), in a form of virtual address aliasing. Note 
-that virtual address aliasing is both prevalent in general-purpose kernels, and violates the core assumption of most 
-memory models assumed by verified compilers like CompCert, which assume no virtual address aliasing.
+% \todo[inline]{Colin says: we should chat about the paragraph below. We don't want to advertise too many
+% challenges of VMM verification that we don't actually solve (or rather, we'd push them to the and of the paper
+% as future work). But some of these I think we could split the difference with, for example by defining
+% a variant of virtual-pointsto that allowed virtual address aliasing, but not actually verifying any code examples
+% with it (just showing it's compatible with our approach).
+% }
+% For one, virtual addresses may \emph{alias} when more than one is mapped to the same physical memory. 
+% This can occur when a process requests it (e.g., via \texttt{mmap} or \texttt{shm\_open} on UNIX-style kernels). 
+% It also occurs automatically in most general-purpose kernels: while for normal programs the OS uses the MMU to isolate 
+% and abstract physical memory, the kernel's own functionality is often easier to implement if the kernel can directly 
+% access memory given its physical address, for example when interacting with hardware devices. For this reason, most 
+% kernels contain an \emph{identity map} of all physical memory in a machine. 
+% \todo[inline]{We should try defining an identity map on a whiteboard and see what breaks. If it's feasible we should
+% tweak and get a definition in the paper. If not, we should cut the identity map discussion.}
+% In some cases this is a literal identity map, 
+% where for every virtual address $p$, interpreting $p$ as a virtual address instead will map back to $p$ as a physical 
+% address. In other cases there is an offset involved, where to access physical address $p$ the kernel can access virtual
+%  address $p+\mathit{offset}$. This identity map saves the kernel the performance cost of having to continually add and
+%  remove transient mappings simply to briefly access a specific physical memory region. But this coexists with additional
+%  virtual addresses (those used by most kernel code and data structures), in a form of virtual address aliasing. Note 
+% that virtual address aliasing is both prevalent in general-purpose kernels, and violates the core assumption of most 
+% memory models assumed by verified compilers like CompCert, which assume no virtual address aliasing.
 
-\todo[inline]{Colin says: Again, let's chat about the next paragraph. This might be another where we can
-split the difference on extension by defining something and proving a $\ast-\ast$ kind of result for sharing
-page table fragments, rather than actually proving any new code. I'm less sure about this one, though.
-}
-Another complicating factor is that portions of page tables can be shared, i.e., trees of page tables can overlap and
-become forests. 
-One common way this used to happen was for one subtree of page tables to map the kernel if linked in appropriately to 
-a higher-level page table, and then to reuse that kernel mapping portion in every process's page tables. This was mostly 
-phased out in the wake of Spectre, but remains relevant on correctly-implemented hardware.
+% \todo[inline]{Colin says: Again, let's chat about the next paragraph. This might be another where we can
+% split the difference on extension by defining something and proving a $\ast-\ast$ kind of result for sharing
+% page table fragments, rather than actually proving any new code. I'm less sure about this one, though.
+% }
+% Another complicating factor is that portions of page tables can be shared, i.e., trees of page tables can overlap and
+% become forests. 
+% One common way this used to happen was for one subtree of page tables to map the kernel if linked in appropriately to 
+% a higher-level page table, and then to reuse that kernel mapping portion in every process's page tables. This was mostly 
+% phased out in the wake of Spectre, but remains relevant on correctly-implemented hardware.
 
-These dove-tail with functionality in the OS scheduler, which since it is responsible for dealing with multiple 
-address spaces, must keep track of which virtual addresses are valid (and in what way) in which address spaces, 
-where some virtual addresses are valid in only a single address space (e.g., a code address for a particular usermode 
+Virtual memory concerns propagate to the OS scheduler, which is responsible for dealing with multiple 
+address spaces, so must keep track of which virtual addresses are valid (and in what way) in which address spaces. 
+Some virtual addresses are valid in only a single address space (e.g., a code address for a particular usermode 
 process), while others are valid in all address spaces (e.g., kernel data structure pointers). 
 The VMM must maintain some of these assumptions on behalf of the rest of the kernel, for example by guaranteeing that 
 a certain range of virtual addresses (corresponding to the kernel's code and data) are valid in every address space.
@@ -117,7 +121,7 @@ in certain other circumstances, such as in other times~\cite{pnueli1977temporal}
 different modal operators $M$, $M(P)$ may mean that $P$ is true in another time or place (which may be a physical place 
 like another network node~\cite{murphy2008type,gordon2019modal} or a conceptual place like a person's 
 mind~\cite{hintikka1962knowledge}). A unifying concept across any modality is that they behave as applicative functors, 
-typically satisfying (directly, or as a derived law):
+typically satisfying (directly, or as a derived law, depending on the modality):
 \[ (P\rightarrow Q) \rightarrow M(P) \rightarrow M(Q)\]
 %\todo[inline]{Ismail, I think this means we have pure intro, $\square P \mathrel{-\ast} [r](\square P)$ if I'm using the right symbol for pure assertions }
 %\todo[inline,color=red]{The above todo comment isn't quite right.

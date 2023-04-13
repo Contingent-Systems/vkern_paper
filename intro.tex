@@ -1,6 +1,5 @@
 \section{Introduction}
 \label{sec:intro}
-\mytodo{Colin's Part}
 Virtual memory management lies at the core of modern OS kernel implementation. It is deeply intertwined with most other parts of a typical general-purpose OS kernel design, including scheduling, hardware drivers, and even the filesystem buffer cache. In writing the authoritative reference on the internals of the Solaris kernel, McDougall and Mauro went so far as to claim that ``\emph{the virtual memory sub-system can be considered the core of a Solaris instance, and the implementation of Solaris virtual memory affects just about every other subsystem in the operating system}''~\cite{mcdougall2006solaris}.
 This makes rich support for verification the virtual memory management subsystem of an OS kernel critical to the correctness of every other piece of an OS or any software running atop it.
 
@@ -43,7 +42,6 @@ to speak directly \emph{within the logic} about other address spaces.
 %  \label{fig:architecture}
 %\end{figure}
 
-We realize and show our reasoning principles, shown in Figure \ref{fig:architecture}
 \begin{itemize}
 \item We develop these ideas in the form of a logic for working with virtual-address-space-relative assertions,
       implemented as an embedded separation logic within Iris~\cite{jung2018iris} separation logic.
