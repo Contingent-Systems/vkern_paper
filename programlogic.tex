@@ -71,9 +71,8 @@ inconsistent with the split 52+12  stuff later... Whatever we do, we need to be 
 
 \begin{figure*}
   \begin{lstlisting}[language=Coq]
- Definition $\pfpointsto\locsf\vpts\qfrac\ppts$ :vProp $\Sigma$ := pmapsto_def_v (pfn w) (page_off w) q v.
  Definition $\vaddr\mapsto_{\textsf{t}}\{\textsf{q}\}\; \vpage$ : vProp $\Sigma$ := 
-  $\exists_{\textsf{l4e l3e l2e l1}} \ldotp$  $\ulcorner$ aligned $\vaddr \urcorner \ast$ L4_L1_PointsTo(rtv maddr l4e l3e l2e l1e) $\ast$ addr_L1$(\vaddr,\textsf{l1e}) \mapsto_{p} \vpage$.
+  $\exists_{\textsf{l4e l3e l2e l1}} \ldotp$  $\ulcorner$ aligned $\vaddr \urcorner \ast$ L4_L1_PointsTo(maddr l4e l3e l2e l1e) $\ast$ addr_L1$(\vaddr,\textsf{l1e}) \mapsto_{p} \vpage$.
  Definition L4_L1_PointsTo (rtv maddr l4e l3e l2e l1e :word 64) : vProp $\Sigma$ :=
   (l4M52 maddr rtv) \$\sim$\ (l4off maddr rtv) $\mapsto_{a}$ {q1}  l4e  $\ast$
   (l3M52 maddr l4e) \$\sim$\ (l3off maddr l4e)  $\mapsto_{a}$ {q2}  l3e $\ast$ 
@@ -153,14 +152,6 @@ address space.}
   so long as those updates preserve the same virtual-to-physical translations.
 
 \begin{figure*}
-\[
-\begin{array}{l}
-    \vaddr\mapsto_{\textsf{v,rtv}}\{\textsf{q}\}\vpage \stackrel{\triangle}{=} 
-    \exists \paddr\ldotp
-    \sumapaces\rtv\delta \ast 
-  \sumwalkabs\vaddr\qfrac\paddr \ast \paddr \mapsto_{p} \vpage
-\end{array}
-\]
 \todo[inline]{Colin says: again, this is supposed to be a vprop, but isn't doing anything with a cr3val argument.
 I realize the GASI and per-address-space invariants, and therefore machinery to tie the virtual points-to
 to the GASI, hasn't been introduced yet. Is there a short-hand here we can use to be ``more complete'' until the later text
