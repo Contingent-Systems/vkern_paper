@@ -151,7 +151,7 @@ address space.}
   would require explicitly collecting all virtual points-to facts that traverse affected entries.
   It is preferable to permit the page tables themselves to be updated independently of the virtual points-to assertions,
   so long as those updates preserve the same virtual-to-physical translations.
-
+\newcommand{\vale}{\textsf{val}}
 \begin{figure*}
 \todo[inline]{Colin says: again, this is supposed to be a vprop, but isn't doing anything with a cr3val argument.
 I realize the GASI and per-address-space invariants, and therefore machinery to tie the virtual points-to
@@ -171,12 +171,11 @@ points-to):
 }
 \[
 \begin{array}{l}
-    \vaddr\mapsto_{\textsf{v}}\{\textsf{q}\}\vpage : \mathsf{vProp}~\Sigma \stackrel{\triangle}{=} 
-    \lambda \mathit{cr3val}\ldotp
+    \vaddr\mapsto_{\textsf{v}}\{\textsf{q}\}\vale : \mathsf{vProp}~\Sigma \stackrel{\triangle}{=} 
     \exists \paddr\ldotp
     \exists \delta\ldotp
     \sumapaces{\mathit{cr3val}}\delta \ast 
-  \sumwalkabs\vaddr\qfrac\paddr \ast \paddr \mapsto_{\mathsf{p}} \vpage
+  \sumwalkabs\vaddr\qfrac\paddr \ast \paddr \mapsto_{\mathsf{p}} \vale
 \end{array}
 \]
 \todo[inline]{Colin says: The fact that we can't visually distinguish the variable v that is the value in memory
@@ -225,7 +224,7 @@ and what's a variable. This is worth fixing, but near the bottom of the priority
   \mathcal{I}\textsf{ASpace}(\ptablestore,m)\stackrel{\triangle}{=} \textsf{ASpace\_Lookup}(\ptablestore,m) \ast \\
  \qquad\qquad\qquad \bigast{(\vaddr, \textsf{l1e})\in \ptablestore}{\exists\;(\textsf{l4e l3e l2e})\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\textsf{ maddr, l4e, l3e, l2e, l1e})} \\
   \textsf{ where } \\
-   \textsf{ASpace\_Lookup} (\ptablestore,m) \stackrel{\triangle}{=} \lambda\textsf{ cr3val} \ldotp \; \ulcorner m \; !!\; \textsf{cr3val} = \textsf{Some } \gammPred \urcorner \ast
+   \textsf{ASpace\_Lookup} (\ptablestore,m) \stackrel{\triangle}{=} \lambda\textsf{ cr3val} \ldotp \; \ulcorner m \; !!\; \textsf{cr3val} = \textsf{Some } \gammaPred \urcorner \ast
     \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}
   
 \end{array}
