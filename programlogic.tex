@@ -99,7 +99,7 @@ From this we can derive a more concise physical points-to when the split is unim
 \begin{figure*}
   \begin{lstlisting}[language=Coq]
  Definition $\vaddr\mapsto_{\textsf{t}}\{\textsf{q}\}\; \vpage$ : vProp $\Sigma$ := 
-  $\exists_{\textsf{l4e l3e l2e l1}} \ldotp$  $\ulcorner$ aligned $\vaddr \urcorner \ast$ L4_L1_PointsTo(maddr l4e l3e l2e l1e) $\ast$ addr_L1$(\vaddr,\textsf{l1e}) \mapsto_{p} \vpage$.
+  $\exists_{\textsf{l4e l3e l2e l1}} \ldotp$  $\ulcorner$ aligned $\vaddr \urcorner \ast$ L4_L1_PointsTo(maddr l4e l3e l2e l1e) $\ast$ addr_L1$(\vaddr,\textsf{l1e}) \mapsto_{p}\{\mathsf{q}\} \vpage$.
  Definition L4_L1_PointsTo (maddr l4e l3e l2e l1e :word 64) : vProp $\Sigma$ :=
  $\lambda$ cr3val.
   (l4M52 maddr cr3val) \$\sim$\ (l4off maddr cr3val) $\mapsto_{a}$ {q1}  l4e  $\ast$
@@ -107,12 +107,8 @@ From this we can derive a more concise physical points-to when the split is unim
   (l2M52 maddr l3e) \$\sim$\ (l2off maddr l3e) $\mapsto_{a}$ {q3}  l2e $\ast$
   (l1M52 maddr l2e) \$\sim$\ (l1off maddr l2e) $\mapsto_{a}$ {q4}  l1e.
 \end{lstlisting}
+\vspace{-1em}
 \caption{A Strong Virtual Points-to Relation}
-\todo[inline,color=red]{Colin says: shouldn't ther be a fraction q in the body of the virtual pointsto def?
-I know this is just a sketch that we then move away from, but it's worth getting accurate.}
-\todo[inline,color=cyan]{Colin says: the virtual points-to here is not defined as a vprop! the body is an iProp,
-containing an unbound variable rtv, which should be the cr3val taken as an argument. (Also, rtv doesn't make sense to me
-as a shorthand, why not cr3val?). I'm also pretty sure the maddr in the virtual points-to definition should be va.}
   \label{fig:strongvirtualpointsto}
 \end{figure*}
 
@@ -120,46 +116,66 @@ as a shorthand, why not cr3val?). I'm also pretty sure the maddr in the virtual 
 
 \subsection{An Overly-Restrictive Definition for Virtual Memory Addressing}
 \label{sec:overly-restrictive}
-One could give a naive logical definition to the virtual mememory addressing as conjuctions of each level translation 
-(Figure \fref{fig:strongvirtualpointsto}). The very first assurance our logical constructions need to be able assert is 
-the \textit{existence} of the page table walk. Our naive attempt shown in Figure \ref{figure:strongvirtualpointsto}, 
-we see that a virtual address with a certain fractional permissions at each level of the page-table walk gives us sound 
-assurance of the path existence reaching to a page table entry, consequently, with a full-ownership of page address, 
-we can obtain and update the value mapped value at this physical page address through our virtual memory address. 
+A natural definition for a virtual points-to that depends on the current address space is to
+require that in order for a virtual address \textsf{va} to point to a value \textsf{v}, the assertion contains
+partial ownership of the physical memory involved in the page table walk that would translate \textsf{va} to
+its backing physical location --- with locations existentially quantified since a virtual points-to should not assert
+\emph{which} locations are accessed in a page table walk.
+Figure \ref{figure:strongvirtualpointsto} gives such a definition.
+It asserts the existence of for page table entries, one at each translation level, and via \lstinline|L4_L1_PointsTo|
+asserts from the current \lstinline|cr3| value, taking the offsets from \textsf{va} (as in Figure \ref{fig:pagetables})
+to index each level, finding the existentially quantified entries in each level, 
+ending with the L1 entry, whose physical page base is added to the page offset of \textsf{va} to obtain the physical address
+ --- and there (\lstinline|addr_L1(va,l1e)|) in physical memory, is the value.
+Most of the definition lives directly in \textsf{vProp}, using the separation logic structure lifted from Iris's \textsf{iProp}.
+
+\lstinline|L4_L1_PointsTo| works by
+chaining together the entries for each level, using the sequence of table offsets from the address being translated to index
+each table level, and using the physical page address embedded in each entry.
+For example, 
+  the first level address translation to get the L4 entry (\lstinline|l4e|) 
+  uses the masks \textsf{l4M52} with the current \lstinline|cr3| to get the 
+  physical address of the start of the L4 table,
+  and \textsf{l4off} with the virtual address being translated to compute the correct offset within that table.
+  Then at that physical location is the appropriate entry in the L4 table \textsf{l4e}.
+  Subsequent levels of the page table walk work similarly.
+The statement of these assertions is simplified by the use of our split physical points-to assertions, since
+each level of tables is page-sized.\footnote{We do not address superpages and hugepages in this paper.}
+This helper definition is also a more explicit \textsf{vProp}, explicitly binding a value for \lstinline|cr3| and using it
+to start the translation process.
 
 
-The definition in Figure \ref{fig:strongvirtualpointsto} defines a virtual points-to assertion as
-existentially quantifying the physical memory addresses of the individual entries in each page table,
-asserting that a corresponding page table walk exists (\lstinline|L4_L1_PointsTo|), and then 
-\todo[inline]{snapshot... the last bit of that assertion is weird, but I'll fix. I'll also just remove the fraction from that def since it gets
-ignored anyways and we provide a better version shortly}
-Given the definition of physical page-pointsto assertion and the root address of virtual-address space as shown in Figure \ref{fig:pagetable}, one can build the physical address-translation for a virtual address (e.g. \textsf{va}) via abstracting the L4-L1 table traversal as the following:
-\begin{itemize}
-  \item Level-4 Translation (L4): Performs the first level address translation to get the L4 entry (L4E) in Figure \ref{fig:pagetables} by using the masks l4M52 and l4off with \textsf{rtv} virtual base address to get the starting address of the L4 table (L4T), and locate the entry amongst 512 (q1) ones respectively.
-    \begin{lstlisting}[language=Coq]
-      $\hbox{(\TirNameStyle{{L4translate}})} \quad$ (l4M52 maddr rtv) \$\sim$\ (l4off maddr rtv) $\mapsto_{a}$ {q1} l4e 
-    \end{lstlisting}
- \item Level-3 Translation (L3): Performs the second level address translation to get the L3 entry (L3E) in Figure \ref{fig:pagetables} by using the masks l3M52 and l3off with L4 entry (l4e) to get the starting address of the L3 table (L3T), and locate the entry amongst 512 ones (q2) respectively.
-    \begin{lstlisting}[language=Coq]
-    $\hbox{(\TirNameStyle{{L3translate}})}$ (l3M52 maddr l4e) \$\sim$\ (l3off maddr l4e)  $\mapsto_{a}$ {q2} l3e
-    \end{lstlisting}
-  \item Level-2 Translation (L2): Performs the second level address translation to get the L2 entry (L2E) in Figure \ref{fig:pagetables} by using the masks l2M52 and l2off with L3 entry (l3e) to get the starting address of the L2 table (L2T), and locate the entry amongst 512 ones (q3) respectively.
-\begin{lstlisting}[language=Coq]
-    $\hbox{(\TirNameStyle{{L2translate}})}$ (l2M52 maddr l3e) \$\sim$\ (l2off maddr l3e)  $\mapsto_{a}$ {q3} l2e
-    \end{lstlisting}
-  \item Level-1 Translation (L1): Performs the second level address translation to get the L1 entry (L1E) in Figure \ref{fig:pagetables} by using the masks l1M52 and l1off with L2 entry (l2e) to get the starting address of the L1 table (L1T), and locate the entry amongst ones 512 (q4) respectively.
-   \begin{lstlisting}[language=Coq]
-    $\hbox{(\TirNameStyle{{L1translate}})}$ (l1M52 maddr l2e) \$\sim$\ (l1off maddr l2e)  $\mapsto_{a}$ {q4} l1e
-    \end{lstlisting}
-  \item Page Address Level Translation: Final computed physical page-address ($\textsf{addr\_L1}(\vaddr$,$\textsf{l1e}$)) points-to the value stored in the address ($\vpage$).
-   \begin{lstlisting}[language=Coq]
-    $\hbox{(\TirNameStyle{{PageLevelAccess}})} \qquad$ addr_L1($\vaddr,\textsf{l1e}$) $\mapsto_{p} \vpage$.
-    \end{lstlisting} 
-\end{itemize}
+% Given the definition of physical page-pointsto assertion and the root address of virtual-address space as shown in Figure \ref{fig:pagetable}, one can build the physical address-translation for a virtual address (e.g. \textsf{va}) via abstracting the L4-L1 table traversal as the following:
+% \begin{itemize}
+%   \item Level-4 Translation (L4): Performs 
+%   the first level address translation to get the L4 entry (L4E) in Figure \ref{fig:pagetables} by using the masks l4M52 and l4off with \textsf{rtv} virtual base address to get the starting address of the L4 table (L4T), and locate the entry amongst 512 (q1) ones respectively.
+%     \begin{lstlisting}[language=Coq]
+%       $\hbox{(\TirNameStyle{{L4translate}})} \quad$ (l4M52 maddr rtv) \$\sim$\ (l4off maddr rtv) $\mapsto_{a}$ {q1} l4e 
+%     \end{lstlisting}
+%  \item Level-3 Translation (L3): Performs the second level address translation to get the L3 entry (L3E) in Figure \ref{fig:pagetables} by using the masks l3M52 and l3off with L4 entry (l4e) to get the starting address of the L3 table (L3T), and locate the entry amongst 512 ones (q2) respectively.
+%     \begin{lstlisting}[language=Coq]
+%     $\hbox{(\TirNameStyle{{L3translate}})}$ (l3M52 maddr l4e) \$\sim$\ (l3off maddr l4e)  $\mapsto_{a}$ {q2} l3e
+%     \end{lstlisting}
+%   \item Level-2 Translation (L2): Performs the second level address translation to get the L2 entry (L2E) in Figure \ref{fig:pagetables} by using the masks l2M52 and l2off with L3 entry (l3e) to get the starting address of the L2 table (L2T), and locate the entry amongst 512 ones (q3) respectively.
+% \begin{lstlisting}[language=Coq]
+%     $\hbox{(\TirNameStyle{{L2translate}})}$ (l2M52 maddr l3e) \$\sim$\ (l2off maddr l3e)  $\mapsto_{a}$ {q3} l2e
+%     \end{lstlisting}
+%   \item Level-1 Translation (L1): Performs the second level address translation to get the L1 entry (L1E) in Figure \ref{fig:pagetables} by using the masks l1M52 and l1off with L2 entry (l2e) to get the starting address of the L1 table (L1T), and locate the entry amongst ones 512 (q4) respectively.
+%    \begin{lstlisting}[language=Coq]
+%     $\hbox{(\TirNameStyle{{L1translate}})}$ (l1M52 maddr l2e) \$\sim$\ (l1off maddr l2e)  $\mapsto_{a}$ {q4} l1e
+%     \end{lstlisting}
+%   \item Page Address Level Translation: Final computed physical page-address ($\textsf{addr\_L1}(\vaddr$,$\textsf{l1e}$)) points-to the value stored in the address ($\vpage$).
+%    \begin{lstlisting}[language=Coq]
+%     $\hbox{(\TirNameStyle{{PageLevelAccess}})} \qquad$ addr_L1($\vaddr,\textsf{l1e}$) $\mapsto_{p} \vpage$.
+%     \end{lstlisting} 
+% \end{itemize}
 
+This solution is in fact very close to that of \citet{kolanski08vstte}, who define a separation logic from scratch in \textsc{Isabelle/HOL},
+where the semantics of all assertions are functions from pairs of heaps and page table root values to booleans.\footnote{
+  This was a typical explicit construction at the time; their work significantly predates Iris.
+}
+Our solution removes some restrictions in this definition by further abstracting the handling of address translation.
 
-\todo[inline]{Cite Kolanski here; not all of them, but some actually defined it exactly this way, for the current
-address space.}
 \subsection{Aliasing/Sharing Physical Pages}
   \label{sec:sharingpages}  
   One might have already observed that the virtual points-to definition shown in Figure \ref{fig:strongvirtualpointsto} 
@@ -174,41 +190,24 @@ address space.}
   as well as the physical memory holding the data of the virtual points-to.
   However, this formulation stores knowledge of the page table walk's details with ownership of the backing physical
   memory.
-  Updating any of these mappings (e.g., move the page tables in physical memory, as in coallescing for
+  Updating any of these mappings (e.g., moving the page tables in physical memory, as in coallescing for
   superpages or hugepages)
   would require explicitly collecting all virtual points-to facts that traverse affected entries.
   It is preferable to permit the page tables themselves to be updated independently of the virtual points-to assertions,
   so long as those updates preserve the same virtual-to-physical translations.
 \newcommand{\vale}{\textsf{val}}
 \begin{figure*}
-\todo[inline]{Colin says: again, this is supposed to be a vprop, but isn't doing anything with a cr3val argument.
-I realize the GASI and per-address-space invariants, and therefore machinery to tie the virtual points-to
-to the GASI, hasn't been introduced yet. Is there a short-hand here we can use to be ``more complete'' until the later text
-that fills in these details?
-}
-\todo[inline,color=cyan]{Colin says: Oh!!! I see. You have that extremely subtle rtv subscript on the virtual points-to
-syntax! Don't do that. First, it's really subtle and wasn't explained anywhere, so even I missed it. Second,
-we're very explicitly describing vProps as functions from root to iProp. Sticking the rtv on the arrow there
-is partly weird because it obscures which argument is really the vProp argument (there are 2 other word64s in that syntax),
-partly weird because it's written next to something that \emph{isn't} a variable (the v subscript on the virtual points-to
-arrow) while using the same font, and partly weird because when you actually write these assertions, rtv doesn't show
-up in the syntax at all, which is the whole point --- virtual points-to defs shouldn't mention their cr3 or address space at
-all!
-Here's what I think it should look like (I also existentially quantified $\delta$ and fixed the p subscript on physical
-points-to):
-}
 \[
 \begin{array}{l}
-    \vaddr\mapsto_{\textsf{v}}\{\textsf{q}\}\vale : \mathsf{vProp}~\Sigma \stackrel{\triangle}{=} 
+    \vaddr\mapsto_{\textsf{v}}\{\textsf{q}\}\vale : \mathsf{vProp}~\Sigma \stackrel{\triangle}{=} \\
+    \quad
     \exists \paddr\ldotp
     \exists \delta\ldotp
-    \sumapaces{\mathit{cr3val}}\delta \ast 
-  \sumwalkabs\vaddr\qfrac\paddr \ast \paddr \mapsto_{\mathsf{p}} \vale
+    \underbrace{\lambda\mathit{cr3val}\ldotp\sumapaces{\mathit{cr3val}}\delta}_\text{\begin{tabular}{c}Find ghost map for this\\address space\end{tabular}} \ast 
+  \underbrace{\sumwalkabs\vaddr\qfrac\paddr }_\text{\begin{tabular}{c}Fractional ownership of \\virt-to-phys translation\end{tabular}}\ast 
+  \underbrace{\paddr \mapsto_{\mathsf{p}} \vale}_\text{\begin{tabular}{c}Value at\\physical location\end{tabular}}
 \end{array}
 \]
-\todo[inline]{Colin says: The fact that we can't visually distinguish the variable v that is the value in memory
-from the subscript v on the virtual points-to arrow is not ideal: it makes it hard to tell what's concrete syntax
-and what's a variable. This is worth fixing, but near the bottom of the priority list}
 \caption{Virtual-Pointsto for Sharing Pages}
   \label{fig:virtualpointstosharing}
 \end{figure*}  
@@ -233,18 +232,32 @@ and what's a variable. This is worth fixing, but near the bottom of the priority
   points-to, and keep the ghost map and the invariant that every mapping in the ghost map has corresponding physical resources
   for translation in a separate global invariant.
 
-  \todo[inline]{Colin says: This requires explaining all the math here. Most reviewers of our paper will not be Iris
-  experts. Even the notion of an authoritative RA is something you'd need to explain (the general idea of).
-  So: write for non-Iris-expert readers. Above I explained the intuition behind the construction, so now we have to show
-  that we correctly implemented that intuition in Iris. So explain authoritative RAs, and how the line below
-  implements the intuition above.}
-  To do so, we introduce the protocol separating read-only (fragmental) and authorative (full ownership) accesses to the page tables, specifically $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$. We realize this protocol by embedding it into an already existing \textsf{Iris}'s ghost-map (or view\_maps) construction
+  % To do so, we introduce the protocol separating read-only (fragmental) and authorative (full ownership) accesses to the page tables, specifically $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$. 
+  % We realize this protocol by embedding it into an already existing \textsf{Iris}'s ghost-map (or view\_maps) construction
+  In Iris this is realized by using an authoritative resource algebra: there is a single \emph{authoritative} global copy of the (ghost)
+  map caching virtual-to-physical address translations, and for each entry a read only \emph{partial} ownership of that key-value pair.
+  The resource algebra itself is instantiated as:
   \[\mathcal{A}\textsf{bsPTableWalk} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \;  (\mathcal{W}_{64} \; \rightarrow_{\textrm{fin}}\;  (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \Loc,\mathord{=}) ))\]
- where
-  \begin{itemize}
-  \item we decorate the fragmental ownership of the ghost-map ($ \sumwalkabs\vaddr\qfrac\paddr$) with the physical $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ whose ownership just ensures that the virtual address ($\vaddr$) is mapped to a page (referenced by $\paddr$)
-  \item we place the authorative ownership $\mathcal{A}\textsf{PTableWalk}$ of the ghost-map in an address-space invariant ($\mathcal{I}$\textsf{ASpace} in Figure \ref{fig:peraspaceinvariant}) whose ownership grants sound update on the page table entries
-  \end{itemize}
+We replace the physical
+ $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$
+with
+fragmental ownership of the ghost-map ($ \sumwalkabs\vaddr\qfrac\paddr$),
+ whose ownership just ensures that the virtual address ($\vaddr$) is mapped to a page (referenced by $\paddr$)
+
+
+We place the authorative ownership $\mathcal{A}\textsf{PTableWalk}$ of the ghost-map in a per-address-space invariant
+($\mathcal{I}$\textsf{ASpace} in Figure \ref{fig:peraspaceinvariant}) whose ownership, when combined with the
+fraction stored in the virtual points-to, permits changes in the virtual-to-physical translations.
+By itself, it allows changes to the page tables as long as they do not change the overall mappings from virtual
+to physical addresses.
+\todo[inline]{explain $\Theta$, $m$, and figure out where $\delta$ is bound in Figure \ref{fig:peraspaceinvariant}}
+
+Another major change is that, because our logic is the first to explicitly address the existence of multiple address spaces,
+the ghost map of virtual-to-physical translations (identified by the ghost name $\delta$ in Figure \ref{fig:virtualpointstosharing}
+ \emph{for each address space}. This means we also require a way to locate the map for the current address space
+from the current root page table pointer stored in \lstinline|cr3|.
+
+\
 
   \begin{figure*}
 \[
@@ -261,11 +274,12 @@ and what's a variable. This is worth fixing, but near the bottom of the priority
   \label{fig:peraspaceinvariant}
   \end{figure*}
   
-\todo[inline]{Colin says: I can rewrite this remark into flowing text after you fully explain the math above.}
-\begin{remark}[Exchanging Page-Table-Walk-Summarization Mappings (Tokens) under Mutation of Page Tables ]
-  $\mathcal{A}\textsf{PTableWalk}$'s fragmental-ownership represents an individual key-value pair (per-virtual-address) which can be handled as a \textit{look-up} resource for an individual virtual address.
-  To build more intuition on the convenience of this protocol, we can think of the use-case \textit{unmapping-pages}. Normally, in the existence of shared page-tables, we need to first collect all the fragmental map pairs, e.g. $\sumwalkabs\vaddr\qfrac\paddr$, then, after making sure of non-existence of \textit{sharing}, we can \textit{unmap} the page. In this case, it would be ok to put $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ and $ \sumwalkabs\vaddr\qfrac\paddr$ side-by-side inside the virtual-pointsto definition in Figure \ref{fig:virtualpointstosharing}. However, this pattern of verifying is not only inconvenient due to requirement of extra bookkeeping, but also violates our soundness argument based on considering  mutation on the shared page-tables -- due to coalescing of page tables etc. --. In other words, physical $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ sitting aside to  $ \sumwalkabs\vaddr\qfrac\paddr$ would be made invalid by any concurrent update on the physical page-table. So there should only be one physical memory resource inside the virtual pointsto definition: from physical page address to the value stored ($ \paddr \mapsto_{p} \vpage$).
-\end{remark}
+  % Colin removed this remark because it's skwtching a *3rd* alternative design for virtual points-to,
+  % which could be useful for some readers, but will most likely just confuse
+% \begin{remark}[Exchanging Page-Table-Walk-Summarization Mappings (Tokens) under Mutation of Page Tables ]
+%   $\mathcal{A}\textsf{PTableWalk}$'s fragmental-ownership represents an individual key-value pair (per-virtual-address) which can be handled as a \textit{look-up} resource for an individual virtual address.
+%   To build more intuition on the convenience of this protocol, we can think of the use-case \textit{unmapping-pages}. Normally, in the existence of shared page-tables, we need to first collect all the fragmental map pairs, e.g. $\sumwalkabs\vaddr\qfrac\paddr$, then, after making sure of non-existence of \textit{sharing}, we can \textit{unmap} the page. In this case, it would be ok to put $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ and $ \sumwalkabs\vaddr\qfrac\paddr$ side-by-side inside the virtual-pointsto definition in Figure \ref{fig:virtualpointstosharing}. However, this pattern of verifying is not only inconvenient due to requirement of extra bookkeeping, but also violates our soundness argument based on considering  mutation on the shared page-tables -- due to coalescing of page tables etc. --. In other words, physical $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ sitting aside to  $ \sumwalkabs\vaddr\qfrac\paddr$ would be made invalid by any concurrent update on the physical page-table. So there should only be one physical memory resource inside the virtual pointsto definition: from physical page address to the value stored ($ \paddr \mapsto_{p} \vpage$).
+% \end{remark}
 
 %\subsection{Address-Space Abstraction}
 %\label{sec:aspacemodal}
