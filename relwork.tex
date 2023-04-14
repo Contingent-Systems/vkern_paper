@@ -8,39 +8,89 @@ Other work on OS verification either never progressed far enough to address VMM 
 
 The work that does address the core challenges of VMM verification is all associated with either \textsc{seL4} or \textsc{CertiKOS}.
 
-\textsc{CertiKOS}~\cite{gu15,gu2016certikos,gu2018certikos,chen2016interrupts} is a microkernel intended for use as a hypervisor, and its papers do not explicitly detail verification of the VMM, so we do not know the full space of which VMM functionality is verified (e.g., we do not know if it includes lazy page loading or copy-on-write behavior, or is a minimalistic VMM that eagerly maps address ranges for guessts). The overall approach in that body of work is many layers of refinement proofs, using a proliferation of layers with small differences to keep most individual refinements tractable. In keeping with precursor work on the project from the same group~\cite{vaynberg2012compositional}, the purpose of some layers is to abstract away from virtual memory, so the proof is essentially a simulation proof covering for example a proof that execution with page-in on page faults is a valid refinement of an execution model where.
-Another key aspect of their approach is that the OS is written in Clight and compiled with \textsc{CompCert}~\cite{blazy2006formal,leroy2009formally,leroy2008formal}.
-CompCert's memory abstraction~\cite{leroy2008formal} assumes
-memory is a set of disjoint chunks of bytes with no overlap, so the lowest levels of CertiKOS must provide a matching machine model as a layer. This prohibits virtual address aliasing, so CertiKOS cannot support simultaneous memory-mapped (\texttt{mmap}) and stream-oriented (\texttt{read}/\texttt{write}) IO to a single file\todo{should we go into this detail?}, and cannot use
-the common kernel design choice of mapping all physical memory into the bottom of the kernel's address space for direct access while the kernel code is simultaneously mapped (and executed) at higher virtual addresses.
-This is not necessary for \textsc{CertiKOS}'s intended primary use case (a hypervisor), but means that \textsc{CertiKOS}'s approach cannot be used to support this functionality in other systems, without major surgery to \textsc{CompCert}.
+\textsc{CertiKOS}~\cite{gu15,gu2016certikos,gu2018certikos,chen2016interrupts} is a microkernel intended for use as a hypervisor,
+and its papers do not explicitly detail verification of the VMM, so we do not know the full space of which VMM functionality 
+is verified, but we do know it includes the ability to map or unmap pages.
+The work is clear, however, that it trusts low-level assembly fragments such as the instruction sequence which actually
+switches address spaces, rather than verifying them.
+The overall approach in that body of work is many layers of refinement proofs, using a
+ proliferation of layers with small differences to keep most individual refinements tractable. In keeping with precursor work 
+on the project from the same group~\cite{vaynberg2012compositional}, the purpose of some layers is to abstract away from 
+virtual memory, so the proof is essentially a simulation proof covering for example a proof that execution with page-in on 
+page faults is a valid refinement of an execution model where no paging occurs.
+% Another key aspect of their approach is that the OS is written in Clight and compiled with \textsc{CompCert}~\cite{blazy2006formal,leroy2009formally,leroy2008formal}.
+% CompCert's memory abstraction~\cite{leroy2008formal} assumes
+% memory is a set of disjoint chunks of bytes with no overlap, so the lowest levels of CertiKOS must provide a matching 
+% machine model as a layer. This prohibits virtual address aliasing, so CertiKOS cannot support simultaneous memory-mapped 
+% (\texttt{mmap}) and stream-oriented (\texttt{read}/\texttt{write}) IO to a single file\todo{should we go into this detail?}, 
+% and cannot use
+% the common kernel design choice of mapping all physical memory into the bottom of the kernel's address space for direct access i
+% while the kernel code is simultaneously mapped (and executed) at higher virtual addresses.
+% This is not necessary for \textsc{CertiKOS}'s intended primary use case (a hypervisor), but means that \textsc{CertiKOS}'s
+% approach cannot be used to support this functionality in other systems, without major surgery to \textsc{CompCert}.
 
 \textsc{seL4}~\cite{Klein2009seL4,seL4TOCS,Sewell2013translation} is a formally verified L4 microkernel~\cite{Liedtke1995,Liedtke1996} (and the first verified OS kernel to run on real-world hardware), verified with a mix of refinement proofs and program logic reasoning down to the assembly level.
 Because \textsc{seL4} is a microkernel, most VMM functionality actually lives in usermode and is unverified, and moreover, their hardware model omits address translation entirely and the MMU entirely~\cite{Klein2009seL4,seL4TOCS}. As a result, the limited page table management present in the microkernel treats page tables as idiosyncratic tree-maps, ignoring the risks posed by even transient inconsistencies that would crash the kernel on real hardware (like ``temporarily'' unmapping the kernel). This is mitigated primarily by manually identifying some trusted invariants (e.g., that the address range designated for the kernel is appropriately mapped) and setting up the proof to ensure those invariants are maintained (i.e., as an extra proof obligation not required by their hardware model).
 
-\todo[inline]{Need to come back and ack common weaknesses of above work and this work, like skipping the TLB (though there's newer stuff not integrated into seL4), and not treating the relationship between memory and instructions precisely.}
 
-One important outgrowth of the \textsc{seL4} project, not integrated into the main project's proof, was work by Kolanski and Klein which studied verification of code against a hardware model that \emph{did} include address translation --- the only work aside from ours to do so --- initially in terms of basic memory~\cite{kolanski08vstte} and subsequently integrating source-level types into the interpretation~\cite{kolanski09tphols}. 
-They were the first work to model physical and virtual points-to assertions separately, defining virtual points-to assertions in terms of physical points-to assertions mimicking page table walks, and defining all of their assertions as predicates on a pair of (physical) machine memory and a page table root, an approach we improve on.
+One important outgrowth of the \textsc{seL4} project, not integrated into the main project's proof, was work by 
+Kolanski and Klein which studied verification of code against a hardware model that \emph{did} include address translation
+ --- the only work aside from ours to do so --- initially in terms of basic memory~\cite{kolanski08vstte} and subsequently 
+integrating source-level types into the interpretation~\cite{kolanski09tphols}. 
+They were the first work to model physical and virtual points-to assertions separately, defining virtual points-to assertions
+in terms of physical points-to assertions mimicking page table walks, and defining all of their assertions as predicates on a
+pair of (physical) machine memory and a page table root, an approach we improve on.
 
-Kolanski and Klein's points-to assertions do not model that page table entries for nearby addresses typically \emph{share} entries in higher layers of the page tables,\todo{actually, not sure, need to confirm} a key limitation that our definitions avoid.
-They do not consider virtuallv address aliasing (another source of sharing physical resources), which we\todo{todo!} support.
+Their work has a number of significant limitations which our work addresses.
+They also define their virtual points-to assertions such that a virtual points-to $p\mapsto_\mathsf{v} a$ owns the full 
+lookup path to virtual address $p$. This means that given two virtual points-to assertions at the same time, such as 
+$p\mapsto_\mathsf{v}a \ast p'\mapsto_\mathsf{v}b$, the memory locations traversed to translate $p$ and $p'$ must be disjoint. 
+This means the logic has a peculiar limit on how many virtual points-to assertions can coexist in a proof. Since page tables 
+fan out, the bottleneck is the number of entries in the root table. For their 32-bit ARMv6 example, the top-level address is 
+still 4Kb (4096 bytes), and each entry (consumed entirely by a virtual points-to in their scheme) is 4 bytes, so they have a 
+maximum of 1024 virtual points-tos in their ARMv6 configuration. Any assertion which implies more than that number
+of virtual addresses are mapped implies false in their logic.
+(They do formulate their logic over an abstract model, but every architecture would incur a similar limitation;
+Na\"ively transferring their model to x86-64 4-level tables would yield a limit of 512 assertions (also a 4Kb root page, 
+but 8-byte entries).
+
+% Kolanski and Klein's points-to assertions do not model that page table entries for nearby addresses typically 
+% \emph{share} entries in higher layers of the page tables --- a single L1 entry maps 4KB of memory on many architectures,
+% but their logics avoid fractional ownership, so they can in fact only use a single memory location per page of memory.
+% In fact, because their virtual points-to assertions contain \emph{full} ownership of all entries, even in the highest-level
+% page table (L4 in our case), each entry can contribute to only a single mapped address. Thus any assertion
+% in their logic that implies there are more virtual addresses mapped than entries in the top-level page table implies false.
+Our definitions make use of fractional permissions throughout; Figure \ref{fig:strongvirtualpointsto}'s definition
+of \lstinline|L4_L1_PointsTo| ellides the specific fractions used, but it in fact asserts 1/512 ownership of
+the L1 entry, 1/($512^2$) of the L2 entry, and so on, so each entry may map the appropriate number of machine words.
+
+As noted earlier, Kolanski and Klein's logics, by collocating both the physical ownership of the page table walk
+as part of the virtual points-to itself, preempt support for changes to page tables which do not actually affect 
+address translation.
+
+The other major distinction is that Kolanski and Klein have no accounting for other address spaces.
+Their logic does not deal with change of address space, and has no way to assert that certain facts hold
+in another address space.
 They verify only one address space manipulation: mapping a single unmapped page into the current address space (in both papers).
-The mapping write is verified in an ad hoc way by unfolding the machine semantics, because the logic lacks proper reusable rules for
-updating page tables.
+We verify this, as well as a change-of-address-space, which requires us to introduce assertions for talking
+about other address spaces (we must know, for example, that the precondition of the code after the change must be true
+in the \emph{other} address space), and to deal with the fact that the standard frame rule
+for separation logic is unsound in the presence of address space changes and address-space-contingent assertions.
+% The mapping write is verified in an ad hoc way by unfolding the machine semantics, because the logic lacks proper reusable rules for
+% updating page tables.
 
-They also define their virtual points-to assertions such that a virtual points-to $p\mapsto_\mathsf{v} a$ owns the full lookup path to virtual address $p$. This means that given two virtual points-to assertions at the same time, such as $p\mapsto_\mathsf{v}a \ast p'\mapsto_\mathsf{v}b$, the memory locations traversed to translate $p$ and $p'$ must be disjoint. This means the logic has a peculiar limit on how many virtual points-to assertions can coexist in a proof. Since page tables fan out, the bottleneck is the number of entries in the root table. For their 32-bit ARMv6 example, the top-level address is still 4Kb (4096 bytes), and each entry (consumed entirely by a virtual points-to in their scheme) is 4 bytes, so they have a maximum of 1024 virtual points-tos in their ARMv6 configuration. (They do formulate their logic over an abstract model, but every architecture would incur a similar limitation.) Na\"ively transferring their model to x86-64 4-level tables would yield a limit of 512 assertions (also a 4Kb root page, but 8-byte entries). Our initial prototype worked around this limitation using fractional permissions on the intermediate entries, so entries in the L1 table were split 512 ways, entries in the L2 were split $512^2$, and so on --- but this results in problems when considering identity mappings of page tables (which Kolanski and Klein's approach also does not support), where the data portion of a virtual points-to to a an intermediate table entry must also coexist with the shares for the ``traversal'' portion of the virtual points-tos those entries support. In principle knowing how many such identity-like mappings might exist could allow shifting the fractions, but this quickly becomes very complex.
-Our approach\todo{v2} of separating the physical support for a virtual address mapping from the \emph{guarantee of} physical support for the virtual address avoids these issues.
+Our approach in this paper uses modalities to distinguish virtual-address-based assertions that hold only in specific 
+address spaces, making it possible to manipulate other address spaces, and equally critically, to \emph{change} address 
+spaces while reasoning about correctness. 
 
+Unlike our work, Kolanski and Klein prove very useful embedding theorems stating that code that does not modify page table 
+entries can be verified in a VM-ignorant program logic, and that proofs in that logic can be embedded into the VM-aware logic 
+(essentially by interpreting ``normal'' points-to relations as virtual points-to facts). While we have not proven such a result,
+an analagous result {should} hold of our work: consider that the doubles for the \texttt{mov} instructions
+that access memory behave just as one would expect for a VM-ignorant logic~\cite{Chlipala2013Bedrock}.
+With our general approach to virtual points-to assertions being inspired by Kolanski and Klein, \emph{both}
+ our approach and theirs could in principle be extended to account for pageable points-to assertions by adding additional 
+disjunctions to an extended points-to definition; embedding ``regular'' separation logic into such a variant
+is the appropriate next step to extend reasoning to usermode programs running with a kernel that may demand-page the program's
+memory.
 
-Of critical relevance to the distinction between our work and theirs, they do not consider
-manipulating \emph{other} address spaces besides the one in use (essential for managing
-processes).
-So their means for sharing access to intermediate page table levels does not extend across address spaces, and there is no way to share data pages between address spaces.  But every major OS includes widely-used facilities for sharing pages between processes (e.g., UNIX/POSIX \texttt{MAP\_SHARED}), and until the recent Spectre~\cite{kocher2018spectre} and Meltdown~\cite{lipp2018meltdown} attacks, FreeBSD, Solaris, and others shared the kernel mapping across processes~\cite{mckusick2014design,mcdougall2006solaris,wininternals6a,wininternals6b} (they still do so for performance on unaffected hardware; e.g., Meltdown affects Intel but not AMD~\cite{amdmeltdown}).
-
-Our approach in this paper uses modalities to distinguish virtual address based assertions that hold only in specific address spaces, making it possible to manipulate other address spaces, and equally critically, to \emph{change} address spaces while reasoning about correctness. In addition, while Kolanski and Klein work in a traditional Hoare logic, we work in a separation logic, inheriting its modularity gains at the cost of working out some interactions between modalities and substructural logics.
-
-Unlike our work, Kolanski and Klein prove very useful embedding theorems stating that code that does not modify page table entries can be verified in a VM-ignorant program logic, and that proofs in that logic can be embedded into the VM-aware logic (essentially by interpreting ``normal'' points-to relations as virtual points-to facts). While we have not proven such a result, an analagous result \emph{should} hold of our work: consider that the triples for the \texttt{mov} instruction that access memory behave just as one would expect for a VM-ignorant logic~\todo{cite some example logic}.
-With our general approach to virtual points-to assertions being inspired by Kolanski and Klein, \emph{both} of our approaches could in principle be extended to account for pageable points-to assertions by adding additional disjunctions to an extended points-to definition.
-
-\todo[inline]{discuss hybrid+substructural logics}
