@@ -53,7 +53,7 @@ $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{r1
 $\specline{ \nfpointsto{\mask\vaddr\maskfour\rtv}{\mask\vaddr\maskfouroff\rtv}\entryf\qone\naddr \ast}_{\rtv}$ 
 $\specline{  \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\masktwo\entrytr}{\mask\vaddr\masktwooff\entrytr}\paddr\qthree\naddr \;\ast}_{\rtv}$
 $\specline{\texttt{pte\_addr} \mapsto_{\texttt{vpte}} \paddr\; (\texttt{wzero 64})  \ast \ulcorner \texttt{entry\_present } \entryf \land \texttt{entry\_present } \entrytr \land  \texttt{entry\_present } \entrytw \urcorner}_{\rtv}$
-$\specline{\exists \texttt{ fpaddr} \ldotp \ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{\textsf{r}} \texttt{fpaddr} \ast \texttt{fpaddr} \mapsto_{\textsf{a}} (\texttt{wzero 64})  \ulcorner \texttt{entry\_present pa}\urcorner}_{\rtv}$
+$\specline{\exists \texttt{ fpaddr} \ldotp \ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{\textsf{r}} \texttt{fpaddr} \ast \texttt{fpaddr} \mapsto_{\textsf{a}} (\texttt{wzero 64})  \ulcorner \texttt{entry\_present fpaddr}\urcorner}_{\rtv}$
 ;; Calculate new L1 entry
 ;; update the page table entry, mapping the page
 mov (%r14), %rax
@@ -61,7 +61,7 @@ $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{r1
 $\specline{ \nfpointsto{\mask\vaddr\maskfour\rtv}{\mask\vaddr\maskfouroff\rtv}\entryf\qone\naddr \ast}_{\rtv}$ 
 $\specline{  \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\masktwo\entrytr}{\mask\vaddr\masktwooff\entrytr}\paddr\qthree\naddr \;\ast}_{\rtv}$
 $\specline{\texttt{pte\_addr} \mapsto_{\texttt{vpte}} \paddr \;(\texttt{fpaddr}) \; \ast \ulcorner \texttt{entry\_present } \entryf \land \texttt{entry\_present } \entrytr \land  \texttt{entry\_present } \entrytw \urcorner }_{\rtv}$
-$\specline{\exists \texttt{ fpaddr} \ldotp \ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{r} \texttt{fpaddr} \ast \texttt{fpaddr} \mapsto_{a} (\texttt{wzero 64})  \ulcorner \texttt{entry\_present pa}\urcorner}_{\rtv}$
+$\specline{\exists \texttt{ fpaddr} \ldotp \ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{r} \texttt{fpaddr} \ast \texttt{fpaddr} \mapsto_{a} (\texttt{wzero 64})  \ulcorner \texttt{entry\_present fpaddr}\urcorner}_{\rtv}$
 $\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \sqsubseteq $
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{\textsf{r}} \vaddr \ast }_{\rtv}$
 $\specline{\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\entryf,\entrytr,\entrytw,\paddr) \ast \ulcorner \theta \;!!\;\vaddr = \texttt{None}\urcorner \; \ast}_{\rtv}$
@@ -79,7 +79,7 @@ $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace} (<[\vaddr:=\texttt{fpaddr}
 \end{figure}
 In Figure \ref{fig:mapping_code}, we see an address ($\vaddr$) currently not mapped to a page ($\theta \; !!\; \vaddr = \texttt{None}$). Mapping a fresh page backing this virtual first requires an assurance on the existence L1 table entry which is realized in two folds:
 \begin{itemize}
-\item physical pointsto assertions on the tables L4, L3, and L2 reaching to the L1 level entry (l1e) ensures the successful table lookups (Specification Lines 4-6)
+\item physical pointsto assertions on the tables L4, L3, and L2 reaching to the L1 level entry (l1e) ensures the successful table lookups with the fact on \textit{presence} (\textsf{entry\_present}) of the relevant entries (\textsf{l4e l3e l2e}) (Specification Lines 4-6)
 \item ,and a virtual L1 pointsto ($\mapsto_{\textsf{vpte}}$) on the address computed from the reached L1 entry ($ \ulcorner \texttt{addr\_L1}(\vaddr,\entryo) = \paddr\urcorner$) which is almost exactly same with the virtual-pointsto definition in Figure \ref{fig:virtualpointstosharing} except the physical page address is already computed, not exsitentially quantified:
  \[
 \begin{array}{l}
@@ -98,7 +98,8 @@ Then we allocate a fresh page initialized (i.e. zeroed) in Line 14 which return 
 
 The crux point in the proof is updating the virtual L1 address (\textsf{pte\_addr}) to show the fresly allocated page address (\textsf{fpaddr}) in Line 22 to obtain
 \[\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\; \textsf{fpaddr}  \qquad\qquad (\textsf{by Rule} \TirNameStyle{WriteToVirtMemFromReg})\]
-by Rule \TirNameStyle{WriteToVirtMemFromReg} which allows proving virtual address updates without exposing its internal physical page-table memory accesses (Specification Line 26). 
+
+by Rule \TirNameStyle{WriteToVirtMemFromReg} which allows proving the fact that virtual address updates without exposing its internal physical page-table memory accesses (Specification Line 26). 
 Consequently, right at this point in the proof, when we unfold the $\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\; \textsf{fpaddr})$ we will be able obtain a full ownerhsip on the L1 table physical pointsto $\paddr \mapsto_{\mathsf{p}} \textsf{fpaddr}$ . Then, we can split this full-ownership into to obtain a fractional ownership (q4) on it ($\paddr \mapsto_{\mathsf{p}} \{q4\} \;\textsf{fpaddr}$). Finally, we can connect this fragmental ownership with the L4-L2 physical table pointstos (Specification Lines 24 and 25) to obtain the complete physical table-walk assertion (L4\_L1\_PointsTo(maddr l4e l3e l2e pa)) in Line 30.
 
 Finally, we can insert $\vaddr$ into the ghost page-table-walk summarization map ($\theta$) to change its state from unmapped ($\ulcorner \theta \;!!\;\vaddr = \texttt{None}\urcorner$ in Specification Line 30) to mapped (Specification Line 33) by Iris' ghost-map update ($\sqsubseteq$), and construct virtual-pointsto $\vaddr \mapsto_{\textsf{vpte}}\; \qfrac \;\fpaddr \textsf{ wzero 64}$ (Specification Line 36) with $\sumwalkabs\vaddr\qfrac\fpaddr$ obtained from ghost page-table-walk insertions, $\sumapaces\rtv\delta$ from unfolding the definition of $\mapsto_{\textsf{vpte}}$ in Specification Line 18, and $\fpaddr \mapsto_{\textsf{p}} \textsf{wzero 64}$ in Specification Line 34. fragmental ownership of 

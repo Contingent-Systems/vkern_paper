@@ -267,7 +267,7 @@ from the current root page table pointer stored in \lstinline|cr3|.
   \mathcal{I}\textsf{ASpace}(\ptablestore,m)\stackrel{\triangle}{=} \textsf{ASpace\_Lookup}(\ptablestore,m) \ast \\
  \qquad\qquad\qquad \bigast{(\vaddr, \textsf{l1e})\in \ptablestore}{\exists\;(\textsf{l4e l3e l2e})\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\textsf{ maddr, l4e, l3e, l2e, l1e})} \\
   \textsf{ where } \\
-   \textsf{ASpace\_Lookup} (\ptablestore,m) \stackrel{\triangle}{=} \lambda\textsf{ cr3val} \ldotp \; \ulcorner m \; !!\; \textsf{cr3val} = \textsf{Some } \gammaPred \urcorner \ast
+   \textsf{ASpace\_Lookup} (\ptablestore,m) \stackrel{\triangle}{=} \lambda\textsf{ cr3val} \ldotp \; \exists \gammaPred \; \ldotp \ulcorner m \; !!\; \textsf{cr3val} = \textsf{Some } \gammaPred \urcorner \ast
     \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}
   
 \end{array}
