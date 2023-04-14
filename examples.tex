@@ -40,32 +40,32 @@ call ensure_L1_page
 $\specline{\exists (\entryf ,\;\entrytr,\; \entrytw,\; \entryo,\;\textsf{pte\_addr },\paddr) \; \ldotp\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{\textsf{r}} \textsf{ pte\_addr} \; \ast }_{\rtv}$
 $\specline{ \ulcorner  \texttt{addr\_L1 }(\vaddr, \entryo) = \paddr \urcorner \ast \ulcorner \texttt{entry\_present } \entryf \land \texttt{entry\_present } \entrytr \land  \texttt{entry\_present } \entrytw \urcorner \; \ast}_{\rtv}$
 $\specline{\nfpointsto{\mask\vaddr\maskfour\rtv}{\mask\vaddr\maskfouroff\rtv}\entryf\qone\naddr \; \ast}_{\rtv}$ 
-$\specline{  \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\masktwo\entrytr}{\mask\vaddr\masktwooff\entrytr}\paddr\qthree\naddr \;\ast}_{\rtv}$
+$\specline{  \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\masktwo\entrytr}{\mask\vaddr\masktwooff\entrytr}\paddr\qthree\entryo \;\ast}_{\rtv}$
 $\specline{\texttt{pte\_addr} \mapsto_{\texttt{vpte}} \paddr \;(\texttt{wzero 64}) \ast \texttt{rax}\mapsto_{\textsf{r}} \texttt{pte\_addr}  }_{\rtv}$
 ;; Returns the virtual address of the L1 entry in rax
 mov %r14, %rax ;; Save that before another call
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{\textsf{r}} \vaddr \ast \texttt{rax}\mapsto_{\textsf{r}} \textsf{ pte\_addr} \; \ast }_{\rtv}$
 $\specline{ \nfpointsto{\mask\vaddr\maskfour\rtv}{\mask\vaddr\maskfouroff\rtv}\entryf\qone\naddr \ast \ulcorner \texttt{entry\_present } \entryf \land \texttt{entry\_present } \entrytr \land  \texttt{entry\_present } \entrytw \urcorner \ast}_{\rtv}$ 
-$\specline{  \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\masktwo\entrytr}{\mask\vaddr\masktwooff\entrytr}\paddr\qthree\naddr \;\ast}_{\rtv}$
+$\specline{  \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\masktwo\entrytr}{\mask\vaddr\masktwooff\entrytr}\paddr\qthree\entryo \;\ast}_{\rtv}$
 $\specline{\texttt{pte\_addr} \mapsto_{\texttt{vpte}} \paddr \;(\texttt{wzero 64}) \ast \texttt{rax}\mapsto_{\textsf{r}} \texttt{pte\_addr}  }_{\rtv}$
 call alloc_phys_page_or_panic
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{\textsf{r}} \vaddr \;\ast}_{\rtv}$
 $\specline{ \nfpointsto{\mask\vaddr\maskfour\rtv}{\mask\vaddr\maskfouroff\rtv}\entryf\qone\naddr \ast}_{\rtv}$ 
 $\specline{  \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\masktwo\entrytr}{\mask\vaddr\masktwooff\entrytr}\paddr\qthree\naddr \;\ast}_{\rtv}$
 $\specline{\texttt{pte\_addr} \mapsto_{\texttt{vpte}} \paddr\; (\texttt{wzero 64})  \ast \ulcorner \texttt{entry\_present } \entryf \land \texttt{entry\_present } \entrytr \land  \texttt{entry\_present } \entrytw \urcorner}_{\rtv}$
-$\specline{\exists \texttt{ fpaddr} \ldotp \ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{\textsf{r}} \texttt{fpaddr} \ast \texttt{fpaddr} \mapsto_{\textsf{a}} (\texttt{wzero 64})  \ulcorner \texttt{entry\_present fpaddr}\urcorner}_{\rtv}$
+$\specline{\exists \texttt{ fpaddr} \ldotp \ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{\textsf{r}} \texttt{fpaddr} \ast \texttt{fpaddr} \mapsto_{\textsf{p}} (\texttt{wzero 64})  \ulcorner \texttt{entry\_present fpaddr}\urcorner}_{\rtv}$
 ;; Calculate new L1 entry
 ;; update the page table entry, mapping the page
 mov (%r14), %rax
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{\textsf{r}} \vaddr \;\ast}_{\rtv}$
 $\specline{ \nfpointsto{\mask\vaddr\maskfour\rtv}{\mask\vaddr\maskfouroff\rtv}\entryf\qone\naddr \ast}_{\rtv}$ 
-$\specline{  \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\masktwo\entrytr}{\mask\vaddr\masktwooff\entrytr}\paddr\qthree\naddr \;\ast}_{\rtv}$
+$\specline{  \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\masktwo\entrytr}{\mask\vaddr\masktwooff\entrytr}\paddr\qthree\entryo \;\ast}_{\rtv}$
 $\specline{\texttt{pte\_addr} \mapsto_{\texttt{vpte}} \paddr \;(\texttt{fpaddr}) \; \ast \ulcorner \texttt{entry\_present } \entryf \land \texttt{entry\_present } \entrytr \land  \texttt{entry\_present } \entrytw \urcorner }_{\rtv}$
-$\specline{\exists \texttt{ fpaddr} \ldotp \ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{r} \texttt{fpaddr} \ast \texttt{fpaddr} \mapsto_{a} (\texttt{wzero 64})  \ulcorner \texttt{entry\_present fpaddr}\urcorner}_{\rtv}$
+$\specline{\exists \texttt{ fpaddr} \ldotp \ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{r} \texttt{fpaddr} \ast \texttt{fpaddr} \mapsto_{p} (\texttt{wzero 64})  \ulcorner \texttt{entry\_present fpaddr}\urcorner}_{\rtv}$
 $\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \sqsubseteq $
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{\textsf{r}} \vaddr \ast }_{\rtv}$
-$\specline{\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\entryf,\entrytr,\entrytw,\paddr) \ast \ulcorner \theta \;!!\;\vaddr = \texttt{None}\urcorner \; \ast}_{\rtv}$
-$\specline{\ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{\textsf{r}} \texttt{fpaddr} \ast \texttt{fpaddr} \mapsto_{\textsf{a}} (\texttt{wzero 64}) }_{\rtv}$
+$\specline{\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\entryf,\entrytr,\entrytw,\fpaddr) \ast \ulcorner \theta \;!!\;\vaddr = \texttt{None}\urcorner \; \ast}_{\rtv}$
+$\specline{\ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{\textsf{r}} \texttt{fpaddr} \ast \texttt{fpaddr} \mapsto_{\textsf{p}} (\texttt{wzero 64}) }_{\rtv}$
 $\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \sqsubseteq $
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace} (<[\vaddr:=\texttt{fpaddr}]> \theta,m) \ast}_{\rtv}$
 $\specline{\ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{fpaddr} \mapsto_{\textsf{p}} \textsf{ wzero 64} \ast \sumapaces\rtv\delta  \ast\sumwalkabs\vaddr\qfrac\fpaddr}_{\rtv}$
@@ -96,11 +96,10 @@ in Specification Line 7 ($\texttt{pte\_addr} \mapsto_{\textsf{vpte}}  \; \paddr\
 
 Then we allocate a fresh page initialized (i.e. zeroed) in Line 14 which return an \textsf{aligned} address of fresh page (\textsf{fpaddr}) in \textsf{rax} (Specification Line 19).
 
-The crux point in the proof is updating the virtual L1 address (\textsf{pte\_addr}) to show the fresly allocated page address (\textsf{fpaddr}) in Line 22 to obtain
+The crux point in the proof is updating L1 table through a virtual address (\textsf{pte\_addr}) through making a known physical address, in our example L1 table entry address ($\textsf{addr\_L1}(\textsf{va, l1e})$), to show the fresly allocated page address (\textsf{fpaddr}) in Line 22 to obtain
 \[\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\; \textsf{fpaddr}  \qquad\qquad (\textsf{by Rule} \TirNameStyle{WriteToVirtMemFromReg})\]
-
-by Rule \TirNameStyle{WriteToVirtMemFromReg} which allows proving the fact that virtual address updates without exposing its internal physical page-table memory accesses (Specification Line 26). 
-Consequently, right at this point in the proof, when we unfold the $\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\; \textsf{fpaddr})$ we will be able obtain a full ownerhsip on the L1 table physical pointsto $\paddr \mapsto_{\mathsf{p}} \textsf{fpaddr}$ . Then, we can split this full-ownership into to obtain a fractional ownership (q4) on it ($\paddr \mapsto_{\mathsf{p}} \{q4\} \;\textsf{fpaddr}$). Finally, we can connect this fragmental ownership with the L4-L2 physical table pointstos (Specification Lines 24 and 25) to obtain the complete physical table-walk assertion (L4\_L1\_PointsTo(maddr l4e l3e l2e pa)) in Line 30.
+by Rule \TirNameStyle{WriteToVirtMemFromReg} (Specification Line 26). 
+Consequently, right at this point in the proof, when we unfold the $\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\; \textsf{fpaddr})$ we will be able obtain a full ownerhsip on the L1 table physical pointsto $\paddr \mapsto_{\mathsf{p}} \textsf{fpaddr}$ . Then, we can first discard the allocated virtual-address pointsto assertion (i.e. dropping \textsf{pte\_addr}), and split the full-ownership of physical-page pointsto ($\textsf{fpaddr}\mapsto_{\textsf{p}} \;\textsf{wzero 64}$) to obtain a fractional ownership (q4) on it. Since we know $\texttt{addr\_L1 }(\vaddr, \entryo) \mapsto_{\mathsf{p}} \{q4\} \;\textsf{fpaddr}$) from $\mapsto_{\textsf{vpte}}$, after the drop of virtual-pointsto, we still can connect L4-L2 pointsto assertions (in Specification Lines 24 and 25) with newly allocated $\texttt{fpaddr} \mapsto_{a} (\texttt{wzero 64})$ to obtain the complete physical table-walk assertion (L4\_L1\_PointsTo(maddr l4e l3e l2e fpaddr)) in Line 30.
 
 Finally, we can insert $\vaddr$ into the ghost page-table-walk summarization map ($\theta$) to change its state from unmapped ($\ulcorner \theta \;!!\;\vaddr = \texttt{None}\urcorner$ in Specification Line 30) to mapped (Specification Line 33) by Iris' ghost-map update ($\sqsubseteq$), and construct virtual-pointsto $\vaddr \mapsto_{\textsf{vpte}}\; \qfrac \;\fpaddr \textsf{ wzero 64}$ (Specification Line 36) with $\sumwalkabs\vaddr\qfrac\fpaddr$ obtained from ghost page-table-walk insertions, $\sumapaces\rtv\delta$ from unfolding the definition of $\mapsto_{\textsf{vpte}}$ in Specification Line 18, and $\fpaddr \mapsto_{\textsf{p}} \textsf{wzero 64}$ in Specification Line 34. fragmental ownership of 
 \subsection{Unmapping a Page}
