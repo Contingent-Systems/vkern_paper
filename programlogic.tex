@@ -299,8 +299,8 @@ Relations amongst these logical constructions, for the sake making it clearly un
 
 \subsection{Address-Space Management}
 \label{sec:aspacemanagement}
-\todo[inline]{Colin says: I will go back and add some foreshadowing in the explanation of virtual points-to,
-which already contains the Aspaces lookup a couple pages back.}
+\todo[inline]{Colin has not looked at this section in detail yet.
+It is clear the discussion of the cr3 update needs updating for doubles}
 So far, we have introduced logical abstractions for a single address space. However, \textsf{VMM} implementations handle more than one address-space which we abstract as a ghost map from root address of an address-space to a namespace labelling the address space
 \[\mathcal{A}\textsf{spaces} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \; (\textsc{Agree } \mathsf{GName},\mathord{=}) ) \]
 
@@ -315,7 +315,7 @@ In Figure \ref{fig:addrswitch}, we see two different address-spaces rooted at R0
 \[
   \begin{array}{l}
     \hbox{(\TirNameStyle{ModalAddressSpace)}} \qquad
-         [r](P) \;: \mathsf{vProp} \; \Sigma \; \stackrel{\triangle}{:=} \; \lambda \mathsf{P},\; \mathsf{P r}. 
+         [r](P) \;: \mathsf{vProp} \; \Sigma \; \stackrel{\triangle}{:=} \; \lambda \_,\; \mathsf{P}~\mathsf{r}. 
   \end{array}
   \]
   \label{fig:modaldef}

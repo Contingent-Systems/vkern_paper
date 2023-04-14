@@ -104,8 +104,7 @@
 }[keywords,comments,strings]
 
 \section{Implementing Logical Machinery \& Soundness}
-We build our program logic, as an instantiation of Iris~\cite{iris}, and construct our reasoning principles including the modal one on top of it. 
-\mytodo{we should put some stuff here}
+We build our program logic, as an instantiation of Iris~\cite{jung2018iris}.
 \subsection{Soundness}
 \label{sec:soundness}
 Our logic, operates on the machine state, which means we do not need to augment the machine state. The invarian that we pick, \textit{central invariant} ($\textsf{x64\_h}$), is just semantic interpretation of stores in the machine state, $\sigma.\mathcal{R}$ and $\sigma.\mathcal{M}$. This semantic interpratation ensures the correct lifting of mappings in the machine state to the assertions that the client of our logic uses, i.e. points-to assertions that are defined as the ownership of a fragment of the logical state.
