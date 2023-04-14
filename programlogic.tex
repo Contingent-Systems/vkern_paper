@@ -237,7 +237,7 @@ Our solution removes some restrictions in this definition by further abstracting
   In Iris this is realized by using an authoritative resource algebra: there is a single \emph{authoritative} global copy of the (ghost)
   map caching virtual-to-physical address translations, and for each entry a read only \emph{partial} ownership of that key-value pair.
   The resource algebra itself is instantiated as:
-  \[\mathcal{A}\textsf{bsPTableWalk} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \;  (\mathcal{W}_{64} \; \rightarrow_{\textrm{fin}}\;  (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \Loc,\mathord{=}) ))\]
+  \[\mathcal{A}\textsf{bsPTableWalk} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \;  ( (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \Loc,\mathord{=}) ))\]
 We replace the physical
  $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$
 with
@@ -302,7 +302,7 @@ Relations amongst these logical constructions, for the sake making it clearly un
 \todo[inline]{Colin has not looked at this section in detail yet.
 It is clear the discussion of the cr3 update needs updating for doubles}
 So far, we have introduced logical abstractions for a single address space. However, \textsf{VMM} implementations handle more than one address-space which we abstract as a ghost map from root address of an address-space to a namespace labelling the address space
-\[\mathcal{A}\textsf{spaces} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \; (\textsc{Agree } \mathsf{GName},\mathord{=}) ) \]
+\[\mathcal{A}\textsf{spaces} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \;  ( (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \Loc,\mathord{=}) )) \]
 
 \paragraph{Valid Context-Resources} Fragmental ownership of $\mathcal{A}\textsf{spaces}$ ($\sumapaces\rtv\gammaPred$) conveys the fact that a current address-space ($\gammaPred$) is the one selected, i.e. loaded into the $\rtv$. This simple fact becomes essential when we observe it inside virtual-pointsto definition in Figure \ref{fig:virtualpointstosharing} and pictorially Figure \ref{logicaladdrspace}. Existence of this fragmental ownership ensures that the contextual resource, i.e. a virtual pointsto assertion, resides under the correct address-space, i.e. modal-context, that makes it valid.
 
