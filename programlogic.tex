@@ -110,6 +110,7 @@ From this we can derive a more concise physical points-to when the split is unim
 \end{lstlisting}
 \vspace{-1em}
 \caption{A Strong Virtual Points-to Relation}
+\todo[inline,color=red]{Colin, I updated the definition with entry present}
   \label{fig:strongvirtualpointsto}
 \end{figure*}
 
@@ -315,8 +316,20 @@ In Figure \ref{fig:addrswitch}, we see two different address-spaces rooted at R0
 \begin{figure}
 \[
   \begin{array}{l}
-    \hbox{(\TirNameStyle{ModalAddressSpace)}} \qquad
-         [r](P) \;: \mathsf{vProp} \; \Sigma \; \stackrel{\triangle}{:=} \; \lambda \_,\; \mathsf{P}~\mathsf{r}. 
+    \hbox{(\TirNameStyle{ModalAddressSpace})} \qquad
+         [r](\mathsf{P}) \;: \mathsf{vProp} \; \Sigma \; \stackrel{\triangle}{=} \; \lambda \_,\; \mathsf{P}~\mathsf{r}.\\
+    \hbox{(\TirNameStyle{ModalAddressSpaceMono})} \qquad (\mathsf{P} \vdash \mathsf{Q}) \vdash  ([r](\mathsf{P}) \vdash  [r](\mathsf{Q}))\\
+    \hbox{(\TirNameStyle{ModalAddressSpaceSep})} \qquad [r](\mathsf{P} \ast \mathsf{Q}) \dashv\vdash ([r](\mathsf{P}) \ast [r](\mathsf{Q})\\
+    \hbox{(\TirNameStyle{ModalAddressSpacePure})} \qquad  \mathsf{pure\_vprop P}(\mathsf{iPropI }\Sigma)\textsf{ : vProp }\Sigma \stackrel{\triangle}{=} \; \lambda \_ \ldotp \mathsf{P}\\
+    \hbox{(\TirNameStyle{ModalAddressSpaceFact})} \qquad  \mathsf{Fact P}(\mathsf{vProp }\Sigma) \stackrel{\triangle}{=} \;\forall \; ,r \; r' \ldotp  \mathsf{P r} \dashv\vdash \mathsf{P r'}\\
+    \hbox{(\TirNameStyle{ModalAddressSpaceFactIntroElim})} \\
+    \qquad\qquad \mathsf{Fact pure\_vprop P} \vdash  ([r](\mathsf{pure\_vprop P}) \dashv\vdash (\mathsf{pure\_vprop P}) (\mathsf{vProp }\Sigma))\\
+    
+    \hbox{(\TirNameStyle{ModalAddressSpaceAnd})} \qquad   [r](\mathsf{P}\land \mathsf{Q}) \dashv\vdash [r](\mathsf{P})\land [r](\mathsf{Q})\\    
+    \hbox{(\TirNameStyle{ModalAddressSpaceOr})} \qquad    [r](\mathsf{P}\lor \mathsf{Q}) \dashv\vdash [r](\mathsf{P})\lor [r](\mathsf{Q})\\   
+    \hbox{(\TirNameStyle{ModalAddressSpaceFactIntroElim})} \\
+    \qquad\qquad \mathsf{Fact pure\_vprop P} \rightarrow  ([r](\mathsf{pure\_vprop P}) \dashv\vdash (\mathsf{pure\_vprop P}) (\mathsf{vProp }\Sigma))\\
+    
   \end{array}
   \]
   \label{fig:modaldef}
