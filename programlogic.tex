@@ -56,26 +56,10 @@ of virtual points-to.
 \caption{$\textsf{vProp }\Sigma$: Root-Address Indexed Address-Space Proposition}
   \label{fig:vprop}
 \end{figure}
-%\subsection{Machine State under Address Translation}
-%\label{sec:selectedinstrsemantics}
-%Althought we give the complete set of operational semantics rule in \sref{appendix:movops}, It is worth building the intuition on the the way some of these rules bahave in the context of address translation. In fact $\readlval\maddr{\storememstar\crval}\locsf$ is unfoled into multiple physical memory lookups for the final page address retrieval -- i.e. address translation traversal as shown in Figure \ref{fig:pagetables}:
-%\begin{itemize}
-%\item top-level-address translation: with the given root address (64-bit $\crval$) of the address space, performs the address translation, handling the first level (to get the PML4 entry) itself. The next level table address is computed with the fetched PML4 offset value which exhibits itself as 9-bit offset in $\kw{maddr}$. \mytodo{iso: put move}
-%\item translating from PML4 entry: performs the second level of address translation, to retrieve starting at the PML4 table entry, and interprets the PML4 entry that references a Page-Directory-Pointer Table (PDPT). We obtain the PDPT offset which exhibits itself as 9 bit offset in $\kw{maddr}$ to obtain the address of the next level page directory table (PDT) \mytodo{iso: put move}
-%\item translating from PD entry: performs the third level of address translation, to retrieve starting at the PDP table entry, and interprets a PDPTE that references a PD table. Likewise, we obtain the PD offset which exhibits itself as 9 bit offset in $\kw{maddr}$ to obtain the address of the next level page directory table (PT) \mytodo{iso:put move }
-%\item translate from PT entry: performs final level of address translation, starting from the PT entry, with a given 12 bit page offset, we can compute the physical address referencing $\locsf$ \mytodo{ismo: put mov}
-%\end{itemize}
 
 \subsection{Base Points-To Assertions}
 \label{sec:pointsto}
 We build up our context-dependent assertions from two basic types of assertions that do not care about address spaces.
-% We abstract physical memory addressing and registers naming with well-known separation logic assertion \textit{points-to} assertions.
-% \begin{enumerate}
-% \item Physical address points-to, $\pfpointsto\locsf\vpts\qfrac\ppts$
-% \todo[inline,color=red]{Colin says: This syntax is what most readers would expect for physical poinst-tos, but it's
-% inconsistent with the split 52+12  stuff later... Whatever we do, we need to be consistent}
-% \item Register points-to, $\pfpointsto\rg\rv\qfrac\rpts$
-% \end{enumerate}
 
 \paragraph{Register points-to} 
 The assertion $\pfpointsto\rg\rv\rpts\qfrac$ ensures the ownership of the register $\rg$ naming the register value $\rv$. 
@@ -110,7 +94,6 @@ From this we can derive a more concise physical points-to when the split is unim
 \end{lstlisting}
 \vspace{-1em}
 \caption{A Strong Virtual Points-to Relation}
-\todo[inline,color=red]{Colin, I updated the definition with entry present}
   \label{fig:strongvirtualpointsto}
 \end{figure*}
 
@@ -428,7 +411,7 @@ Physical points-tos and register value assertions, when treated as \textsf{vProp
 % \subsection{Considering Hoare Doubles in the Context of Switching Address-Space}
 % \subsubsection{Issues with Using Hoare Triples in Address-Space Specification}
 \label{sec:issues}
-An important subtlety arises with supporting \lstinline|mov|s into \lstinline|%cr3|. Consider the hypothetical rule:
+An important subtlety arises with supporting \lstinline|mov|s into \lstinline|%cr3|. Consider the hypothetical rule
 \begin{mathpar}
 \inferrule[Broken]{ }{
   \{P \ast \textsf{cr3}\mapsto_{r} \;r_1 \ast r \mapsto_{r} \;r_2 \ast [r_2](Q)\}
@@ -436,6 +419,7 @@ An important subtlety arises with supporting \lstinline|mov|s into \lstinline|%c
   \{[r_1](P) \ast \textsf{cr3} \mapsto_{r} r_2 \ast r \mapsto_{r} r_2 \ast Q\}
 }
 \end{mathpar}
+which is slightly simplified (by dropping per-address-space resources) for clarity in making the following point.
 This rule captures the intuitive change of address space in a Hoare triple.
 The problem with this is that it interacts quite poorly with the traditional frame
 rule and the modal flavor of virtual points-to assertions.
@@ -590,7 +574,7 @@ not used by the first instruction in sequence through and on to subsequent instr
   \textsf{mov}~\textsf{cr3},~r_s;\;\overline{is}
   %\lstinline|mov %cr3, r| 
 }\\
-\inferrule[WriteToRegCtlFromReg]{
+\inferrule[WriteToRegCtlFromRegModal]{
   \{[\textsf{rtv}](P \ast \mathcal{I}\textsf{ASpace})\ast \mathcal{I}\textsf{ASpace} \ast R\ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}  \}_{\textsf{rvs}} \overline{is}
 }{
   \{P \ast \mathcal{I}\textsf{ASpace} \ast [\textsf{rvs}](R \ast\mathcal{I}\textsf{ASpace})\ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}   \}_{\textsf{rtv}}
@@ -645,7 +629,10 @@ the operational semantics succeed and have the desired effect.
 Unlike other rules, \TirNameStyle{WriteToRegCtlFromReg} updates the root address of the 
 address-space determining the validity of resources, from $\rtv$ before the
 \lstinline|mov| to $\textsf{rvs}$ afterwards.
-\todo[inline]{Colin says: the cr3 update rule should have IASpace (x2) and modalities...?}
+From that rule, with one step outside the \textsf{vProp} logic (so it is not quite a derived rule within
+our embedded logic), we can derive 
+\TirNameStyle{WriteToRegCtlFromRegModal},
+which is the (full) Hoare double version of the address space switch rule proposed in Section \ref{sec:issues}.
 
 \subsection{Soundness}
 Our rules from Figure \ref{fig:wpdamd} are proven sound in Iris against an assembly-level hardware model
