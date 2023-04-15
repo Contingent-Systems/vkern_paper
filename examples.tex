@@ -146,7 +146,7 @@ map ($\theta$) to change its state from unmapped ($\ulcorner \theta
 \;!!\;\vaddr = \texttt{None}\urcorner$ in Specification Line 30 and the
 precondition) to mapped (Specification Line 33) using Iris' ghost-map update
 ($\sqsubseteq$), and construct a PTE -points-to $\vaddr
-\mapsto_{\textsf{vpte}}\; \qfrac \;\fpaddr (\textsf{ wzero 64})$ (Specification
+\mapsto_{\textsf{vpte}}\; \qfrac \;\fpaddr\;(\textsf{wzero 64})$ (Specification
 Line 36) using $\sumwalkabs\vaddr\qfrac\fpaddr$ obtained from ghost
 page-table-walk insertions, $\sumapaces\rtv\delta$ from unfolding the
 definition of $\mapsto_{\textsf{vpte}}$ in Specification Line 18, and $\fpaddr
