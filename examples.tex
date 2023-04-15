@@ -168,8 +168,7 @@ full permission on the L1 entry could be obtained, allowing the construction of 
 full virtual PTE pointer for it, setting to 0, and reclaiming the now-unmapped physical memory.
 
 \subsection{Change of Address Space}
-A critical piece of \emph{trusted} code in verified OS kernels is the assembly code to change the current address space; current verified OS kernels currently lack effective ways to specify and reason about this low-level operation, for resaons outlined in Section \ref{sec:relwork}.
-\todo[inline]{probably not much more than just the cr3 update, but could be extended to a full context switch since the instruction pointer isn't updated in a swtch}
+A critical piece of \emph{trusted} code in verified OS kernels is the assembly code to change the current address space; current verified OS kernels currently lack effective ways to specify and reason about this low-level operation, for reasons outlined in Section \ref{sec:relwork}.
 \begin{figure}\footnotesize
 \begin{lstlisting}
 ;; Assume the save-space is in rdi,
@@ -242,13 +241,32 @@ Likewise, part of the invariant of the stack of the second thread, the one being
 
 The wrinkle, and the importance of the modal treatment of assertions, is that the target thread's precondition is \emph{relative to its address space}, not the address space of the calling thread shown as 
 \[[\rtv'+56](\mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother})\]
-in the specfication. \todo{Colin: could you associate the rest of this paragraph with spec?}Thus the precondition of this code is that the then-current stack pointer has a return address expecting the then-current callee-save register values and suitablly updated (i.e., post-return) stack in the \emph{current} (initial) address space, while the stack pointer saved in the context to restore expects the same of the saved registers and stack \emph{in the other address space}. And the postcondition is analagous, but interpreted \emph{in a different address space}: the then-current (updated) stack has a return address expecting the new (restored) register values, and the saved context's invariant captures the precondition for restoring its execution \emph{in the previous address space}. At that point, it is safe to execute a return (or in a variant on this for user-mode and/or preemptive scheduling, a return-from-interrupt instruction).
+in the specfication. 
+Thus the precondition of this code,
+in context, would include that the initial stack pointer (before \lstinline|rsp| is updated)
+has a return address expecting the then-current callee-save register values and 
+suitably updated (i.e., post-return) stack in the \emph{current} (initial) address space;
+this would be part of \textsf{P} in the precondition.
+The specification also requires that
+the stack pointer saved in the context to restore expects the same of the saved registers and stack 
+\emph{in the other address space}. 
+The other-space modality plays a critical role here; \textsf{Pother} would contain these assumptions in the other
+address space.
 
-In addition, immediately after the page table switch, the points-to information about the saved and restored contexts is \emph{also} guarded by a modality (Specification Line 52)
+Lines 10--16 save the current context into memory (in the current address space).
+Line 22 saves the initial page table root.
+Lines 33--38 begin restoring the target context, including the stack pointer (line 33),
+which may not be mapped in the address space at that time: it is the stack for the context being
+loaded into the CPU.
+The actual address switch occurs on line 45, which is verified with our modal rule for updating \lstinline|cr3|,
+and thus shifts resources in and out of other-space modalities as appropriate.
+
+The postcondition is analagous to the precondition, but interpreted \emph{in the new address space}: the then-current (updated) stack would have a return address expecting the new (restored) register values (again, in \textsf{Pother}),
+and the saved context's invariant captures the precondition for restoring its execution \emph{in the previous address space} (as part of \textsf{P}). 
+%At that point, it is safe to execute a return (or in a variant on this for user-mode and/or preemptive scheduling, a return-from-interrupt instruction).
+
+Note that immediately after the page table switch, the points-to information about the saved and restored contexts is \emph{also} guarded by a modality (Specification Line 52)
 \[ [\rtv](\texttt{Pcurrent}) \qquad \textsf{ where Pcurrent is all available logical assertions under addrress-space} \rtv\]
 for the old address space, since there is no automatic guarantee that that memory is mapped in the new address space.  The ability to transfer that points-to information out of that modality is specific to a given kernel's design. Kernels that map kernel memory into all address spaces would need to ensure and specify enough specific details about memory mappings to allow a proof of an elimination rule for specific modally-constrained points-to assertions.
 Following Spectre and Meltdown, this kernel design became less prevalent because speculative execution of accesses to kernel addresses could leak information even if the access did eventually cause a fault (the user/kernel mode permission check was done after fetching data from memory). Thus many modern kernels have reverted to the older kernel design where the kernel inhabits its own unique address space, and user processes have only enough extra material mapped in their address spaces to switch into the kernel (CPUs do not speculate past updates to \texttt{cr3}).
 
-
-\todo[inline]{technically we weren't planning to prove reads of cr3...}
-\todo[inline]{need to figure out the right pre/post condition to highlight the change in address space, beyond the vpoints-to of the two structures}
