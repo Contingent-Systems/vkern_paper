@@ -62,7 +62,7 @@ of virtual points-to.
 We build up our context-dependent assertions from two basic types of assertions that do not care about address spaces.
 
 \paragraph{Register points-to} 
-The assertion $\pfpointsto\rg\rv\rpts\qfrac$ ensures the ownership of the register $\rg$ naming the register value $\rv$. 
+The assertion $\textsf{r}\;\mapsto_{\textsf{r}}\{q\}\;\textsf{rv}$ ensures the ownership of the register $\rg$ naming the register value $\rv$. 
 The fraction $\qfrac$ with value 1 asserts the unique ownership of the register mapping, and grants update permission on it, 
 otherwise, any value $0 < \qfrac <1$ represents partial ownership granting readonly permission on the mapping.
 
