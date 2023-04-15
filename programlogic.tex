@@ -287,6 +287,9 @@ It is the full version of the map named by the ghost name $\delta{}s$ in
 Figure \ref{fig:virtualpointstosharing}; there is only one such map in the system.
 This is why Figure \ref{fig:virtualpointstosharing} asserts there is some ghost name in that (global) map
 for the current address space.
+The global map itself is tracked by a resource algebra 
+\[\mathcal{A}\textsf{spaces} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \;  ( (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \Loc,\mathord{=}) )) \]
+\todo[inline]{shouldn't above be map to gname, not these pairs?}
 
 
 $\mathcal{I}\textsf{ASpace}(\Theta,m)$ is then the resources for the current address space:
@@ -335,40 +338,56 @@ kernel to future work.
 
 \subsection{Address-Space Management}
 \label{sec:aspacemanagement}
-\todo[inline]{Colin has not looked at this section in detail yet.
-It is clear the discussion of the cr3 update needs updating for doubles}
-So far, we have introduced logical abstractions for a single address space. However, \textsf{VMM} implementations handle more than one address-space which we abstract as a ghost map from root address of an address-space to a namespace labelling the address space
-\[\mathcal{A}\textsf{spaces} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \;  ( (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \Loc,\mathord{=}) )) \]
+So far, we have introduced logical abstractions for a single address space. However, virtual memory management
+implementations typically handle more than one address-space,
+and doing this requires assertions which talk about other address spaces, and means to switch address spaces.
+% requiring a means to  which we abstract as a ghost map from root address of an address-space to a namespace labelling the address space
 
-\paragraph{Valid Context-Resources} Fragmental ownership of $\mathcal{A}\textsf{spaces}$ ($\sumapaces\rtv\gammaPred$) conveys the fact that a current address-space ($\gammaPred$) is the one selected, i.e. loaded into the $\rtv$. This simple fact becomes essential when we observe it inside virtual-pointsto definition in Figure \ref{fig:virtualpointstosharing} and pictorially Figure \ref{logicaladdrspace}. Existence of this fragmental ownership ensures that the contextual resource, i.e. a virtual pointsto assertion, resides under the correct address-space, i.e. modal-context, that makes it valid.
+% \paragraph{Valid Context-Resources} Fragmental ownership of $\mathcal{A}\textsf{spaces}$ ($\sumapaces\rtv\gammaPred$) conveys the fact that a current address-space ($\gammaPred$) is the one selected, i.e. loaded into the $\rtv$. This simple fact becomes essential when we observe it inside virtual-pointsto definition in Figure \ref{fig:virtualpointstosharing} and pictorially Figure \ref{logicaladdrspace}. Existence of this fragmental ownership ensures that the contextual resource, i.e. a virtual pointsto assertion, resides under the correct address-space, i.e. modal-context, that makes it valid.
 
-\paragraph{Modal Resource Context\&Interaction with Ambient Logic \textsf{vProp}}
-\label{sec:resourcecontext}
-The relation between the address-space and and the validity of virtual-pointsto assertions exhibits itself as a contingency, i.e. \textit{"a certain virtual-pointsto facts whose validity is indexed by the root address of an address space"}. But, what sort of convenience this pattern provides when we do reasoning about more than one address-space.
+% \paragraph{Modal Resource Context\&Interaction with Ambient Logic \textsf{vProp}}
+% \label{sec:resourcecontext}
+% The relation between the address-space and and the validity of virtual-pointsto assertions exhibits itself as a contingency, i.e. \textit{"a certain virtual-pointsto facts whose validity is indexed by the root address of an address space"}. But, what sort of convenience this pattern provides when we do reasoning about more than one address-space.
 
-In Figure \ref{fig:addrswitch}, we see two different address-spaces rooted at R0 and R1 in the pre/post condition. To be put into words, while switching an address-space by executing \lstinline|mov_ctl|) updating the  \lstinline|cr3|, it is expected to mention resources of two different address-spaces in the specification. In the precondition,  \lstinline|cr3| is loaded with R0 and all the virtual-pointsto assertions $a_0 \mapsto_{\textsf{v}}p_0$ and $a_1 \mapsto_{\textsf{v}}p_1$ are in the current-view of the memory and valid in the ambient logic \textsf{vProp}. The other address-space with the root address R1 has its own resources ($b_0 \mapsto_{\textsf{v}}p_3$ and $b_1 \mapsto_{\textsf{v}}p_4$) which are invalid under the current address space rooted at R0. This pattern of specification requires resources being mentioned under the \textit{world} they are valid, i.e. a modal-framing within the specification. Once the current address-space becomes the one with root address R1, i.e.  \lstinline|cr3| is loaded with R1, the context-resources $b_0 \mapsto_{\textsf{v}}p_3$ and $b_1 \mapsto_{\textsf{v}}p_4$ are loaded into the current-view of the memory, and all the other resources that are valid under R0 are introduced into the modal context rooted at R0
+% In Figure \ref{fig:addrswitch}, we see two different address-spaces rooted at R0 and R1 in the pre/post condition. To be put into words, while switching an address-space by executing \lstinline|mov_ctl|) updating the  \lstinline|cr3|, it is expected to mention resources of two different address-spaces in the specification. In the precondition,  \lstinline|cr3| is loaded with R0 and all the virtual-pointsto assertions $a_0 \mapsto_{\textsf{v}}p_0$ and $a_1 \mapsto_{\textsf{v}}p_1$ are in the current-view of the memory and valid in the ambient logic \textsf{vProp}. The other address-space with the root address R1 has its own resources ($b_0 \mapsto_{\textsf{v}}p_3$ and $b_1 \mapsto_{\textsf{v}}p_4$) which are invalid under the current address space rooted at R0. This pattern of specification requires resources being mentioned under the \textit{world} they are valid, i.e. a modal-framing within the specification. Once the current address-space becomes the one with root address R1, i.e.  \lstinline|cr3| is loaded with R1, the context-resources $b_0 \mapsto_{\textsf{v}}p_3$ and $b_1 \mapsto_{\textsf{v}}p_4$ are loaded into the current-view of the memory, and all the other resources that are valid under R0 are introduced into the modal context rooted at R0
 \begin{figure}
 \[
-  \begin{array}{l}
-    \hbox{(\TirNameStyle{ModalAddressSpace})} \qquad
+  \begin{array}{r@{\qquad}l}
+    \hbox{(\TirNameStyle{ModalAddressSpace})} &
          [r](\mathsf{P}) \;: \mathsf{vProp} \; \Sigma \; \stackrel{\triangle}{=} \; \lambda \_,\; \mathsf{P}~\mathsf{r}.\\
-    \hbox{(\TirNameStyle{ModalAddressSpaceMono})} \qquad (\textsf{P} \vdash \textsf{Q}) \vdash  ([r](\textsf{P}) \vdash  [r](\textsf{Q}))\\
-    \hbox{(\TirNameStyle{ModalAddressSpaceSep})} \qquad [r](\textsf{P} \ast \textsf{Q}) \dashv\vdash ([r](\textsf{P}) \ast [r](\textsf{Q})\\
-    \hbox{(\TirNameStyle{ModalAddressSpacePure})} \qquad  \textsf{pure\_vprop P}(\textsf{iPropI }\Sigma)\textsf{ : vProp }\Sigma \stackrel{\triangle}{=} \; \lambda \_ \ldotp \textsf{P}\\
-    \hbox{(\TirNameStyle{ModalAddressSpaceFact})} \qquad  \textsf{Fact P}(\textsf{vProp }\Sigma) \stackrel{\triangle}{=} \;\forall \; ,r \; r' \ldotp  \textsf{P r} \dashv\vdash \textsf{P r'}\\
-    \hbox{(\TirNameStyle{ModalAddressSpaceFactIntroElim})} \\
-    \qquad\qquad \textsf{Fact pure\_vprop P} \vdash  ([r](\textsf{pure\_vprop P}) \dashv\vdash (\textsf{pure\_vprop P}) (\textsf{vProp }\Sigma))\\
-    
-    \hbox{(\TirNameStyle{ModalAddressSpaceAnd})} \qquad   [r](\textsf{P}\land \textsf{Q}) \dashv\vdash [r](\textsf{P})\land [r](\textsf{Q})\\    
-    \hbox{(\TirNameStyle{ModalAddressSpaceOr})} \qquad    [r](\textsf{P}\lor \textsf{Q}) \dashv\vdash [r](\textsf{P})\lor [r](\textsf{Q})\\   
-    \hbox{(\TirNameStyle{ModalAddressSpaceFactIntroElim})} \\
-    \qquad\qquad \textsf{Fact pure\_vprop P} \vdash  ([r](\textsf{pure\_vprop P}) \dashv\vdash (\textsf{pure\_vprop P}) (\textsf{vProp }\Sigma))\\
-    
+    \hbox{(\TirNameStyle{ModalAddressSpaceMono})} & (\textsf{P} \vdash \textsf{Q}) \vdash  ([r](\textsf{P}) \vdash  [r](\textsf{Q}))\\
+    \hbox{(\TirNameStyle{ModalAddressSpaceSep})} & [r](\textsf{P} \ast \textsf{Q}) \dashv\vdash ([r](\textsf{P}) \ast [r](\textsf{Q})\\
+    \hbox{(\TirNameStyle{ModalAddressSpaceAnd})} &   [r](\textsf{P}\land \textsf{Q}) \dashv\vdash [r](\textsf{P})\land [r](\textsf{Q})\\    
+    \hbox{(\TirNameStyle{ModalAddressSpaceOr})} &    [r](\textsf{P}\lor \textsf{Q}) \dashv\vdash [r](\textsf{P})\lor [r](\textsf{Q})\\   
+    % \hbox{(\TirNameStyle{ModalAddressSpacePure})} &  \textsf{pure\_vprop P}(\textsf{iPropI }\Sigma)\textsf{ : vProp }\Sigma \stackrel{\triangle}{=} \; \lambda \_ \ldotp \textsf{P}\\
+    \hbox{(\TirNameStyle{ModalAddressSpaceFact})} &  \textsf{Fact P} \stackrel{\triangle}{=} \;\forall \; ,r \; r' \ldotp  \textsf{P r} \dashv\vdash \textsf{P r'}\\
+    % \hbox{(\TirNameStyle{ModalAddressSpaceFactIntroElim})} \\
+    % \qquad\qquad \textsf{Fact pure\_vprop P} \vdash  ([r](\textsf{pure\_vprop P}) \dashv\vdash (\textsf{pure\_vprop P}) (\textsf{vProp }\Sigma))\\
+    \hbox{(\TirNameStyle{ModalAddressSpaceFactIntroElim})} 
+    &\textsf{Fact P} \vdash  ([r](\textsf{P}) \dashv\vdash (\textsf{P}) %(\textsf{vProp }\Sigma))\\
   \end{array}
   \]
-  \todo[inline,color=red]{Colin, story about any of the stuff above}
+  \caption{Other-space Modality and Its Laws}
   \label{fig:modaldef}
   \end{figure}
+Figure \ref{fig:modaldef} gives the definition of our modal operator for asserting truth of a modal
+(address-space-contingent) assertion \emph{in another address space}, which we call
+the \emph{other-space} modality. The definition itself is not
+particularly surprising --- as our modal assertions are semantically predicates on a page table root (physical)
+address, the assertion $[r](P)$ is a modal assertion which ignores the (implicit) current page table root,
+and evaluates the truth of $P$ as if $r$ were the page table root. This simple definition is first of all
+enough for assertions in one address space to talk about assertions in another.
+
+More usefully, we can prove that this modality follows certain useful laws, and that it interacts with
+a class of assertions which are true regardless of which address space they are evaluated in.
+The other-space modality distributes over the various separation logic connectives, and follows the rule of
+consequence.
+We also define a class of \textsf{vProp}s we call \textsf{Fact}s, which are those assertions
+which ignore their address space entirely.
+Physical points-tos and register value assertions, when treated as \textsf{vProp}s, are \textsf{Fact}s.
+\textsf{Fact}s can move in and out of other-space modalities freely.
+
+
   
 \begin{figure}
 \[
@@ -397,8 +416,9 @@ Pragmatically,
   \end{enumerate}
 \end{remark}
 
-\subsection{Considering Hoare Doubles in the Context of Switching Address-Space}
-\subsubsection{Issues with Using Hoare Triples in Address-Space Specification}
+\subsection{The Impact of Changing Address Spaces on Modal Assertions}
+% \subsection{Considering Hoare Doubles in the Context of Switching Address-Space}
+% \subsubsection{Issues with Using Hoare Triples in Address-Space Specification}
 \label{sec:issues}
 An important subtlety arises with supporting \lstinline|mov|s into \lstinline|%cr3|. Consider the hypothetical rule:
 \begin{mathpar}
@@ -408,22 +428,31 @@ An important subtlety arises with supporting \lstinline|mov|s into \lstinline|%c
   \{[r_1](P) \ast \textsf{cr3} \mapsto_{r} r_2 \ast r \mapsto_{r} r_2 \ast Q\}
 }
 \end{mathpar}
-This rule captures the intuitive change of address space in a Hoare triple, rather than double, form. The problem with this is that it interacts quite poorly with the traditional frame rule and the modal flavor of virtual points-to assertions:
+This rule captures the intuitive change of address space in a Hoare triple.
+The problem with this is that it interacts quite poorly with the traditional frame
+rule and the modal flavor of virtual points-to assertions.
+If we abbreviate the pre- and post-conditions above as \textsf{Pre} and \textsf{Post}:
 \begin{mathpar}
   \inferrule*[right=Frame]{
     \inferrule*[right=Broken]{ }{
-    \{\mathsf{emp} \ast \textsf{cr3} \mapsto_{r} r_1 \ast r\mapsto_{r} r_2 \ast [r_2](Q)\}
+    \{\textsf{Pre}\}
     \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
-    \{[r_1](\mathsf{emp}) \ast \textsf{cr3} \mapsto_{r} r_1 \ast r \mapsto_{r} r_2 \ast Q\}
+    \{\textsf{Post}\}
     }
   }{
-    \{a\mapsto_\mathsf{v} x \ast \mathsf{emp} \ast \textsf{cr3}\mapsto_{r}r_1 \ast r \mapsto_{r}r_2 \ast [r_2](Q)\}
+    \{a\mapsto_\mathsf{v} x \ast \textsf{Pre}\}
     \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
-    \{a\mapsto_\mathsf{v} x \ast [r_1](\mathsf{emp}) \ast \textsf{cr3} \mapsto_{r} r_1 \ast r \mapsto_{r} r_2 \ast Q\}
+    \{a\mapsto_\mathsf{v} x \ast \textsf{Post}\}
   }
 \end{mathpar}
-Notice that both the precondition and postcondition assert that $a\mapsto_\mathsf{v} x$ in the current address space, but we have no basis for concluding that address translation is preserved by the change of address space. So this derivation clearly leads to an unsound conclusion. This suggestss that the traditional frame rule and the Hoare triple presentation of the change-of-address-space rule cannot soundly coexist in the same system.
+Notice that both the precondition and postcondition assert that $a\mapsto_\mathsf{v} x$ in the current address space, but we have no basis for concluding that address translation is preserved by the change of address space. So this derivation clearly leads to an unsound conclusion. 
+This suggestss that the traditional frame rule and the Hoare triple presentation of the change-of-address-space rule cannot soundly coexist in the same system.
 The heart of the problem is that while updating \lstinline|cr3| is \emph{physically} local, it globally changes the interpretation of virtual addresses. So it is simply unsound to frame around \lstinline|cr3| updates.
+In hindsight this is not surprising, because we have essentially defined
+our assertions to depend on resources they do not explicitly mention --- the value of \lstinline|cr3|.
+However, it has important impacts on our formal development.
+
+\todo[inline]{Colin revision frontier}
 
 Switching to Hoare doubles resolves this problem because an under-appreciated subtlety of Hoare doubles is that typically \emph{there is no frame rule}. Instead each verification essentially includes a local frame that it passes to the next instructions (think continuation-passing style), giving each overall rule a \emph{global} (rather than local) precondition. For most rules this is not that important, but it does permit rules that have global effects on their preconditions.
 
@@ -451,7 +480,8 @@ By demanding that \lstinline|cr3| be held constant (or rather, at least restored
 
 Readers familiar with dynamic frames~\cite{parkinson2011relationship} might find it useful to notice that a different perspective on this matter is that virtual points-to assertions are self-stable \emph{except} for changes in \lstinline|cr3|, so framing would then naturally require other means of holding \lstinline|cr3| constant (or saving and restoring it).
 Virtual points-to assertions could be made self-stable by also giving them partial ownership over \lstinline|cr3| assertions, but this would require explicitly plumbing that ownership from \emph{all} assertions back to any place an address space change might occur; this would seem to be a far graver loss of modularity than this extra quirk in framing discussions.
-\subsubsection{Defining Hoare Doubles for Address-Space Specification}
+\subsection{Selected Logical Rules}
+\label{sec:selected_rules}
 Based on the issues we discuss in Section \ref{sec:issues}, we make sure our Hoare-Double definition in Figure \ref{fig:wpddefinition} enables
 \begin{itemize}
 \item virtual-pointsto relations to be independent of \lstinline{cr3} ownership
