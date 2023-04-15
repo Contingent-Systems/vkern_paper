@@ -288,8 +288,7 @@ Figure \ref{fig:virtualpointstosharing}; there is only one such map in the syste
 This is why Figure \ref{fig:virtualpointstosharing} asserts there is some ghost name in that (global) map
 for the current address space.
 The global map itself is tracked by a resource algebra 
-\[\mathcal{A}\textsf{spaces} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \;  ( (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \Loc,\mathord{=}) )) \]
-\todo[inline]{shouldn't above be map to gname, not these pairs?}
+\[\mathcal{A}\textsf{spaces} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \;  ( (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \textsc{GhostName},\mathord{=}) )) \]
 
 
 $\mathcal{I}\textsf{ASpace}(\Theta,m)$ is then the resources for the current address space:
