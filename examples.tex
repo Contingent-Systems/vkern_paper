@@ -17,7 +17,10 @@ Recall from Section \ref{sec:logic} that virtual points-to assertions work just 
 %}
 %\end{comment}
 \subsection{Mapping a New Page}
-One of the key tasks of a page fault handler in a general-purpose OS kernel is to map new pages into an address space by writing into an existing page table. To do so, we first allocate a fresh page, then calculate the appropriate known-valid page table walks and update the appropriate L1 page table entry.
+One of the key tasks of a page fault handler in a general-purpose OS kernel is
+to map new pages into an address space by writing into an existing page table.
+To do so, we first allocate a fresh page, then calculate the appropriate
+known-valid page table walks and update the appropriate L1 page table entry.
 \lstset{
   columns=fullflexible,
   numbers=left,
@@ -53,7 +56,7 @@ $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{r1
 $\specline{ \nfpointsto{\mask\vaddr\maskfour\rtv}{\mask\vaddr\maskfouroff\rtv}\entryf\qone\naddr \ast}_{\rtv}$ 
 $\specline{  \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\masktwo\entrytr}{\mask\vaddr\masktwooff\entrytr}\paddr\qthree\naddr \;\ast}_{\rtv}$
 $\specline{\texttt{pte\_addr} \mapsto_{\texttt{vpte}} \paddr\; (\texttt{wzero 64})  \ast \ulcorner \texttt{entry\_present } \entryf \land \texttt{entry\_present } \entrytr \land  \texttt{entry\_present } \entrytw \urcorner}_{\rtv}$
-$\specline{\exists \texttt{ fpaddr} \ldotp \ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{\textsf{r}} \texttt{fpaddr} \ast \texttt{fpaddr} \mapsto_{\textsf{p}} (\texttt{wzero 64})  \ulcorner \texttt{entry\_present fpaddr}\urcorner}_{\rtv}$
+$\specline{\exists \texttt{ fpaddr} \ldotp \ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{\textsf{r}} \texttt{fpaddr} \ast \texttt{fpaddr} \mapsto_{\textsf{p}} (\texttt{wzero 64}) \ast \ulcorner \texttt{entry\_present fpaddr}\urcorner}_{\rtv}$
 ;; Calculate new L1 entry
 ;; update the page table entry, mapping the page
 mov (%r14), %rax
@@ -61,7 +64,7 @@ $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{r1
 $\specline{ \nfpointsto{\mask\vaddr\maskfour\rtv}{\mask\vaddr\maskfouroff\rtv}\entryf\qone\naddr \ast}_{\rtv}$ 
 $\specline{  \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\masktwo\entrytr}{\mask\vaddr\masktwooff\entrytr}\paddr\qthree\entryo \;\ast}_{\rtv}$
 $\specline{\texttt{pte\_addr} \mapsto_{\texttt{vpte}} \paddr \;(\texttt{fpaddr}) \; \ast \ulcorner \texttt{entry\_present } \entryf \land \texttt{entry\_present } \entrytr \land  \texttt{entry\_present } \entrytw \urcorner }_{\rtv}$
-$\specline{\exists \texttt{ fpaddr} \ldotp \ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{r} \texttt{fpaddr} \ast \texttt{fpaddr} \mapsto_{p} (\texttt{wzero 64})  \ulcorner \texttt{entry\_present fpaddr}\urcorner}_{\rtv}$
+$\specline{\exists \texttt{ fpaddr} \ldotp \ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{r} \texttt{fpaddr} \ast \texttt{fpaddr} \mapsto_{p} (\texttt{wzero 64}) \ast \ulcorner \texttt{entry\_present fpaddr}\urcorner}_{\rtv}$
 $\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \sqsubseteq $
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{\textsf{r}} \vaddr \ast }_{\rtv}$
 $\specline{\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\entryf,\entrytr,\entrytw,\fpaddr) \ast \ulcorner \theta \;!!\;\vaddr = \texttt{None}\urcorner \; \ast}_{\rtv}$
@@ -70,40 +73,99 @@ $\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace} (<[\vaddr:=\texttt{fpaddr}]> \theta,m) \ast}_{\rtv}$
 $\specline{\ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{fpaddr} \mapsto_{\textsf{p}} \textsf{ wzero 64} \ast \sumapaces\rtv\delta  \ast\sumwalkabs\vaddr\qfrac\fpaddr}_{\rtv}$
 $\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \sqsubseteq $
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace} (<[\vaddr:=\texttt{fpaddr}]> \theta,m) \ast \vaddr \mapsto_{\textsf{vpte}}\; \qfrac \;\fpaddr \textsf{ wzero 64}}_{\rtv}$
+  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace} (<[\vaddr:=\texttt{fpaddr}]> \theta,m) \ast \vaddr \mapsto_{\textsf{vpte}}\; \{\qfrac\} \;\fpaddr \textsf{ wzero 64}}_{\rtv}$
+$\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \sqsubseteq $
+  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace} (<[\vaddr:=\texttt{fpaddr}]> \theta,m) \ast \vaddr \mapsto_{\textsf{v}}\; \{\qfrac\} \textsf{wzero 64}}_{\rtv}$
 \end{lstlisting}
   \caption{Specification and proof of distilled code for mapping a new page with $\textsf{wpd\_def }_{\rtv}$ with a fixed namespace $\gammaPreds$ and a global map of address-spaces $m$  }
-  \todo[inline,color=yellow]{Colin, could you speak about the fact that we have wpd in iProp so that's the reason to have rtval whereever table traversal is needed}
 \label{fig:mapping_code}
-\todo[inline]{this is terribly ugly, should switch to minted}
 \end{figure}
-In Figure \ref{fig:mapping_code}, we see an address ($\vaddr$) currently not mapped to a page ($\theta \; !!\; \vaddr = \texttt{None}$). Mapping a fresh page backing this virtual first requires an assurance on the existence L1 table entry which is realized in two folds:
+In Figure \ref{fig:mapping_code}, we see an address ($\vaddr$) currently not
+mapped to a page ($\theta \; !!\; \vaddr = \texttt{None}$). Mapping a fresh
+phyiscal page to back the desired virtual page first requires ensuring
+the existence of a memory location of an appropriate L1 table entry,
+which is realized in two pieces by the post-condition of \lstinline|ensure_L1|:
 \begin{itemize}
-\item physical pointsto assertions on the tables L4, L3, and L2 reaching to the L1 level entry (l1e) ensures the successful table lookups with the fact on \textit{presence} (\textsf{entry\_present}) of the relevant entries (\textsf{l4e l3e l2e}) (Specification Lines 4-6)
-\item ,and a virtual L1 pointsto ($\mapsto_{\textsf{vpte}}$) on the address computed from the reached L1 entry ($ \ulcorner \texttt{addr\_L1}(\vaddr,\entryo) = \paddr\urcorner$) which is almost exactly same with the virtual-pointsto definition in Figure \ref{fig:virtualpointstosharing} except the physical page address is already computed, not exsitentially quantified:
+\item physical pointsto assertions on the tables L4, L3, and L2 reaching to the
+	L1 level entry (l1e) ensure higher levels of the page table exist, 
+	are marked present (\textsf{entry\_present} for the relevant
+		entries \textsf{l4e l3e l2e}) (Specification Lines 4-6) 
+	\item a virtual \emph{PTE}
+		pointsto ($\mapsto_{\textsf{vpte}}$) allows access to the memory of the L1 entry
+		via virtual address \lstinline|pte_pointsto|.
+		A PTE points-to is defined just like the normal virtual points-to of Figure \ref{fig:virtualpointstosharing}, except the physical address is explicit in the assertion (here, \textsf{pa})
+		rather than existentially quantified:
  \[
 \begin{array}{l}
     \vaddr\mapsto_{\textsf{vpte}} \;\{\textsf{q}\} \; \paddr \; \vpage : \mathsf{vProp}~\Sigma \stackrel{\triangle}{=} 
-    \lambda \mathit{cr3val}\ldotp
     \exists \delta\ldotp
-    \sumapaces{\mathit{cr3val}}\delta \ast 
+	(\lambda \mathit{cr3val}\ldotp
+	\sumapaces{\mathit{cr3val}}\delta) \ast 
   \sumwalkabs\vaddr\qfrac\paddr \ast \paddr \mapsto_{\mathsf{p}} \vpage
 \end{array}
 \]
+		This supports rules for accessing memory
+		at that virtual address, but exposing the physical location being modified
+		makes this convenient to use for page table modifications, since we must ensure
+		the modified address is the correct physical address that will be used as the L1 entry.
+		This is also guaranteed ($ \ulcorner
+		\texttt{addr\_L1}(\vaddr,\entryo) = \paddr\urcorner$).
 \end{itemize}
-After obtaining an virtual address \textsf{pte\_addr} in \textsf{rax} referring to a physical address, computed from already known L4-L2 physical memory pointstos ($\texttt{addr\_L1}(\vaddr,\entryo) = \paddr$),
-in Specification Line 7 ($\texttt{pte\_addr} \mapsto_{\textsf{vpte}}  \; \paddr\;(\texttt{wzero 64})$), we save it to \textsf{r14} to be updated later in Line 9.
+After obtaining a virtual address \textsf{pte\_addr} in \textsf{rax} backed 
+by the physical memory for the L1 entry that will be used to translate the virtual addresses
+we are mapping, we save it to \textsf{r14} to be updated later in Line 9.
 
-Then we allocate a fresh page initialized (i.e. zeroed) in Line 14 which return an \textsf{aligned} address of fresh page (\textsf{fpaddr}) in \textsf{rax} (Specification Line 19).
+Then we allocate a fresh page initialized (i.e. zeroed) in Line 14 which return
+an \textsf{aligned} address of fresh page (\textsf{fpaddr}) in \textsf{rax}
+(Specification Line 19), plus 1 (so the return value is already a valid page table entry).
 
-The crux point in the proof is updating L1 table through a virtual address (\textsf{pte\_addr}) through making a known physical address, in our example L1 table entry address ($\textsf{addr\_L1}(\textsf{va, l1e})$), to show the fresly allocated page address (\textsf{fpaddr}) in Line 22 to obtain
-\[\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\; \textsf{fpaddr}  \qquad\qquad (\textsf{by Rule} \TirNameStyle{WriteToVirtMemFromReg})\]
-by Rule \TirNameStyle{WriteToVirtMemFromReg} (Specification Line 26). 
-Consequently, right at this point in the proof, when we unfold the $\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\; \textsf{fpaddr})$ we will be able obtain a full ownerhsip on the L1 table physical pointsto $\paddr \mapsto_{\mathsf{p}} \textsf{fpaddr}$ . Then, we can first discard the allocated virtual-address pointsto assertion (i.e. dropping \textsf{pte\_addr}), and split the full-ownership of physical-page pointsto ($\textsf{fpaddr}\mapsto_{\textsf{p}} \;\textsf{wzero 64}$) to obtain a fractional ownership (q4) on it. Since we know $\texttt{addr\_L1 }(\vaddr, \entryo) \mapsto_{\mathsf{p}} \{q4\} \;\textsf{fpaddr}$) from $\mapsto_{\textsf{vpte}}$, after the drop of virtual-pointsto, we still can connect L4-L2 pointsto assertions (in Specification Lines 24 and 25) with newly allocated $\texttt{fpaddr} \mapsto_{a} (\texttt{wzero 64})$ to obtain the complete physical table-walk assertion (L4\_L1\_PointsTo(maddr l4e l3e l2e fpaddr)) in Line 30.
+The crucial point in the proof is then actually updating the L1 entry,
+via the virtual address
+(\textsf{pte\_addr}) known to translate to the appropriate physical address, in our example the L1
+table entry address ($\textsf{addr\_L1}(\textsf{va, l1e})$), to hold the freshly
+allocated physical page address (\textsf{fpaddr}) in Line 22.
+After this write, we have (Specification Line 26)
+\[\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\; \textsf{fpaddr}  \qquad\qquad (\textsf{by the PTE variant of Rule}~\TirNameStyle{WriteToVirtMemFromReg})\]
 
-Finally, we can insert $\vaddr$ into the ghost page-table-walk summarization map ($\theta$) to change its state from unmapped ($\ulcorner \theta \;!!\;\vaddr = \texttt{None}\urcorner$ in Specification Line 30) to mapped (Specification Line 33) by Iris' ghost-map update ($\sqsubseteq$), and construct virtual-pointsto $\vaddr \mapsto_{\textsf{vpte}}\; \qfrac \;\fpaddr \textsf{ wzero 64}$ (Specification Line 36) with $\sumwalkabs\vaddr\qfrac\fpaddr$ obtained from ghost page-table-walk insertions, $\sumapaces\rtv\delta$ from unfolding the definition of $\mapsto_{\textsf{vpte}}$ in Specification Line 18, and $\fpaddr \mapsto_{\textsf{p}} \textsf{wzero 64}$ in Specification Line 34. fragmental ownership of 
+At this point in the proof,  $\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\; \textsf{fpaddr})$ 
+contains  full ownerhsip of the L1 table entry physical pointsto $\paddr
+\mapsto_{\mathsf{p}} \textsf{fpaddr}$ . Then, we can split the full-ownership of that
+physical pointsto
+($\textsf{fpaddr}\mapsto_{\textsf{p}} \;\textsf{wzero 64}$) to obtain
+fractional ownership on it appropriate for a single address's share of an L1 entry (q4).
+Since we know $\texttt{addr\_L1 }(\vaddr,
+\entryo) \mapsto_{\mathsf{p}} \{q4\} \;\textsf{fpaddr}$) from
+$\mapsto_{\textsf{vpte}}$, after the split of the PTE points-to, we can
+connect L4-L2 points-to assertions (in Specification Lines 24 and 25) with 
+ $\texttt{fpaddr} \mapsto_{a} (\texttt{wzero 64})$ to obtain the
+complete physical table-walk assertion (L4\_L1\_PointsTo(maddr l4e l3e l2e
+fpaddr)) in Line 30.
+
+Finally, we can insert $\vaddr$ into the ghost page-table-walk summarization
+map ($\theta$) to change its state from unmapped ($\ulcorner \theta
+\;!!\;\vaddr = \texttt{None}\urcorner$ in Specification Line 30 and the
+precondition) to mapped (Specification Line 33) using Iris' ghost-map update
+($\sqsubseteq$), and construct a PTE -points-to $\vaddr
+\mapsto_{\textsf{vpte}}\; \qfrac \;\fpaddr (\textsf{ wzero 64})$ (Specification
+Line 36) using $\sumwalkabs\vaddr\qfrac\fpaddr$ obtained from ghost
+page-table-walk insertions, $\sumapaces\rtv\delta$ from unfolding the
+definition of $\mapsto_{\textsf{vpte}}$ in Specification Line 18, and $\fpaddr
+\mapsto_{\textsf{p}} \textsf{wzero 64}$ in Specification Line 34.
+Finally, by existentially quantifying away \textsf{fpaddr},
+we can shift the PTE points-to into a normal virtual points-to.
+
+This proof only maps the first word of the allocated page; the generalization to the full page
+is straightforward use of iterated separating conjunction to manage collections of clusters of 512 things
+(slices of the L1 entry physical ownership, virtual addresses at 8 byte increments, etc.).
+
 \subsection{Unmapping a Page}
-The reverse operation, unmapping a designated page that is currently mapped, is pleasingly the reverse: by flipping the entry back to an invalid entry, full ownership of the updated entry reverts back to the now-invalid cell of the L1 table.
+The reverse operation, unmapping a designated page that is currently mapped,
+would essentially be the reverse of
+the reasoning around line 22 above: given the virtual points-to assertions for all 512
+machine words of memory that the L1 entry would map,
+and information about the physical location, 
+full permission on the L1 entry could be obtained, allowing the construction of a
+full virtual PTE pointer for it, setting to 0, and reclaiming the now-unmapped physical memory.
 
 \subsection{Change of Address Space}
 A critical piece of \emph{trusted} code in verified OS kernels is the assembly code to change the current address space; current verified OS kernels currently lack effective ways to specify and reason about this low-level operation, for resaons outlined in Section \ref{sec:relwork}.
