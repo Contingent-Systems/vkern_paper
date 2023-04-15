@@ -47,9 +47,7 @@ to speak directly \emph{within the logic} about other address spaces.
       implemented as an embedded separation logic within Iris~\cite{jung2018iris} separation logic.
 \item We prove the soundness of our \textsf{vProp} logic with respect to a RISC-like fragment of \textsf{AMD64} instructions.
 \item We verify simplified versions of several critical virtual-memory-related pieces of OS functionality, 
-      including mapping  pages, the assembly code for switching address spaces, and code which manipulates page
-      tables for \emph{currently mapped memory} without disturbing mappings.\todo[inline]{Colin says: I have optimistically
-      added this last example to the text here, because I think we can probably do it. Leave this TODO
-      here until we either do or cut it.}
-      The latter in particular goes beyond the capabilities of prior work.
+      including mapping  pages, and the assembly code for switching address spaces. 
+      The latter in particular goes beyond the capabilities of prior work, and reveals unexpected
+	subtleties.
 \end{itemize}
