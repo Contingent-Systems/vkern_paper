@@ -375,10 +375,18 @@ Figure \ref{fig:modaldef} gives the definition of our modal operator for asserti
 the \emph{other-space} modality. The definition itself is not
 particularly surprising --- as our modal assertions are semantically predicates on a page table root (physical)
 address, the assertion $[r](P)$ is a modal assertion which ignores the (implicit) current page table root,
-and evaluates the truth of $P$ as if $r$ were the page table root. This simple definition is first of all
-enough for assertions in one address space to talk about assertions in another.
+and evaluates the truth of $P$ as if $r$ were the page table root. This simple definition is 
+what we need in order for assertions in one address space to talk about assertions in another.
 
-More usefully, we can prove that this modality follows certain useful laws, and that it interacts with
+The inspiration for this assertion comes from hybrid logic~\cite{blackburn1995hybrid,areces2001hybrid,goranko1996hierarchies,gargov1993modal},
+which as mentioned earlier uses as modalities the names of worlds in a Kripke model to state
+that an assertion is true in that specific world.
+Conceptually the address space rooted at some physical address (intended as the start of an L4 table)
+is a distinct world, and it makes sense to name it by referring to the root of the
+supporting page table structure. However, rather than explicitly building a Kripke model for our
+assertions, we inherit them by lifting the model of our ambient logic, Iris.
+
+This assertion is also useful in proofs: we can prove that this modality follows certain useful laws, and that it interacts with
 a class of assertions which are true regardless of which address space they are evaluated in.
 The other-space modality distributes over the various separation logic connectives, and follows the rule of
 consequence.
@@ -388,33 +396,34 @@ Physical points-tos and register value assertions, when treated as \textsf{vProp
 \textsf{Fact}s can move in and out of other-space modalities freely.
 
 
+
   
-\begin{figure}
-\[
-\begin{array}{l}
-  \{ \textsf{cr3 } \mapsto_{r} R0 \ast a_0 \mapsto_{\textsf{v}}p_0  \ast a_1 \mapsto_{\textsf{v}}p_1  \ast [r1]\;( b_0 \mapsto_{\textsf{v}}p_3  \ast b_1 \mapsto_{\textsf{v}}p_4 )\}\\
-  \qquad \qquad \qquad \qquad \qquad \mathsf{mov\_ctl} \;\; \texttt{cr3} \; \; R1\\
+% \begin{figure}
+% \[
+% \begin{array}{l}
+%   \{ \textsf{cr3 } \mapsto_{r} R0 \ast a_0 \mapsto_{\textsf{v}}p_0  \ast a_1 \mapsto_{\textsf{v}}p_1  \ast [r1]\;( b_0 \mapsto_{\textsf{v}}p_3  \ast b_1 \mapsto_{\textsf{v}}p_4 )\}\\
+%   \qquad \qquad \qquad \qquad \qquad \mathsf{mov\_ctl} \;\; \texttt{cr3} \; \; R1\\
 
-  \{ \textsf{cr3 } \mapsto_{r} R1 \ast [r0](a_0 \mapsto_{\textsf{v}}p_0  \ast a_1 \mapsto_{\textsf{v}}p_1)  \ast  b_0 \mapsto_{\textsf{v}}p_3  \ast b_1 \mapsto_{\textsf{v}}p_4 \}
-  \end{array}
-\]
-  \label{fig:addrswitch}
-  \end{figure}
+%   \{ \textsf{cr3 } \mapsto_{r} R1 \ast [r0](a_0 \mapsto_{\textsf{v}}p_0  \ast a_1 \mapsto_{\textsf{v}}p_1)  \ast  b_0 \mapsto_{\textsf{v}}p_3  \ast b_1 \mapsto_{\textsf{v}}p_4 \}
+%   \end{array}
+% \]
+%   \label{fig:addrswitch}
+%   \end{figure}
 
-\begin{remark}[The Choice of Modal Context, Contingency and  Pattern of Verification Context]
-  \label{remark:pattern}
-The truth on an address space, exhibits itself as a contingent truth: a location virtualization assertion (a virtual points-to in \ref{fig:virtualpointstosharing}),  happens to valid in the \textit{current world} (in the current address space), and switching address spaces pulls information out of one \textit{world} into the “current view” of memory, and leaves other assertions true relative to the previous address space.
+% \begin{remark}[The Choice of Modal Context, Contingency and  Pattern of Verification Context]
+%   \label{remark:pattern}
+% The truth on an address space, exhibits itself as a contingent truth: a location virtualization assertion (a virtual points-to in \ref{fig:virtualpointstosharing}),  happens to valid in the \textit{current world} (in the current address space), and switching address spaces pulls information out of one \textit{world} into the “current view” of memory, and leaves other assertions true relative to the previous address space.
 
-Therefore, an address-space, as an abstraction, can be treated as naming the memory state as a modal frame and the choice of page table root as a world in Kripke-style semantics. Not suprisingly, transition between two address-spaces, then, can be just an entailment relation \textit{alternating} the \textit{named-state}
+% Therefore, an address-space, as an abstraction, can be treated as naming the memory state as a modal frame and the choice of page table root as a world in Kripke-style semantics. Not suprisingly, transition between two address-spaces, then, can be just an entailment relation \textit{alternating} the \textit{named-state}
 
-Being inspired by what hybrid logic \ref{} calls a satisfaction operator, which evaluates the truth of a predicate in a named alternative state (here, address space), we give a modal definition describing the truth of assertions for the resources (i.e. virtual pointsto relations) inside the address space. Ignoring the predicate types for a while, $[r]P$ in Figure \ref{fig:modaldef}, indicates that $P$ holds in the virtual address space rooted at $r$, the truth ($P$) on an address-space is indexed by the root page-table address $r$ of the address-space. In the rest of this section, we explain the structural aspects -- the modal resource context of address space modality -- , and how we lift the interaction of address-space modality with the ambient logic, i.e. separation logic as an entailment for specifying \textit{address-space-switch}.
+% Being inspired by what hybrid logic \ref{} calls a satisfaction operator, which evaluates the truth of a predicate in a named alternative state (here, address space), we give a modal definition describing the truth of assertions for the resources (i.e. virtual pointsto relations) inside the address space. Ignoring the predicate types for a while, $[r]P$ in Figure \ref{fig:modaldef}, indicates that $P$ holds in the virtual address space rooted at $r$, the truth ($P$) on an address-space is indexed by the root page-table address $r$ of the address-space. In the rest of this section, we explain the structural aspects -- the modal resource context of address space modality -- , and how we lift the interaction of address-space modality with the ambient logic, i.e. separation logic as an entailment for specifying \textit{address-space-switch}.
 
-Pragmatically, 
-  \begin{enumerate}
-  \item a modal context with its context-resources and picked contingency defines a modality (e.g. a address-space modality $[r]P$). For the convenience of verification, it enables focusing on the certain facts in the interest of reasoning (e.g. virtual pointsto relations in the current address-space)
-  \item and, offloads the burden of individual bookkeeping of these facts (e.g. virtual pointsto relations per address-space) under different context (e.g. virtual pointsto relations in other address-spaces) via utilizing the \textit{summarization} aspect of the contingency it represents (e.g. other virtual pointsto relations are valid under other certain address-space page-table root addresseses).  
-  \end{enumerate}
-\end{remark}
+% Pragmatically, 
+%   \begin{enumerate}
+%   \item a modal context with its context-resources and picked contingency defines a modality (e.g. a address-space modality $[r]P$). For the convenience of verification, it enables focusing on the certain facts in the interest of reasoning (e.g. virtual pointsto relations in the current address-space)
+%   \item and, offloads the burden of individual bookkeeping of these facts (e.g. virtual pointsto relations per address-space) under different context (e.g. virtual pointsto relations in other address-spaces) via utilizing the \textit{summarization} aspect of the contingency it represents (e.g. other virtual pointsto relations are valid under other certain address-space page-table root addresseses).  
+%   \end{enumerate}
+% \end{remark}
 
 \subsection{The Impact of Changing Address Spaces on Modal Assertions}
 % \subsection{Considering Hoare Doubles in the Context of Switching Address-Space}
@@ -452,9 +461,11 @@ In hindsight this is not surprising, because we have essentially defined
 our assertions to depend on resources they do not explicitly mention --- the value of \lstinline|cr3|.
 However, it has important impacts on our formal development.
 
-\todo[inline]{Colin revision frontier}
 
-Switching to Hoare doubles resolves this problem because an under-appreciated subtlety of Hoare doubles is that typically \emph{there is no frame rule}. Instead each verification essentially includes a local frame that it passes to the next instructions (think continuation-passing style), giving each overall rule a \emph{global} (rather than local) precondition. For most rules this is not that important, but it does permit rules that have global effects on their preconditions.
+Switching to Hoare doubles resolves this problem because an under-appreciated subtlety of Hoare doubles 
+is that typically \emph{there is no primitive frame rule}. 
+Instead each verification essentially includes a local frame that it passes to the next instructions
+(think continuation-passing style), giving each overall rule a \emph{global} (rather than local) precondition. For most rules this is not that important, but it does permit rules that have global effects on their preconditions.
 
 This is then how we justify our actual rule for \lstinline|cr3| updates:
 \begin{mathpar}
@@ -477,31 +488,63 @@ If we wanted to consider a frame rule that would work for this logic, we could c
   }
 \end{mathpar}
 By demanding that \lstinline|cr3| be held constant (or rather, at least restored to its original value) we could frame almost traditionally. In particular, this rule would work with framing around calls that might lead to address space switches, such as calling blocking operations in the kernel.
+Attempting to derive a frame rule as some work using Hoare doubles does~\cite{Chlipala2013Bedrock}
+would enforce this restriction.
 
 Readers familiar with dynamic frames~\cite{parkinson2011relationship} might find it useful to notice that a different perspective on this matter is that virtual points-to assertions are self-stable \emph{except} for changes in \lstinline|cr3|, so framing would then naturally require other means of holding \lstinline|cr3| constant (or saving and restoring it).
 Virtual points-to assertions could be made self-stable by also giving them partial ownership over \lstinline|cr3| assertions, but this would require explicitly plumbing that ownership from \emph{all} assertions back to any place an address space change might occur; this would seem to be a far graver loss of modularity than this extra quirk in framing discussions.
+
+
 \subsection{Selected Logical Rules}
 \label{sec:selected_rules}
-Based on the issues we discuss in Section \ref{sec:issues}, we make sure our Hoare-Double definition in Figure \ref{fig:wpddefinition} enables
-\begin{itemize}
-\item virtual-pointsto relations to be independent of \lstinline{cr3} ownership
-\item and full-ownership of \lstinline to be propagated inside the \textsf{wpd\_def} in order to
-\end{itemize}
-This act of separation allows client-specification to be agnostic of \lstinline|cr3| physical resource, (i.e. \lstinline|cr3| $\mapsto_{\textsf{r}} \rtv$). The context-resource (virtual-pointsto) has only the \textit{knowledge} of being in a namespace in which it is valid ($\sumapaces\rtv\gammaPred$), nothing more.
-
-In the rest of this, we explain how specifications of some selected \textsf{AMD64} instructions look like under the decisions made on the reasoning principles. All rules, e.g. the ones with different addressing mode, can be found in our artifact.
-
-In the general outline of the proof in Figure \ref{wpdamd}, we see that each rule annotated with an address value (\textsf{rtv}), i.e. a root address of an address-space, under which the resources mentioned in the specification are valid. Moreover, there is a frame resource $P$ in each rule.
+To address the issues described in Section \ref{sec:issues}, we give our logic using
+the Hoare-Double definition in Figure \ref{fig:wpddefinition}.\footnote{The figure does
+omit some low-level Iris details related to stuckness and observations, which play no meaningful
+role in our development.}
 \begin{figure} 
   \[
   \begin{array}{l}
-    \textsf{wpd\_def e s E1 } \Phi \;\mathsf{ rtv } : \textsf{iProp }\Sigma := \\
-   \qquad ((\textsf{cr cr3}) \mapsto_{\textsf{r}} (\textsf{num rtv)}) \textsf{ rtv}) \ast (\Phi \textsf{ rtv}) \wand \textsf{WP e E } @ \textsf{s ; E1 } \{\{\_, \textsf{True} \}\}
+    %\textsf{wpd\_def e s E1 } \Phi \;\mathsf{ rtv } : \textsf{iProp }\Sigma := \\
+    \{ \Phi \}_\mathsf{ rtv }\;\textsf{e} : \textsf{iProp }\Sigma := 
+   % \qquad
+   ((\textsf{cr3} \mapsto_{\textsf{r}} \textsf{rtv} \ast \Phi) \textsf{ rtv}) \wand \textsf{WP e } \{\_, \textsf{True} \}
     \end{array}
   \]
 \caption{Unfolded Hoare-Double Definition for \textsf{vProp} Logic }
 \label{fig:wpddefinition}
 \end{figure}
+Our Hoare doubles $\{\Phi\}_\textsf{rtv}\;\textsf{e}$ state that the expression (i.e., sequence of instructions)
+\textsf{e} are safe to execute (will not fault)
+when executed with precondition $\Phi\ast\textsf{cr3}\mapsto_{\textsf{r}} \textsf{rtv}$.
+\textsf{WP} is Iris's own weakest precondition modality, unmodified~\cite{jung2018iris}.
+Making \textsf{rtv} an explicit parameter to the double, rather than simply using register assertions
+directly solves a technical problem with ensuring that the page table root used to evaluate
+the \textsf{vProp} (i.e., evaluating the assertion in the \emph{current}) address space
+is feasible.\footnote{Consider the difficulty of selecting the correct page table root value from an arbitrary
+opaque $\Phi$, which may even existentially quantify the page table root. An alternative is to
+require $\Phi$ to have a syntactic form where we can directly extract the value of \lstinline|cr3|,
+but this makes using Iris Proof Mode (IPM)~\cite{Krebbers:2017:IPH:3009837.3009855} with \textsf{vProps}
+  difficult; IPM works for any type matching the signature of an Iris \lstinline|bi|, which includes
+  \textsf{vProp}s, but manually guiding IPM to put an assertion in a specific position over and over adds
+  significant proof burden.
+}
+
+The rest of this section describes specifications of some selected \textsf{AMD64} instructions 
+in our logic. 
+These rules and others (e.g., including accessing memory at an instruction-specified offset from a register
+value, which is common in most ISAs)
+can be found in our artifact.
+Each rule in Figure \ref{fig:wpdamd}, 
+is annotated with an address value (\textsf{rtv}), 
+i.e. a root address of an address-space, under which the resources mentioned in the specification are valid,
+or equivalently, the assumed value of \lstinline|cr3| prior to executing the instructions.
+In general, we use $\textsf{r}_s$ and $\textsf{r}_d$ to specify source and destination registers
+for each instruction, and prefix various register value variables with \textsf{rv}.
+We sometimes use $\textsf{r}_a$ to emphasize when a register is expected to hold an address used
+for memory access, though the figure also uses typical assembler conventions of specifying
+memory access operands by bracketing the register holding the memory address.
+Standard for Hoare doubles, there is a frame resource $P$ in each rule for passing resources
+not used by the first instruction in sequence through and on to subsequent instructions.
 
 \begin{figure}
 \begin{mathpar}
@@ -513,38 +556,45 @@ In the general outline of the proof in Figure \ref{wpdamd}, we see that each rul
   %\lstinline|mov %cr3, r| 
 }
 \\
-\inferrule[WriteToPhysMemFromReg]{
-  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}_{\textsf{rtv}}\;\overline{ is}  
-}{
-  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}   \ast r_a \mapsto_{r}\{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{rvs} \}_{\textsf{rtv}}
-  \textsf{ mov}~\textsf{r}_a,~\textsf{r}_s;\;\overline{is}
-}
-\\
-\inferrule[WriteToRegFromPhysMem]{
-  \{P \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}_{\textsf{rtv}}\;\overline{is}
-}{
-  \{P \ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}_{\textsf{rtv}}
-  \textsf{mov}~\textsf{r}_d,~\textsf{r}_a;\;\overline{is}
-}
-\\
+% \inferrule[WriteToPhysMemFromReg]{
+%   \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}_{\textsf{rtv}}\;\overline{ is}  
+% }{
+%   \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}   \ast r_a \mapsto_{r}\{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{rvs} \}_{\textsf{rtv}}
+%   \textsf{ mov}~[\textsf{r}_a],~\textsf{r}_s;\;\overline{is}
+% }
+% \\
+% \inferrule[WriteToRegFromPhysMem]{
+%   \{P \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}_{\textsf{rtv}}\;\overline{is}
+% }{
+%   \{P \ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}_{\textsf{rtv}}
+%   \textsf{mov}~\textsf{r}_d,~[\textsf{r}_a];\;\overline{is}
+% }
+% \\
 \inferrule[WriteToRegFromVirtMem]{
   \{P \ast \mathcal{I}\textsf{ASpace}\ast \mathcal{I}\textsf{ASpace} \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}_{\textsf{rtv}}\;\overline{is}
 }{
   \{P \ast \mathcal{I}\textsf{ASpace}\ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v} \}_{\textsf{rtv}}
-  \textsf{mov}~\textsf{r}_d,~\textsf{r}_a;\;\overline{is}
+  \textsf{mov}~\textsf{r}_d,~[\textsf{r}_a];\;\overline{is}
 }
 \\
 \inferrule[WriteToVirtMemFromReg]{
   \{P \ast \mathcal{I}\textsf{ASpace}\ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v} \}_{\textsf{rtv}}\;\overline{ is}  
 }{
   \{P \ast \mathcal{I}\textsf{ASpace}\ast r_s \mapsto_{r}\{q\}  \textsf{rvs}   \ast r_a \mapsto_{r}\{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{rvs} \}_{\textsf{rtv}}
-  \textsf{ mov}~\textsf{r}_a,~\textsf{r}_s;\;\overline{is}
+  \textsf{ mov}~[\textsf{r}_a],~\textsf{r}_s;\;\overline{is}
 }
 \\
 \inferrule[WriteToRegCtlFromReg]{
   \{P \ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}  \}_{\textsf{rvs}} \overline{is}
 }{
   \{P \ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}   \}_{\textsf{rtv}}
+  \textsf{mov}~\textsf{cr3},~r_s;\;\overline{is}
+  %\lstinline|mov %cr3, r| 
+}\\
+\inferrule[WriteToRegCtlFromReg]{
+  \{[\textsf{rtv}](P \ast \mathcal{I}\textsf{ASpace})\ast \mathcal{I}\textsf{ASpace} \ast R\ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}  \}_{\textsf{rvs}} \overline{is}
+}{
+  \{P \ast \mathcal{I}\textsf{ASpace} \ast [\textsf{rvs}](R \ast\mathcal{I}\textsf{ASpace})\ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}   \}_{\textsf{rtv}}
   \textsf{mov}~\textsf{cr3},~r_s;\;\overline{is}
   %\lstinline|mov %cr3, r| 
 }\\
@@ -559,9 +609,42 @@ In the general outline of the proof in Figure \ref{wpdamd}, we see that each rul
 \caption{Reasoning Rules for Selected \textsf{AMD64} Instructions under}
 \label{fig:wpdamd}
 \end{figure}
-\subsubsection{Memory To Register}
-In Figure \ref{fig:wpdamd}, we see the rules for updating the memory address ($r_a$). To do so, we essentially need page-table-walk pointsto ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}) to locate the value to be written. We mainly have two options to achieve this. 
-\paragraph{Physical Memory To Register} First one is to use  page-table-walk pointsto ($\textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v}$), which is consists of all-physical page-table memory assertions, to prove the page-table traversal \textsf{AMD64} implements, update the register $r_d$ the value obtained ($\textsf{v}$) as shown in Figure (\TirNameStyle{WriteToRegFromPhysMem}). By doing so, we expose the resources ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$) needed only for the proof of \textsf{AMD64} page-table traversal to the client of the rule. This breaks the modularity of reasoning we want to maintain in location virtualization.
-  \paragraph{Virtual Memory To Register}  Therefore, we would like to use a virtual-pointsto assertion ($\textsf{vaddr} \mapsto_{\textsf{v},\textsf{rtv}}$), which hides physical resources needed for the proof of page-table-traversal from the client, to obtain the the value ($\textsf{v}$) to update the register $r_d$ as shown in Rule (\TirNameStyle{WriteToRegFromVirtMem}). While doing the proof of page-table-traversal with a given virtual-pointsto definition in Figure \ref{fig:virtualpointstosharing}, we unfold and obtain our token ($\sumwalkabs\vaddr\qfrac\paddr$) to exchange for a physical-table mapsto assertion inside the $\mathcal{I}\textsf{ASpace}$ ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$) in Figure \ref{fig:peraspaceinvariant}, and apply Rule (\TirNameStyle{WriteToRegFromPhysMem}).
-\paragraph{Updating \lstinline|cr3|} Unlike other rules, \TirNameStyle{WriteToRegCtlFromReg} updates the root address of the address-space determining the validity of resources, $\{\rtv\} / \{\textsf{rvs}\}$.
+
+We briefly describe several key rules representative of the system.
+
+Figure \ref{fig:wpdamd}, includes two  rules for accessing memory at an address in a register $r_a$. 
+Ultimately, any memory access needs to ensure the relevant address translation would succeed,
+which can be ensured by what we informally call the page-table-walk points-to collection
+($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}).
+
+% We mainly have two options to achieve this. 
+% First one is to use  page-table-walk pointsto 
+% ($\textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v}$), 
+% which is consists of all-physical page-table memory assertions, 
+% to prove the page-table traversal \textsf{AMD64} implements, update the register $r_d$ the value obtained 
+% ($\textsf{v}$) as shown in Figure (\TirNameStyle{WriteToRegFromPhysMem}). 
+% By doing so, we expose the resources ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$) needed only 
+% for the proof of \textsf{AMD64} page-table traversal to the client of the rule. 
+% This breaks the modularity of reasoning we want to maintain in location virtualization.
+
+\TirNameStyle{WriteToRegFromVirtMem} and \TirNameStyle{WriteToVirtMemFromReg}
+each use a virtual-pointsto assertion ($\textsf{vaddr} \mapsto_{\textsf{v},\textsf{rtv}}$),
+and are nearly-standard (assembly) separation logic rules for memory accesses.
+However, because we split the physical resources for the page table walk from the
+virtual points-to itself (in order to permit the physical page tables to be freely modified
+as long as they preserve virtual-to-physical translations), the rule requires $\mathcal{I}\textsf{ASpace}$
+for the current address space to be carried through.
+While doing the proof of soundness for this rule,
+the token ($\sumwalkabs\vaddr\qfrac\paddr$) from the virtual points-to
+is used to extract to extract page-table-traversal points-to collection
+for the relevant address from that resource,
+and then those  physical points-to assertions describing the page table walk
+(from $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$) are used to prove
+the operational semantics succeed and have the desired effect.
+
+\paragraph{Updating \lstinline|cr3|} 
+Unlike other rules, \TirNameStyle{WriteToRegCtlFromReg} updates the root address of the 
+address-space determining the validity of resources, from $\rtv$ before the
+\lstinline|mov| to $\textsf{rvs}$ afterwards.
+\todo[inline]{Colin says: the cr3 update rule should have IASpace (x2) and modalities...?}
 

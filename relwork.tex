@@ -94,3 +94,33 @@ disjunctions to an extended points-to definition; embedding ``regular'' separati
 is the appropriate next step to extend reasoning to usermode programs running with a kernel that may demand-page the program's
 memory.
 
+As noted throughout the paper, the inspiration for our other-space modality comes from hybrid logic~\cite{areces2001hybrid,blackburn1995hybrid,gargov1993modal,goranko1996hierarchies},
+where modalities are indexed by \emph{nominals} which are names for specific individual states in a Kripke model.
+We are aware of only two prior works combining hybrid logics with program logics specifically. 
+Brotherston and Villard~\cite{brotherston2014parametric} demonstrated that may properties true of various 
+separation logics are not definable in boolean \BI (\BBI), and showed that a hybrid extension \HyBBI allows
+most such properties to be defined (e.g., the fact that separating conjunction is cancellative is unprovable 
+in boolean \BI, but provable in \HyBBI). There, nominals named resources 
+(roughly, but not exactly, heap fragments). 
+Gordon~\cite{gordon2019modal} described a use of hybrid logic in the verification of actor programs, 
+where nominals named the local state of individual actors (with such assertions stabilized with a 
+rely/guarantee approach). Beyond these, there is limited work on the interaction of specifically 
+\emph{hybrid logic} with substructural logics. 
+Primarily there is a line of work on hybrid linear logic (\HyLL)~\cite{despeyroux2014hybrid}, 
+originally used as a way to more conveniently express aspects of transition systems in linear logic. 
+However, \HyLL's proof rules offer no non-trivial interactions with multiplicative connectives 
+(every \HyLL proof can in fact be embedded into regular linear logic~\cite{chaudhuri2019hybrid}, 
+unlike Brotherston and Villard's \HyBBI, which demonstrably increases expressive power over its base \BBI.
+
+In both \HyLL and \HyBBI, nominals denote worlds with monoidal structure (as worlds in Kripke semantics
+for either LL or \BBI necessarily have monoidal structure). Our nominals, by contrast, 
+do not name worlds in the same sense with respect to Iris's CMRAs, 
+but in fact \emph{classes} of worlds, because the names are locations 
+(a means of \emph{selecting} resources) rather than resources.  
+A key difference is that the use of nominals in those logics corresponds specifically to hypothetical 
+reasoning about resources (until a nominal is connected to a current resource, in which case conclusions 
+can be drawn about the current resource), which means the modalities themselves do not ``own'' resources. 
+Instead, assertions under our other-space modality can and do
+have resource footprints.
+Pleasantly, we sidestep most of the metatheoretical complexity of those other substructural hybrid
+systems by building our logic within a substructural metatheory (Iris).
