@@ -648,3 +648,9 @@ address-space determining the validity of resources, from $\rtv$ before the
 \lstinline|mov| to $\textsf{rvs}$ afterwards.
 \todo[inline]{Colin says: the cr3 update rule should have IASpace (x2) and modalities...?}
 
+\subsection{Soundness}
+Our rules from Figure \ref{fig:wpdamd} are proven sound in Iris against an assembly-level hardware model
+implementing a fragment of x86-64 including 64-bit address translation with 4-level page tables.
+
+At the moment our proofs do rely on 11 small axioms of properties which should be provable, but
+are challenging to discharge due to some representation choices in our model.\footnote{See \texttt{srx/x64/machine/current_axioms.v}}
