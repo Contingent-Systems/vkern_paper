@@ -83,8 +83,8 @@ From this we can derive a more concise physical points-to when the split is unim
 \begin{figure*}
   \begin{lstlisting}[language=Coq]
  Definition $\vaddr\mapsto_{\textsf{t}}\{\textsf{q}\}\; \vpage$ : vProp $\Sigma$ := 
-  $\exists_{\textsf{l4e l3e l2e l1}} \ldotp$  $\ulcorner$ aligned $\vaddr \urcorner \ast$ L4_L1_PointsTo($\vaddr$ l4e l3e l2e l1e paddr) $\ast$ paddr $\mapsto_{p}\{\mathsf{q}\} \vpage$.
- Definition L4_L1_PointsTo ($\vaddr$ l4e l3e l2e l1e paddr :word 64) : vProp $\Sigma$ :=
+  $\exists_{\textsf{l4e l3e l2e l1e}} \ldotp$  $\ulcorner$ aligned $\vaddr \urcorner \ast$ L4_L1_PointsTo($\vaddr$ l4e l3e l2e l1e paddr) $\ast$ paddr $\mapsto_{p}\{\mathsf{q}\} \vpage$.
+ Definition L4_L1_PointsTo (maddr l4e l3e l2e l1e paddr :word 64) : vProp $\Sigma$ :=
  $\lambda$ cr3val.
   $\ulcorner$ entry_present l4e $\land$ entry_present l3e $\land$ entry_present l2e $\land$ entry_present l1e$\urcorner$ $\ast$
   (l4M52 maddr cr3val) $\sim$ (l4off maddr cr3val) $\mapsto_{a}$ {q1}  l4e  $\ast$
@@ -184,7 +184,7 @@ Our solution removes some restrictions in this definition by further abstracting
 \begin{figure*}
 \[
 \begin{array}{l}
-    \vaddr\mapsto_{\textsf{v}}\{\textsf{q}\}\vale : \mathsf{vProp}~\Sigma \stackrel{\triangle}{=} \\
+    \vaddr\mapsto_{\textsf{v}}\{\textsf{q}\}\;\vale : \mathsf{vProp}~\Sigma \stackrel{\triangle}{=} \\
     \quad
     \exists \paddr\ldotp
     \exists \delta\ldotp
@@ -242,7 +242,7 @@ to physical addresses.
 \[
 \begin{array}{l}
   \mathcal{I}\textsf{ASpace}(\ptablestore,m)\stackrel{\triangle}{=} \textsf{ASpace\_Lookup}(\ptablestore,m) \ast \\
- \qquad\qquad\qquad \bigast{(\vaddr, \textsf{paddr})\in \ptablestore}{\exists\;(\textsf{l4e l3e l2e, l1e, paddr})\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\textsf{ maddr, l4e, l3e, l2e, l1e, paddr})} \\
+ \qquad\qquad\qquad \bigast{(\vaddr, \textsf{paddr})\in \ptablestore}{\exists\;(\textsf{l4e l3e l2e, l1e, paddr})\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr\textsf{, l4e, l3e, l2e, l1e, paddr})} \\
   \textsf{ where } \\
    \textsf{ASpace\_Lookup} (\ptablestore,m) \stackrel{\triangle}{=} \lambda\textsf{ cr3val} \ldotp \; \exists \gammaPred \; \ldotp \ulcorner m \; !!\; \textsf{cr3val} = \textsf{Some } \gammaPred \urcorner \ast
     \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}

@@ -138,7 +138,7 @@ Since we know $\texttt{addr\_L1 }(\vaddr,
 $\mapsto_{\textsf{vpte}}$, after the split of the PTE points-to, we can
 connect L4-L2 points-to assertions (in Specification Lines 24 and 25) with 
  $\texttt{fpaddr} \mapsto_{a} (\texttt{wzero 64})$ to obtain the
-complete physical table-walk assertion (L4\_L1\_PointsTo(maddr l4e l3e l2e
+complete physical table-walk assertion (L4\_L1\_PointsTo($\vaddr$ l4e l3e l2e
 fpaddr)) in Line 30. Reaching right at this point in the specification, we must note that we did find a trivial inconsistency in the postcondition related to conflating fpaddr as an address with the page table entry that reference fpaddr, and while the fix is straightforward we ran out of time.
 
 Finally, we can insert $\vaddr$ into the ghost page-table-walk summarization
