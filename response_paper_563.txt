@@ -1,8 +1,9 @@
 
 OVERVIEW
 Thank you so much for your valuable reviews. For clarifying, here are our answers to provide more clarification.
+In general, we incorporated the structural changes and small comments as part our paper-presentation refinement.
+We fixed the inconsistency in the page-insertion example, and removed the axiom we used to introduce it after the fix.
 
-CHANGE LIST
 
 Review: 563A - "There are about 11 axioms admitted about details of the physical model.
        	        I'm not an absolutist about these things, and I don't mind admitting axioms that are, say, well-known mathematical facts,
@@ -104,10 +105,12 @@ Review 563B - "Describe the exact subset of x86-64 that you support in more deta
 
 Review 563B - "section 4.5: I am unconvinced by the justification for dropping the frame rule, both the argument that it is necessary and the argument that it is unproblematic..."
 
->> Response: (Colin: I really don'y understand this text)
+>> Response: (Colin: I am aware of the discussion we had but I really don'y understand this text)
 
 
 Review 563B - "Fig. 11 is frustratingly difficult to read in combination with the text, for various reasons: ..."
+
+
 
 >> Response: (Colin, I should speak about these with Colin)
 
