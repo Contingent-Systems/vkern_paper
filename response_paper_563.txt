@@ -133,4 +133,8 @@ Question 563B: "Your virtual points-to chunks require full ownership of physical
 		How would you go about mapping physical memory in multiple virtualized processes (e.g. when forking a process or sharing memory)?
 		It seems like you get into trouble because multiple processes need to own the same physical memory, which is not susceptible to the [r]-modality."
 
->> Response: 
+>> Response: First, there is a typo fix on the Figure 5 where the fraction has to appear on ->p, it is fixed .
+   	     On the other hand, we would introduce another level of abstraction to bookkeep the accesses to physical memory locations which are shared across the processes.
+	     This would look like and be on of the one we introduced of abstracting the physical-page-table walk away from virtual points-to, whereas, this abstraction would
+	     just hold the mappings from root addresses of address-spaces to the physical-memory locations accesses.
+	     
