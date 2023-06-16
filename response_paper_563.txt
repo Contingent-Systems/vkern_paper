@@ -138,3 +138,7 @@ Question 563B: "Your virtual points-to chunks require full ownership of physical
 	     This would look like and be on of the one we introduced of abstracting the physical-page-table walk away from virtual points-to, whereas, this abstraction would
 	     just hold the mappings from root addresses of address-spaces to the physical-memory locations accesses.
 	     
+
+Question 563B: "Could you support the root of the page table being moved to a different physical address? Is it possible to change the index in ASpaces to make IAAspace hold again?"
+
+>> Response: Just making the IASpace to non-permanent assertion (which is in-fact something we used in the mechanized proof) introduces this capability.
