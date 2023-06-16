@@ -101,3 +101,36 @@ Review 563B - "Describe the exact subset of x86-64 that you support in more deta
 	     with our reasoning principles, and this was our primary intention to share in the paper.
 	     It is true that, by the time we submitted this paper, we miss the "call" instruction, and relied on its axiomatization, then it is put in our change-list to be finished as the next step.
 	     
+
+Review 563B - "section 4.5: I am unconvinced by the justification for dropping the frame rule, both the argument that it is necessary and the argument that it is unproblematic..."
+
+>> Response: (Colin: I really don'y understand this text)
+
+
+
+
+Question 563B: "(related to remarks about section 4.5 above) Would it be possible to support (1) a frame rule that applies to Facts only together with
+	  	(2) a way to convert "P * cr3 = v" into "[v] P" and to convert "[v] P * cr3 = v" back into "P" and
+		(3) the assumption that [v] P is always a Fact."
+
+>> Response: All trivial by definition
+
+Questions 536B: "How would you share the kernel page tables in multiple processes?
+	  	 It seems you have hard-coded the fractions for the physical points-tos in Figure 4
+		 (although you only mention this on line 1016) under the assumption that no page table sharing occurs,
+		 so the sum of all fractions would be n in the case of n-way sharing.
+		 This is why I think having more complicated examples is required for evaluation."
+
+>> Response: Figure 4 has not been used in any of the reasoning. We have just mentioned it to motivate our virtual pointsto definition in Figure 5.
+   	     However, altough they are misleadingly used as hard-coded fractions in the code-base, we can define a fraction at a certain-level in terms of the previous level.
+	     At this moment, we do not support kernel-page-table management, and it is also becoming a recent attitude of OSes to be restrictive on the kernel page-table accesses (more isolation)
+	     after  "spectre meltdown".
+
+Question 563B: "Your virtual points-to chunks require full ownership of physical memory in Fig.5.
+	        It seems like in most cases (when you're not editing page tables) you do not care about the fraction of the page table mapping you possess,
+		but you do care about the fraction of physical memory.
+		-> It seems strange that the entailment va |->_v {q1 + q2} val |- va |->_v {q1} val \ast va |->_v {q2} val does not hold? ->
+		How would you go about mapping physical memory in multiple virtualized processes (e.g. when forking a process or sharing memory)?
+		It seems like you get into trouble because multiple processes need to own the same physical memory, which is not susceptible to the [r]-modality."
+
+>> Response: 
