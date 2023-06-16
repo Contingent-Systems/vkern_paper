@@ -44,12 +44,13 @@ Review: 563A - "One more minor issue is that the paper suggest that prior to thi
 		 In Proceedings of the 43rd ACM SIGPLAN International Conference on Programming Language Design and Implementation (PLDI 2022).
 		 Association for Computing Machinery, New York, NY, USA, 792–808. https://doi.org/10.1145/3519939.3523451"
 
->> Response: We need to cite the papers introducing propositions indexed by a certain view of a thread P[V], monPred and others. (Colin, would you like to add more on this?)
+>> Response: Thank you for the pointers, we will cite these and adjust our claims accordingly (and at some point shift to using monPred rather than our own pointwise lifting).
 
 Review: 563A - "Can you please clarify rule WriteToRegCtlFromReg? It seems to me that the P above the line should be under a modality since the page register has changed,
 	        as in the more elaborate rule beneath it."
 
 >> Response: WriteToRegCtlFromReg accidentially left there, it cannot coexists with the rule below (WriteToRegCtlFromRegModel), it is fixed.
+^^ Colin says: this is unclear to me
 
 Review: 563B - "The paper is not accessible to readers without Iris knowledge. Rather than focusing on the rules/interfaces you want your ghost resources to satisfy,
 	        you show the entire resource algebra construction with little explanation. This makes explanations harder to follow and more convoluted than they need to be.
@@ -72,7 +73,7 @@ Review 563B - "The formal machinery seems to be there, but the evaluation is lac
 	       	 Currently it is quite trivial, because you leave P and Pother opaque.
 		 This makes it much harder to explain as well.
 
-		 >> Response: 
+		 >> Response: This is actually the correct form for actual context switching code. We can better explain the intended context of that example, but most kernels have a single function which implements a context switch. That particular function would be called with the current thread of the current address space (so it is callable in any address space), and with some arbitrary other target process address space (whichever the scheduler decided should run next). P and Pother are opaque because they are and should be parameters to the specification of the context switch function. Consider, e.g., OpenBSD's ```cpu_switchto``` (https://github.com/openbsd/src/blob/master/sys/arch/amd64/amd64/locore.S#LL273C20-L273C20 with the CR3 update on line 415); this is used to switch from any process that is blocking (or terminating) to any other process that is supposed to run, and an analogous assembly fragment exists in Linux, MacOS, Windows, FreeBSD.... (that code snipped is dealing with additional scheduling metadata and more novel stack management than our example, which is focused on the core of the context switch.
 		 
 	       + I expected to see the result that you mentioned in the related work:
 	         "Kolanski and Klein prove very useful embedding theorems stating that code that does not modify page table entries can be verified in a VM-ignorant program logic,
@@ -83,7 +84,7 @@ Review 563B - "The formal machinery seems to be there, but the evaluation is lac
 	       + You should have at least one example that implements what you describe in section 4.3, and supports many address spaces.
 	       	 You currently have no proof that this will actually work.
 
-		 >> Response: (Colin, would you put some stuff here?)
+		 >> Response: As mentioned in Section 4.3, the details of packaging all of the address spaces together is highly dependent on other kernel policies we are not attempting to model, and we do not believe a strawman will be informative. The simplest version, where all address spaces are simply disjoint, would simply involve another layer of ghost maps from process identifiers to $\Theta$ and $m$ for the particular address space.
 
 	       + Does your paging need to be this specific to x86-64? Does it have to have four levels?
 	       	 Could you somehow parameterize your implementation by the concrete paging implementation?
