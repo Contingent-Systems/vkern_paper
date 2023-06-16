@@ -107,7 +107,9 @@ Review 563B - "section 4.5: I am unconvinced by the justification for dropping t
 >> Response: (Colin: I really don'y understand this text)
 
 
+Review 563B - "Fig. 11 is frustratingly difficult to read in combination with the text, for various reasons: ..."
 
+>> Response: (Colin, I should speak about these with Colin)
 
 Question 563B: "(related to remarks about section 4.5 above) Would it be possible to support (1) a frame rule that applies to Facts only together with
 	  	(2) a way to convert "P * cr3 = v" into "[v] P" and to convert "[v] P * cr3 = v" back into "P" and
