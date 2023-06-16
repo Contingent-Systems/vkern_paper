@@ -19,6 +19,7 @@ Review: 563A - "There are about 11 axioms admitted about details of the physical
 	       	fpaddr as an address with the page table entry that reference fpaddr, and while the fix is straightforward we ran out of time."
 	       	Both of these should have been mentioned much earlier and explained more clearly.""
 
+      563C  -  "However the semantics of page tables is quite fiddly (as you appear to have discovered with the final axiom and associated comment), so I think care does need to be taken here!"
         	      
 >> Response: There was one crucial axiom that we used and introducing inconsistency in the post condition of page-insert example, and we fixed
 	  it. Other axioms are assertions for the equivalances of stddp gmap (used in the logic) vs FMapInterface/List (used in our amd64 model) for register and pyhsical
@@ -108,17 +109,31 @@ Review 563B - "section 4.5: I am unconvinced by the justification for dropping t
 >> Response: (Colin: I am aware of the discussion we had but I really don'y understand this text)
 
 
-Review 563B - "Fig. 11 is frustratingly difficult to read in combination with the text, for various reasons: ..."
+Review 563B - "Fig. 11 is frustratingly difficult to read in combination with the text, for various reasons: "
 
+       	      + All of the interesting work required in Figure 11 happens inside the 2 opaque calls, which you do not show any implementation of.
+	      	I went to check your development, and your auxiliary methods are simply Axioms! This is misleading and should be signposted clearly in the paper.
+		Actually implementing and verifying these calls could have prevented many of the issues popping up in the text and the figure."
 
+		>> Response:
 
->> Response: (Colin, I should speak about these with Colin)
+	      + "Many details that you show in the proof are only partly explained (and in a convoluted way) in the text; e.g., is pte_addr just an alias pointing to pa for convenience reasons?
+	      	 Why does it point to wzero 64 and not some existentially quantified value (a function called ensure_L1_page does not sound like it will unmap the previous entry)? etc."
+
+		 >> Response: There aliasing to the ensured entry happens but then, as a widely adopted policy, OSes drops these aliases (not all). For the sake clarity in the example, we wanted
+		    get the entry already zeroed, but technically, it is same with initialization of an existentially quantified entry.
+
+	       + "Does aligned mean word-aligned or page aligned? From fig.11 I am getting the impression that it is the latter but Fig.4 gave the opposite impression.
+	       	  753 Where does this +3 come from? The text mentions +1, which I don't get either; fpaddr is said to be aligned, not fpaddr + 3. Additionally, 811 directly contradicts this.
+
+		 >> Response: (Colin, ask Colin for a polite explanation)
+		 
 
 Question 563B: "(related to remarks about section 4.5 above) Would it be possible to support (1) a frame rule that applies to Facts only together with
 	  	(2) a way to convert "P * cr3 = v" into "[v] P" and to convert "[v] P * cr3 = v" back into "P" and
 		(3) the assumption that [v] P is always a Fact."
 
->> Response: All trivial by definition
+>> Response: All trivial by definition.
 
 Questions 536B: "How would you share the kernel page tables in multiple processes?
 	  	 It seems you have hard-coded the fractions for the physical points-tos in Figure 4
@@ -147,3 +162,7 @@ Question 563B: "Your virtual points-to chunks require full ownership of physical
 Question 563B: "Could you support the root of the page table being moved to a different physical address? Is it possible to change the index in ASpaces to make IAAspace hold again?"
 
 >> Response: Just making the IASpace to non-permanent assertion (which is in-fact something we used in the mechanized proof) introduces this capability.
+
+Some Small Comments 536B: "The black later means something different than what you think in Iris; it is an endofunctor on the category of OFEs! What you want is the white triangle."
+
+>> Response: Yes, we are well-aware of this, thanks.
