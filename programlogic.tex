@@ -411,7 +411,7 @@ Physical points-tos and register value assertions, when treated as \textsf{vProp
 % \subsection{Considering Hoare Doubles in the Context of Switching Address-Space}
 % \subsubsection{Issues with Using Hoare Triples in Address-Space Specification}
 \label{sec:issues}
-An important subtlety arises with supporting \lstinline|mov|s into \lstinline|%cr3|. Consider the hypothetical rule
+An important subtlety arises with supporting \lstinline|mov|s into \lstinline|cr3|. Consider the hypothetical rule
 \begin{mathpar}
 \inferrule[Broken]{ }{
   \{P \ast \textsf{cr3}\mapsto_{r} \;r_1 \ast r \mapsto_{r} \;r_2 \ast [r_2](Q)\}

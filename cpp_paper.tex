@@ -1,3 +1,4 @@
+\pdfoutput=1
 %%
 %% This is file `sample-acmsmall-conf.tex',
 %% generated with the docstrip utility.
@@ -45,8 +46,8 @@
 %% for your publication.
 %%
 %%
-\documentclass[acmsmall,screen]{acmart}
-
+\documentclass[acmsmall,screen,nonacm]{acmart}
+\settopmatter{printacmref=false}
 %%
 %% \BibTeX command to typeset BibTeX logo in the docs
 \AtBeginDocument{%
@@ -226,6 +227,8 @@
 \email{csgordon@drexel.edu}
 \affiliation{%
   \institution{Drexel University}
+  \city{Philadelphia, PA}
+  \country{USA}
 }
 
 
