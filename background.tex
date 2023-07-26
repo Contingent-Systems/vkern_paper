@@ -133,7 +133,12 @@ the classic example being that if $P$ is true, then $P$ is \emph{necessarily} tr
 Of particular interest for reasoning about virtual memory are modalities that permit \emph{naming} the alternate 
 circumstances, prominently \emph{hybrid} modal logics~\cite{blackburn1995hybrid,areces2001hybrid}, which come equipped 
 with assertions of the form $[\ell](P)$ indicating that $P$ is true in the specific alternate circumstance (Kripke world)
- named by the \emph{nominal} $\ell$.
+ named by the \emph{nominal} $\ell$. Note that a distinctive property of hybrid logics is that, rather than hiding
+the points at which a modal assertion is evaluated inside the modality's definition, the choice of what world a modalized
+assertion should be true in is chosen \emph{in the assertion itself}. This allows assertions to talk about not simply whether some other assertion
+is true in some possible future or past world related in a fixed way to the current world, but to talk about \emph{arbitrary}
+other worlds. This explicit naming of alternate worlds increases the power of modal logics~\cite{blackburn1995hybrid}, and is actually
+necessary for completeness in classical separation logics~\cite{brotherston2014parametric}.
 
 For our purposes, these are natural candidates to adapt for virtual memory management. We can reinterpret the notion of 
 naming an alternate world slightly more loosely, and instead name \emph{address spaces} by the physical address of the 

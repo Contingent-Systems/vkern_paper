@@ -123,4 +123,23 @@ can be drawn about the current resource), which means the modalities themselves 
 Instead, assertions under our other-space modality can and do
 have resource footprints.
 Pleasantly, we sidestep most of the metatheoretical complexity of those other substructural hybrid
-systems by building our logic within a substructural metatheory (Iris).
+systems by building our logic within a substructural metatheory (\iris).
+
+\iris has been used to build other logics through pointwise lifting, notably logics that deal with weak
+memory models~\cite{dang2019rustbelt,dang2022compass}. Those systems build a derived logic
+whose lifting consists of functions from thread-local views of events (an operationalization of the release-acquire + nonatomic
+portion of the repaired C11 memory model~\cite{lahav2017repairing}): there modalities $\Delta_\pi(P)$ and $\nabla_\pi(P)$
+represent that $P$ held before or will hold after certain memory fence operations by thread $\pi$.
+The definitions of those specific modalities existentially quantify over other views, related to the ``current'' view (the one where
+the current thread's assertions are evaluated), and evaluate $P$ with respect to those other views. This approach to parameterizing
+assertion semantics by a point of evaluation, and evaluating modalized assertions at other points, is what it means
+to have a modality at all.
+It is \emph{not}, however, an instance of hybrid logic, which is specifically demarcated by an assertion language where
+\emph{assertions}, not their semantics, choose and name the evaluation points for modal assertions.
+A hybrid extension of the aforementioned logics would include assertions which named specific views at which to evaluate
+$P$, in the syntax of the assertion (e.g., $\Delta_\pi^v(P):=\lambda\_\ldotp (P\;v)$) rather than the 
+$\Delta_\pi(P):= \lambda v\ldotp (\exists v_{rel}\ldotp \ownGhost{\pi}{\mathsf{RelV}(v_{rel})\;v} \ast (P\;v_{rel})))$ actually used.
+Note the hybrid version takes the place to evaluate $P$ as a parameter, and therefore allows the \emph{derived} (modal) logic to explicitly
+reason in terms of evaluation points, rather than hiding all points of evaluation in the internal definitions of modalities.
+
+
