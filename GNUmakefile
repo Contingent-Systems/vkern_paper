@@ -1,4 +1,4 @@
-DOC=cpp_paper
+DOC=modal_abs_vmm_paper
 
 export TEXINPUTS=.:
 
