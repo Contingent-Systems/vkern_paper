@@ -167,6 +167,31 @@ and information about the physical location,
 full permission on the L1 entry could be obtained, allowing the construction of a
 full virtual PTE pointer for it, setting to 0, and reclaiming the now-unmapped physical memory.
 
+\subsection{Traversing Live Page Tables}
+The mapping operation of Figure \ref{fig:mapping_code} assumes an operation \lstinline|ensure_L1| which must traverse the page tables
+in order to locate the address of the L1 entry to update --- possibly allocating pages at levels 3 and 2 in the process.
+Traversing the page tables is itself challenging functionality to verify: loading the current table root from \lstinline|cr3| is straightforward
+(a \lstinline|mov| instruction), however this produces the physical address of \lstinline|cr3|, not the virtual address the kernel code would use to access that memory.
+This problem repeats at each level of the page table: assuming the code has \emph{somehow} read the appropriate L4 (or L3, or L2) entry, those entries again
+yield physical addresses, not virtual.
+Most kernels maintain an invariant on their page tables that the virtual address of any page used for a page table lives at a virtual address
+whose value is a constant offset from the physical address a practice sometimes referred to as \emph{identity mapping} (even though the physical-to-virtual translation
+is typically not literally the identity function).\footnote{Some kernels do this for all physical memory on the machine, simplifying interaction
+with DMA devices.}
+We have verified\todo{todo!} the page table walk corresponding to \lstinline|ensure_L1| under this constant-offset assumption (including allocating missing page table levels).
+
+The critical challenges of verifying this code relate to both proving memory safety of the traversal, and peeling out enough resources from the per-address-space
+invariant to construct the pte-points-to used in Figure \ref{fig:mapping_code}.
+This is not possible to do modularly (without knowledge of other address spaces' details) with prior work.  \citet{kolanski08vstte} could reason about the walk, but would need to explicitly prove that all other invariants
+of the kernel, the current address space, and all other address spaces of interest were preserved by each update, because their model
+only supports separation within a single address space. In our model, this follows for free from making
+our separation logic directly aware of address translation and internalizing assumptions about other address spaces as further separable assertions.
+\textsc{seL4} currently still trusts address translations; it models page tables as a data structure in regular memory, thus not capturing the possibility that even
+temporarily destroying the mappings and restoring them can actually crash the OS. \textsc{CertiKOS} \todo{hard to word since they intentionally don't publicize any
+details}
+
+A detailed proof outline and discussion of this code is given in Appendix \ref{apdx:tablewalk}.\todo{todo}
+
 \subsection{Change of Address Space}
 A critical piece of \emph{trusted} code in verified OS kernels is the assembly code to change the current address space; current verified OS kernels currently lack effective ways to specify and reason about this low-level operation, for reasons outlined in Section \ref{sec:relwork}.
 \begin{figure}\footnotesize
