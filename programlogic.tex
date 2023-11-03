@@ -26,7 +26,7 @@ We derive a program logic (a separation logic) supporting the following stances 
 \item \textit{sharing}: The physical location backing a virtual address's storage is located (during a page table walk) through a 
       set of physical page-table (L4-L1 page-tables) acceses that are shared amongst different virtual addresses (specifically,
       those on the same page of memory\footnote{of in the case of L2 or higher levels of tables, within a given broader region.}).
-      This sharing imposes constraints on definiting points-to assertions
+      This sharing imposes constraints on defining points-to assertions
       in terms of physical (L4-L1) page-table memory accesses
 \item \textit{context-agnostic-resources}: each virtual address is valid under a certain address-space, 
       but it does not represent this \textit{knowledge} of its address-space. 
@@ -67,8 +67,8 @@ The fraction $\qfrac$ with value 1 asserts the unique ownership of the register 
 otherwise, any value $0 < \qfrac <1$ represents partial ownership granting readonly permission on the mapping.
 
 \paragraph{Physical memory  points-to} The soundness proofs for our logic's rules largely center around page-table-walk accesses as in Figure \ref{fig:coq_addr_translation},
- where (inside the helper functions) we need to split a 64-bit word representing entries in these tables into 52-bit segments
-which specify the physical page number of another page in the walk, and 12-bit segments containing various control bits.
+ where (inside the helper functions) we need to split a 64-bit address into 52-bits' worth of segments
+that specify the table indices used to locate physical page numbers for successive pages in the walk, and 12-bit segments containing various control bits.
 For this reason we have two notions of physical points-to facts. The primitive notion closest to our machine model is:
 \[ \textsf{w1} \ \sim \ \textsf{w2} \mapsto_{\textsf{a}} \; \{\textsf{q}\} \; \textsf{v} \]
 In this form, we see that \textsf{w1} (a $\mathcal{W}_{52}$) essentially selects a 4KB page of physical memory,
@@ -106,7 +106,7 @@ require that in order for a virtual address \textsf{va} to point to a value \tex
 partial ownership of the physical memory involved in the page table walk that would translate \textsf{va} to
 its backing physical location --- with locations existentially quantified since a virtual points-to should not assert
 \emph{which} locations are accessed in a page table walk.
-Figure \ref{figure:strongvirtualpointsto} gives such a definition.
+Figure \ref{fig:strongvirtualpointsto} gives such a definition.
 It asserts the existence of for page table entries, one at each translation level, and via \lstinline|L4_L1_PointsTo|
 asserts from the current \lstinline|cr3| value, taking the offsets from \textsf{va} (as in Figure \ref{fig:pagetables})
 to index each level, finding the existentially quantified entries in each level, 
@@ -161,6 +161,8 @@ where the semantics of all assertions are functions from pairs of heaps and page
 }
 Our solution removes some restrictions in this definition by further abstracting the handling of address translation.
 
+\todo[inline,color=cyan]{Colin edit frontier}
+
 \subsection{Aliasing/Sharing Physical Pages}
   \label{sec:sharingpages}  
   One might have already observed that the virtual points-to definition shown in Figure \ref{fig:strongvirtualpointsto} 
@@ -188,9 +190,9 @@ Our solution removes some restrictions in this definition by further abstracting
     \quad
     \exists \paddr\ldotp
     \exists \delta\ldotp
-    \underbrace{\lambda\mathit{cr3val}\ldotp\sumapaces{\mathit{cr3val}}\delta}_\text{\begin{tabular}{c}Find ghost map for this\\address space\end{tabular}} \ast 
+    \underbrace{(\lambda\mathit{cr3val}\ldotp\sumapaces{\mathit{cr3val}}\delta)}_\text{\begin{tabular}{c}Find ghost map for this\\address space\end{tabular}} \ast 
   \underbrace{\sumwalkabs\vaddr\qfrac\paddr }_\text{\begin{tabular}{c}Fractional ownership of \\virt-to-phys translation\end{tabular}}\ast 
-  \underbrace{\paddr \mapsto_{\mathsf{p}} \vale}_\text{\begin{tabular}{c}Value at\\physical location\end{tabular}}
+  \underbrace{\paddr \mapsto_{\mathsf{p}}\{\textsf{q}\}\; \vale}_\text{\begin{tabular}{c}Value at\\physical location\end{tabular}}
 \end{array}
 \]
 \caption{Virtual-Pointsto for Sharing Pages}
@@ -215,7 +217,7 @@ Our solution removes some restrictions in this definition by further abstracting
   the knowledge that such resources exist (which is embodied by the token for $va$, which tracks that $va$ maps to $pa$
   in the ghost map). Thus we can store the token which summarizes the translation and ensures it exists in the virtual
   points-to, and keep the ghost map and the invariant that every mapping in the ghost map has corresponding physical resources
-  for translation in a separate global invariant.
+  for translation in a separate global invariant for each address space.
 
   % To do so, we introduce the protocol separating read-only (fragmental) and authorative (full ownership) accesses to the page tables, specifically $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$. 
   % We realize this protocol by embedding it into an already existing \textsf{Iris}'s ghost-map (or view\_maps) construction
@@ -589,6 +591,7 @@ not used by the first instruction in sequence through and on to subsequent instr
   %\lstinline|mov %cr3, r| 
 }
 \end{mathpar}
+\todo[inline]{update for rip tracking}
 \caption{Reasoning Rules for Selected \textsf{AMD64} Instructions under}
 \label{fig:wpdamd}
 \end{figure}

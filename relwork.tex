@@ -141,5 +141,11 @@ $P$, in the syntax of the assertion (e.g., $\Delta_\pi^v(P):=\lambda\_\ldotp (P\
 $\Delta_\pi(P):= \lambda v\ldotp (\exists v_{rel}\ldotp \ownGhost{\pi}{\mathsf{RelV}(v_{rel})\;v} \ast (P\;v_{rel})))$ actually used.
 Note the hybrid version takes the place to evaluate $P$ as a parameter, and therefore allows the \emph{derived} (modal) logic to explicitly
 reason in terms of evaluation points, rather than hiding all points of evaluation in the internal definitions of modalities.
+This prior \iris-based work also uses modalities where the interpretations are fixed a priori by logic designers. In contrast, our
+address space modalities' interpretations can be changed by program behaviors via page table updates; the equivalent in the prior work would
+be if programs could directly manipulate the buffers used to model weak memory behaviors,
+which they cannot.\footnote{Note that the views modelled modally in this prior work are abstractions of a wide range of hardware, so such
+manipulation of corresponding hardware resources is in fact impossible,
+while the address space mappings in our work reflect known hardware components present in a variety of CPUs.}
 
 

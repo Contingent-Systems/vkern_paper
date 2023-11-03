@@ -3,7 +3,13 @@
 \subsection{Machine Model}
 \label{sec:backgroundonmachinemodel}
 
-In typical system configurations, all memory addresses seen by programs running on modern computers are \emph{virtualized}: the address observed by a running program generally will not correspond directly to the physical location in memory, and may not even correspond to a physical location that \emph{exists} in the machine. Instead, these \emph{virtual} addresses are translated to \emph{physical} addresses that correspond directly to locations in RAM. On most modern architectures, this translation is performed through cooperation of the hardware and OS kernel: while executing an instruction that dereferences a (virtual) address, the CPU's \emph{memory management unit} (\textsc{MMU}) implements an architecture-specific process of \emph{address translation}, resulting in a physical address used to access the cache\footnote{Technically, for performance reasons most caches are indexed with parts of the virtual address, but tagged with the physical data addresses, so cache lookups and address translations can proceed in parallel.} and/or memory-bus.
+In typical system configurations, all memory addresses seen by programs running on modern computers are \emph{virtualized}: the address observed by a running
+program generally will not correspond directly to the physical location in memory, and may not even correspond to a physical location that \emph{exists} 
+in the machine. Instead, these \emph{virtual} addresses are translated to \emph{physical} addresses that correspond directly to locations in RAM. On most 
+modern architectures, this translation is performed through cooperation of the hardware and OS kernel: while executing an instruction that dereferences a 
+(virtual) address, the CPU's \emph{memory management unit} (\textsc{MMU}) hardware performs \emph{address translation},
+resulting in a physical address used to access the cache\footnote{Technically, for performance reasons most caches are indexed with parts of the virtual 
+address, but tagged with the physical data addresses, so cache lookups and address translations can proceed in parallel.} and/or memory-bus.
 
 \begin{figure}
     \includegraphics[width=\columnwidth]{pagetables.png}
@@ -27,10 +33,15 @@ on the most recent processors, where levels 4 and 5 are simply known by their nu
 only deals with 4-level page tables, but is straightforwardly extensible to 5.}  
 Because address translation 
 traverses a series of tables, the translation process or algorithm is sometimes referred to as a \emph{page-table walk}. 
-While Figure \ref{fig:pagetables} and most of our details are specific to the x86-64 architecture, ARMv8 (a.k.a.\ 
+While Figure \ref{fig:pagetables} and most of our constants (how many levels, which virtual address bits index which
+table levels) are specific to the x86-64 architecture, ARMv8 (a.k.a.\ 
 \texttt{aarch64}), RISC-V, and PowerPC use similar hierarchical page tables for address translation.
 
-The entries of each table are 64 bits wide, but each points to a physical address aligned to 4KB (4096 byte) boundaries, which leaves 12 bits to spare to control a validity bit (called the \emph{present} bit), a read-write bit (which permits write access through the entry if and only if it is set), and a range of additional bits which can be used to control caching, write-through, and more. This paper will only consider the present bit (0), the read-write bit (1), and the accessed bit (5), which is set to 1 by the hardware every time an entry is used, allowing the OS to determine which pieces of memory are used or unused.
+The entries of each table are 64 bits wide, but each points to a physical address aligned to 4KB (4096 byte) boundaries, which leaves 12 bits to spare to 
+control a validity bit (called the \emph{present} bit), a read-write bit (which permits write access through the entry if and only if it is set), 
+and a range of additional bits which can be used to control caching, write-through, and more. This paper will only consider the present bit (0), 
+the read-write bit (1), and the accessed bit (5), which is set to 1 by the hardware every time an entry is used, allowing the OS to determine which 
+pieces of memory are used or unused.
 
 The page tables mapping virtual addresses to physical addresses are managed by the OS. Typically each process has its own 
 virtual-to-physical mappings represented by its own page table, which the OS registers with the CPU by storing the (page-aligned)
@@ -39,7 +50,26 @@ specific register (\texttt{cr3}) as part of switching to a new process.
 Using different mappings, which map only disjoint portions of physical memory (with some exceptions in the next section) 
 is how the OS ensures memory isolation between processes.
 
-If an instruction is executed that accesses a virtual address that either has no mapping, or does not have a mapping permitting the kind of access that was performed (e.g., the instruction was a memory write, but the relevant address range was marked read-only in the relevant page table entry), the hardware triggers a \emph{page fault}, transferring control to a \emph{page fault handler} registered with the hardware by the OS, allowing it to take corrective action (described in the next section).
+If an instruction is executed that accesses a virtual address that either has no mapping, or does not have a mapping permitting 
+the kind of access that was performed (e.g., the instruction was a memory write, but the relevant address range was marked read-only in
+the relevant page table entry), the hardware triggers a \emph{page fault}, transferring control to a \emph{page fault handler} registered 
+with the hardware by the OS, allowing it to take corrective action (described in the next section).
+
+\paragraph{Out of Scope: Translation Lookaside Buffers (TLBs)}
+CPUs with MMUs typically have an additional \emph{translation lookaside buffer}
+(TLB), to cache the (successful) results of page table walks, rather than merely transforming every virtual
+memory access into 5 physical accesses. 
+Any time a virtual address that was accessible becomes inaccessible (or has downgraded permissions),
+the TLB (or at least entries in affected virtual address ranges) should be flushed.
+In most kernels, this occurs in only a few well-known places, which is why existing verified kernels
+\textsc{seL4}~\cite{Klein2009seL4,seL4TOCS} and \textsc{CertiKOS}~\cite{gu15,gu2016certikos} currently
+trust that TLB flushes are handled correctly rather than actually modeling TLB hardware and verifying.
+Eventual verification of TLB handling is a worthwhile long-term goal, but it is a challenging pursuit in its
+own right. Based on others' early progress on verifying TLB operations in isolation~\cite{syeda2020formal}, we expect
+it to be possible to combine this paper's insights with that support. Even without TLB modeling,
+our logic already enables verification of virtual memory management functionality that prior verified kernel work
+either trusts completely (\textsc{seL4}, \textsc{CertiKOS}) or is incapable of reasoning about.
+Appendix \ref{apdx:tlb} gives more details on the challenges involved for the interested reader.
 
 \subsection{Virtual Memory Managers}
 \label{sec:backgroundonvmm}
@@ -149,7 +179,7 @@ The typical hybrid modality introduction rule, that $P$ and $\ell$ (indicating t
 $[\ell](P)$, has a natural analogue: knowing $P$ and that the current address space is $r$ (i.e., that $r$ is the 
 current \texttt{cr3} value) suggests a way to construct $[r](P)$. By the choice of \texttt{cr3} identifying the contingency, we can identify a fact
 \begin{itemize}
-  \item as a \textit{context} fact if its validity depends on \texttt{cr3} when it is outside the modality (i.e. modal context), and made \texttt{cr3} independent as a part of custom-tailored modal logic for virtual-memory: a truth representing a virtual-memory addressing depends \texttt{cr3} due to address-translation operation, is dependent on \texttt{cr3} in the ambient-logic (e.g. separation-logic), and is made \textit{independent} of the facts related to \texttt{cr3} by being introduced into the modal context under the assumption that it exhibits the knowledge on its validity with respect to \texttt{cr3} in the ambient logic.
+  \item as a \textit{contextual} fact if its validity depends on \texttt{cr3} when it is outside the modality (i.e. modal context), and made \texttt{cr3} independent as a part of custom-tailored modal logic for virtual-memory: a truth representing a virtual-memory addressing depends \texttt{cr3} due to address-translation operation, is dependent on \texttt{cr3} in the ambient-logic (e.g. separation-logic), and is made \textit{independent} of the facts related to \texttt{cr3} by being introduced into the modal context under the assumption that it exhibits the knowledge on its validity with respect to \texttt{cr3} in the ambient logic.
   \item as a \textit{pure} fact as long as it does not \textit{necessarily} depend on any fact related to \texttt{cr3}: a truth representing a raw physical memory addressing, unlike virtual-address translation, does not need the \textit{knowledge} of \texttt{cr3}, therefore it can be introduce into the modal context as a pure fact
 \end{itemize}
 
@@ -163,6 +193,10 @@ conjunction, or for which resources can freely move into the modality
 apply while others do not. For example, in our setting, an assertion that involves no modalities is interpreted as 
 holding in the current (active-on-the-CPU) address space, so clearly cannot move into arbitrary other address spaces 
 --- unless guarded by another address space modality.
+Some prior \iris-based work~\cite{dang2019rustbelt,dang2022compass} has constructed derived modalities in the style we propose, indexed
+by thread IDs. However in that setting, the intepretation of those modalities was fully fixed ahead of time (to refer to essentially buffers in operationalized versions of C11
+concurrency). In this setting, while our modalities will be indexed by page table roots, it is possible to modify the address translation for an address
+space with root $r$ --- thus changing the interpretation of a modality --- \emph{while assertions with that modality are active}.
 %
 %
 %Work on modal logic extends back for decades with many widely-varied variations; we discuss here only the pieces most relevant to our work.
