@@ -37,7 +37,7 @@ known-valid page table walks and update the appropriate L1 page table entry.
 \newcommand{\fpaddr}{\texttt{fpaddr}}
 \newcommand{\specline}[1]{{\color{blue}\left\{#1\right\}}}
 \begin{figure}\footnotesize
-  \begin{lstlisting}
+  \begin{lstlisting}[mathescape]
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m)  \ast  \texttt{r14}\mapsto_{\textsf{r}} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{\textsf{r}} \_ \ast \ulcorner \texttt{aligned va} \land  \theta \; !!\; \vaddr = \texttt{None}\urcorner}_{\rtv}$
 call ensure_L1_page
 $\specline{\exists (\entryf ,\;\entrytr,\; \entrytw,\; \entryo,\;\textsf{pte\_addr },\paddr) \; \ldotp\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{\textsf{r}} \textsf{ pte\_addr} \; \ast }_{\rtv}$
@@ -170,7 +170,7 @@ full virtual PTE pointer for it, setting to 0, and reclaiming the now-unmapped p
 \subsection{Change of Address Space}
 A critical piece of \emph{trusted} code in verified OS kernels is the assembly code to change the current address space; current verified OS kernels currently lack effective ways to specify and reason about this low-level operation, for reasons outlined in Section \ref{sec:relwork}.
 \begin{figure}\footnotesize
-\begin{lstlisting}
+\begin{lstlisting}[mathescape]
 ;; Assume the save-space is in rdi,
 ;; load-space in rsi
 ;; No need to save/restore caller-save regs
