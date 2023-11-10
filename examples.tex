@@ -1,6 +1,6 @@
 %$\assert{\ulcorner \mathsf{aligned maddr} \urcorner \ast \mathsf{r14} \mapsto_{\textsf{r}} \textsf{r14v} \ast \mathsf{r13} \mapsto_{\textsf{r}} \textsf{maddr} \ast \mathsf{rdi} \mapsto_{\textsf{r}} \textsf{rdiv} \ast \mathsf{rax} \mapsto_{\textsf{r}} \textsf{raxv}}$
 %$\assert{\ulcorner \ptablestore !! \textsf{maddr} = \textsf{None} \urcorner \ast \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \ast \textsf{Pf}} $
-\section{Experiment}
+\section{Experiments}
 \label{sec:experiment}
 To both validate and demonstrate the value of the modal approach to reasoning about virtual memory management, we study several
 distillations of real concerns of virtual memory managers.
@@ -181,24 +181,26 @@ Traversing the page tables is itself challenging functionality to verify: loadin
 (a \lstinline|mov| instruction), however this produces the physical address of \lstinline|cr3|, not the virtual address the kernel code would use to access that memory.
 This problem repeats at each level of the page table: assuming the code has \emph{somehow} read the appropriate L4 (or L3, or L2) entry, those entries again
 yield physical addresses, not virtual.
+
 Most kernels maintain an invariant on their page tables that the virtual address of any page used for a page table lives at a virtual address
 whose value is a constant offset from the physical address a practice sometimes referred to as \emph{identity mapping} (even though the physical-to-virtual translation
-is typically not literally the identity function).\footnote{Some kernels do this for all physical memory on the machine, simplifying interaction
+is typically not literally the identity function, but adding a constant offset).\footnote{Some kernels do this for all physical memory on the machine, simplifying interaction
 with DMA devices.}
-We have verified\todo{todo!} the page table walk corresponding to \lstinline|ensure_L1| under this constant-offset assumption (including allocating missing page table levels).
-A detailed proof outline and discussion of this code is given in Appendix \ref{apdx:tablewalk}.\todo{todo}
 
-The critical challenges of verifying this code relate to both proving memory safety of the traversal --- which requires reasoning accurately about 
-computing a virtual address for accessing a page table from its physical address --- and peeling out enough resources from the per-address-space
-invariant to construct the pte-points-to used in Figure \ref{fig:mapping_code}. Prior work cannot do this.
+Work to verify the full page table walk is ongoing, but we have verified the key step for a small x86-64 kernel, which is the physical-to-virtual
+conversion (often appearing as a macro \texttt{P2V} in C source code). In our small kernel, as in larger kernels, \texttt{P2V} is actually just addition,
+though the Hoare triple we verify for this add instruction is rather complex:
+
+\todo[inline]{typeset as a triple}
 
 \citet{kolanski08vstte,kolanski09tphols} verified a single code block with their logic which was roughly Figure \ref{fig:mapping_code} for a 2-level ARM
 page table, but several critical complexities our work deals with were not addressed.
 First, beyond the limitations discussed in Section \ref{sec:overly-restrictive}, Kolanski and Klein assumed that virtual addresses
-for page tables at each level were given as parameters rather than verifying the conversion from physical addresses to virtual addresses (or even axiomatizing their lookup).
+for page tables at each level were given as parameters rather than verifying any conversion from physical addresses to virtual addresses (or even axiomatizing their lookup).
 In contrast, our verification articulates the address space invariant from which the physical-to-virtual translation can be implemented.
 Second, our proof deals with the construction of a valid virtual points-to \emph{to the PTE to update} in mapping, which Kolanski and Klein also
 assumed was given.
+\todo{some of this is really an argument for our verification being more thorough, rather than being about our logic}
 
 Reasoning about the page table walk in their logic would have required 
 could reason about the walk, but would need to explicitly prove that all other invariants
@@ -208,8 +210,9 @@ our separation logic directly aware of address translation and internalizing ass
 Kolanski and Klein did address part of the walk information for a 2-level page table (a possible ARM configuration), but 
 
 \textsc{seL4} currently still trusts address translations; it models page tables as a data structure in regular memory, thus not capturing the possibility that even
-temporarily destroying the mappings and restoring them can actually crash the OS. \textsc{CertiKOS} \todo{hard to word since they intentionally don't publicize any
-details}
+temporarily destroying the mappings and restoring them can actually crash the OS. \textsc{CertiKOS} papers share little in the way of precise details about
+their virtual memory management, but because their core technology is based on a fork of \textsc{CompCert}, whose model of memory is
+a set of unordered block allocations, we can infer their proofs must also trust these translations.
 
 
 \subsection{Change of Address Space}
