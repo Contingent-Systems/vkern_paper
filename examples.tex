@@ -193,6 +193,9 @@ though the Hoare triple we verify for this add instruction is rather complex:
 
 \todo[inline]{typeset as a triple}
 
+We can see that this specification neatly encapsulates reasoning about invariants on the page tables in terms of general modal assumptions.\todo{speculative
+but ought to turn out this way}
+
 \citet{kolanski08vstte,kolanski09tphols} verified a single code block with their logic which was roughly Figure \ref{fig:mapping_code} for a 2-level ARM
 page table, but several critical complexities our work deals with were not addressed.
 First, beyond the limitations discussed in Section \ref{sec:overly-restrictive}, Kolanski and Klein assumed that virtual addresses
