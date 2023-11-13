@@ -160,17 +160,13 @@ flags set by comparison operations and inspected by conditional jumps).
 For clarity and ease of representation, we use machine words, $\loc \in \Loc$, with the subscripts showing the number of bits in a word,
 for memory addresses, values, and offsets, rather than distinct location types that wrap machine words.
 For example, $\kw{w}_{12}$ is a 12-bit word, which can be obtained for example truncating away 52 bits of a 64-bit word ($\kw{w}_{64}$).
+
 \subsection{State}
 \label{sec:state}
 We represent the machine state mainly as a finite map of registers to register values and a map of word-aligned physical memory addresses 
 to 64-bit physical memory values. 
-Thus our states $\sigma$ include:
-%Together with default \textsf{CPU} instantiation, we end up having our state with following pieces:
-\begin{itemize}
-%\item A constant cpu initialized with default value: $\sigma.\mathcal{C}$
-\item A register map: $\sigma.\mathcal{R}: \kw{greg} \rightarrow_{\textrm{fin}} \kw{regval} $
-\item A memory map: $\sigma.\mathcal{M}: \Locft \rightharpoonup_{\textrm{fin}} (\Loctw \rightharpoonup_{\textrm{fin}} \Locsf )$
-\end{itemize}
+Thus our states $\sigma$ include register maps $\sigma.\mathcal{R}: \kw{greg} \rightarrow_{\textrm{fin}} \kw{regval} $ and
+memory maps $\sigma.\mathcal{M}: \Locft \rightharpoonup_{\textrm{fin}} (\Loctw \rightharpoonup_{\textrm{fin}} \Locsf )$.
 Of particular note, \texttt{cr3}, the page table register, is included in the machine state.
 % As one might have already anticipated from the syntax we introduce, we do not bind any value of an evaluated expression. All the indices and accessed values are treated as globally referenced. In align with this design choice, our expression is a stream of instructions, which is not evaluated to a value to be bound, but changes the machine state through the indices (e.g. $\kw{r}\in\kw{greg}$) -- to the global maps.
 \subsection{Instructions}
@@ -178,12 +174,12 @@ Of particular note, \texttt{cr3}, the page table register, is included in the ma
 
 \begin{figure}[t]
 \begin{lstlisting}[language=Coq,mathescape]
- Definition translate (rtv: word 64) ($\sigma$: state) (w: word 64): word 64 + MemFail :=
-      l4e $\leftarrow$ translate_top_level $\sigma.\mathcal{M}$ rtv w; 
-      l3e $\leftarrow$ translate_from_l4e $\sigma.\mathcal{M}$ l4e w; 
-      l2e $\leftarrow$ translate_from_l3e $\sigma.\mathcal{M}$ l3e w;
-      l1e $\leftarrow$ translate_from_l2e $\sigma.\mathcal{M}$ l2e w;
-      addr $\leftarrow$ translate_from_l1e $\sigma.\mathcal{M}$ l1e w;
+ Definition translate (rtv: word 64) ($\sigma$: state) (vaddr: word 64): word 64 + MemFail :=
+      l4e $\leftarrow$ translate_top_level $\sigma.\mathcal{M}$ rtv vaddr;
+      l3e $\leftarrow$ translate_from_l4e $\sigma.\mathcal{M}$ l4e vaddr;
+      l2e $\leftarrow$ translate_from_l3e $\sigma.\mathcal{M}$ l3e vaddr;
+      l1e $\leftarrow$ translate_from_l2e $\sigma.\mathcal{M}$ l2e vaddr;
+      addr $\leftarrow$ translate_from_l1e $\sigma.\mathcal{M}$ l1e vaddr;
       return concat (shift_dropn addr 3 three_lt64) low3.
 \end{lstlisting}
 \vspace{-1em}
@@ -206,10 +202,8 @@ so our proof rules guarantee no memory failures occur --- that the page table wa
 % concluded with alignment of the returned address for each \textit{successful} page-table-walk traversal which is what our reasoning principles 
 % only consider.
 
-The main instructions we implement are variants of the x86-64 \lstinline|mov| instruction, which we format in Intel syntax (destination on the left, source on the right).
-As expected \textsf{store} would be the update on the memory map entry
-% After defining the translation in terms of physical load and store action, now we can define our memory \lstinline|mov| instructions
-For memory operations, we treat
+The most important instructions we model are memory-accessing variants of the x86-64 \lstinline|mov| instruction, which we format in Intel syntax
+(destination on the left, source on the right):
 \[
 \begin{array}{l}
   \hbox{(\TirNameStyle{WriteToMemFromReg})} \qquad
@@ -218,37 +212,11 @@ For memory operations, we treat
   \textsf{mov}~r_r~[r_m]
   \end{array}
   \]
-which are realized by first translating the virtual-memory address of a memory location stored in $r_m$ to a physical memory location,
-then updating those memory contents with the contents of register $r_r$ (\TirNameStyle{WriteToMemFromReg}) 
+The semantic of each is realized by first translating the virtual-memory address of a memory location stored in $r_m$ to a physical memory location,
+then either updating those memory contents with the contents of register $r_r$ (\TirNameStyle{WriteToMemFromReg}) 
 or loading the value at that physical memory location into the register $r_r$
 (\TirNameStyle{WriteToRegFromMem}). 
-% More \lstinline|mov| instructions operating with memory addresses can be found in the submission artifact for different addressing schemes and data sizes.
-Additional variants (such as instructions which access memory at a constant offset from the virtual address stored in a register) are also treated.
-
-For register operations, we support moves back and forth between any pair of registers, though the \coq formalization splits these according to whether
-the source or destination registers are standard data registers (e.g., \lstinline|rax|) or control registers (e.g., \lstinline|cr3|).
-% \[
-% \begin{array}{l}
-%   \hbox{(\TirNameStyle{WriteToRegFromReg})} \qquad 
-%    \textsf{mov ireg64 ireg64} \\
-%   \hbox{(\TirNameStyle{WriteToCtlRegFromReg})} \qquad 
-%   \textsf{mov creg64 ireg64}\\
-%     \hbox{(\TirNameStyle{WriteToRegFromCtlReg})} \qquad 
-%   \textsf{mov ireg64 creg64}
-%   \end{array}
-% \]
-% for different types of registers (e.g. control and general).
-%
-%\subsection{Machine State under Address Translation}
-%\label{sec:selectedinstrsemantics}
-%Althought we give the complete set of operational semantics rule in \sref{appendix:movops}, It is worth building the intuition on the the way some of these rules bahave in the context of address translation. In fact $\readlval\maddr{\storememstar\crval}\locsf$ is unfoled into multiple physical memory lookups for the final page address retrieval -- i.e. address translation traversal as shown in Figure \ref{fig:pagetables}:
-%\begin{itemize}
-%\item top-level-address translation: with the given root address (64-bit $\crval$) of the address space, performs the address translation, handling the first level (to get the PML4 entry) itself. The next level table address is computed with the fetched PML4 offset value which exhibits itself as 9-bit offset in $\kw{maddr}$. \mytodo{iso: put move}
-%\item translating from PML4 entry: performs the second level of address translation, to retrieve starting at the PML4 table entry, and interprets the PML4 entry that references a Page-Directory-Pointer Table (PDPT). We obtain the PDPT offset which exhibits itself as 9 bit offset in $\kw{maddr}$ to obtain the address of the next level page directory table (PDT) \mytodo{iso: put move}
-%\item translating from PD entry: performs the third level of address translation, to retrieve starting at the PDP table entry, and interprets a PDPTE that references a PD table. Likewise, we obtain the PD offset which exhibits itself as 9 bit offset in $\kw{maddr}$ to obtain the address of the next level page directory table (PT) \mytodo{iso:put move }
-%\item translate from PT entry: performs final level of address translation, starting from the PT entry, with a given 12 bit page offset, we can compute the physical address referencing $\locsf$ \mytodo{ismo: put mov}
-%\end{itemize}
-
-In addition to \lstinline|mov| instructions involving 64-bit registers, our formalization includes basic integer and bitwise operations (\lstinline|add|,
+Additional \lstinline|mov| variants (e.g., accessing memory at constant offsets from the base register, or moves between registers) are also treated.
+Our formalization also includes basic integer and bitwise operations (\lstinline|add|,
 \lstinline|and|, bit shifts, etc.) with their effects on \lstinline|rflags|, jumps and some (not all) conditional jumps, \lstinline|call|, \lstinline|ret|, \lstinline|push|,
 and \lstinline|pop|.

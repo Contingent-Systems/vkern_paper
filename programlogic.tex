@@ -42,20 +42,27 @@ We derive a program logic (a separation logic) supporting the following stances 
 
 The first viewpoint, that the truth of an assertion is relative to an address space, has far-reaching consequences.
 Therefore, as a first step, we work entirely in a pointwise lifting of Iris's base BI logic,
-essentially working with separation logic assertions indexed by a page table root as a $\mathcal{W}_{64}$
-(Figure \ref{fig:vprop}), which we call $\textsf{vProp }\Sigma$; this is the (\textsc{Coq}) type of assertions in our logic.
+essentially working with separation logic assertions indexed by a choice of page table root as a $\mathcal{W}_{64}$, which we call $\textsf{vProp }\Sigma$:\footnote{
+  \iris experts may notice our \lstinline|-b>| resembles another variety of pointwise lifting that already exists in the main \iris
+  distribution~\cite{dang2019rustbelt,dang2022compass}. This is essentially true, but the standard formalization does not work for index types which
+  are indexed in the sense of \coq's metatheory, as our \lstinline|word n| types are.
+}
+\begin{lstlisting}[language=Coq]
+  Definition vProp  $\Sigma$ : bi := word 64 -b> iPropI  $\Sigma$.
+\end{lstlisting}
+This is the (\textsc{Coq}) type of assertions in our logic.
 Most constructs in Iris's base logic are defined with respect to any BI-algebra (of \textsc{Coq} type \lstinline|bi|), so automatically
 carry over to our derived logic.
 However, be must still build up from existing Iris primitives to provide new primitives that depend on the address space --- primarily the notion
 of virtual points-to.
 
-\begin{figure}[t]
-\begin{lstlisting}[language=Coq]
-  Definition vProp  $\Sigma$ : bi := word 64 -b> iPropI  $\Sigma$.
-  \end{lstlisting}
-\caption{$\textsf{vProp }\Sigma$: Root-Address Indexed Address-Space Proposition}
-  \label{fig:vprop}
-\end{figure}
+% \begin{figure}[t]
+% \begin{lstlisting}[language=Coq]
+%   Definition vProp  $\Sigma$ : bi := word 64 -b> iPropI  $\Sigma$.
+%   \end{lstlisting}
+% \caption{$\textsf{vProp }\Sigma$: Root-Address Indexed Address-Space Proposition}
+%   \label{fig:vprop}
+% \end{figure}
 
 \subsection{Base Points-To Assertions}
 \label{sec:pointsto}
@@ -69,23 +76,21 @@ otherwise, any value $0 < \qfrac <1$ represents partial ownership granting reado
 \paragraph{Physical memory  points-to} The soundness proofs for our logic's rules largely center around page-table-walk accesses as in Figure \ref{fig:coq_addr_translation},
  where (inside the helper functions) we need to split a 64-bit address into 52-bits' worth of segments
 that specify the table indices used to locate physical page numbers for successive pages in the walk, and 12-bit segments containing various control bits.
-For this reason we have two notions of physical points-to facts. The primitive notion closest to our machine model is:
-\[ \textsf{w1} \ \sim \ \textsf{w2} \mapsto_{\textsf{a}} \; \{\textsf{q}\} \; \textsf{v} \]
-In this form, we see that \textsf{w1} (a $\mathcal{W}_{52}$) essentially selects a 4KB page of physical memory,
-and \textsf{w2} (a $\mathcal{W}_{12}$) is an offset within that page.
+For this reason we have two notions of physical points-to facts. The primitive notion closest to our machine model is captured by an assertion
+$ \textsf{pfn} \ \sim \ \textsf{pageoff} \mapsto_{\textsf{a}} \; \{\textsf{q}\} \; \textsf{v} $, where \textsf{pfn} (a $\mathcal{W}_{52}$ \emph{page frame number}) essentially selects a 4KB page of physical memory,
+and \textsf{pageoff} (a $\mathcal{W}_{12}$) is an offset within that page.
 % could be an 52-bits masked address to level 4 table 
 % ($\textsf{w1 } =( \textsf{ l4M52 maddr cr3val}) $),
 %and, expectedly \textsf{w2} is an address computed by page-offset computation (e.g. $\textsf{l4off maddr cr3val}$). 
 From this we can derive a more concise physical points-to when the split is unimportant:
 % Giving a raw 64-bits memory pointsto assertion becomes
-\[\textsf{w} \mapsto_{\textsf{p}} \{q\} \textsf{ v} \stackrel{\triangle}{=} (\textsf{drop 12}~w) \ \sim \ (\textsf{bottom 12}~w)\mapsto_{\textsf{a}} \textsf{ v} \]
+\[\textsf{w} \mapsto_{\textsf{p}} \{q\} \textsf{ v} \stackrel{\triangle}{=} (\textsf{drop 12}~w) \ \sim \ (\textsf{bottom 12}~w)\mapsto_{\textsf{a}} \; \{\textsf{q}\} \textsf{ v} \]
 
 \begin{figure*}
   \begin{lstlisting}[language=Coq]
  Definition $\vaddr\mapsto_{\textsf{t}}\{\textsf{q}\}\; \vpage$ : vProp $\Sigma$ := 
   $\exists_{\textsf{l4e l3e l2e l1e}} \ldotp$  $\ulcorner$ aligned $\vaddr \urcorner \ast$ L4_L1_PointsTo($\vaddr$ l4e l3e l2e l1e paddr) $\ast$ paddr $\mapsto_{p}\{\mathsf{q}\} \vpage$.
- Definition L4_L1_PointsTo (maddr l4e l3e l2e l1e paddr :word 64) : vProp $\Sigma$ :=
- $\lambda$ cr3val.
+ Definition L4_L1_PointsTo (maddr l4e l3e l2e l1e paddr :word 64) : vProp $\Sigma$ := $\lambda$ cr3val.
   $\ulcorner$ entry_present l4e $\land$ entry_present l3e $\land$ entry_present l2e $\land$ entry_present l1e$\urcorner$ $\ast$
   (l4M52 maddr cr3val) $\sim$ (l4off maddr cr3val) $\mapsto_{a}$ {q1}  l4e  $\ast$
   (l3M52 maddr l4e) $\sim$ (l3off maddr l4e)  $\mapsto_{a}$ {q2}  l3e $\ast$ 
