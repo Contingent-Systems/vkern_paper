@@ -19,29 +19,44 @@
 \newcommand{\ptableabswalk}[1]{\mathcal{A}\textsf{bsPTableWalk}(#1)}
 \newcommand{\ptablestore}{\theta}
 
-We derive a program logic (a separation logic) supporting the following stances and constraints:
-\begin{enumerate}
-\item \textit{address-spaces as modal contexts}: Assertions in our logic are context-dependent,
-  in the sense that their truth depends on which address space they are used in, due to the need to support virtual points-to assertions.
-\item \textit{sharing}: The physical location backing a virtual address's storage is located (during a page table walk) through a 
-      set of physical page-table (L4-L1 page-tables) acceses that are shared amongst different virtual addresses (specifically,
-      those on the same page of memory\footnote{of in the case of L2 or higher levels of tables, within a given broader region.}).
-      This sharing imposes constraints on defining points-to assertions
-      in terms of physical (L4-L1) page-table memory accesses
-\item \textit{context-agnostic-resources}: each virtual address is valid under a certain address-space, 
-      but it does not represent this \textit{knowledge} of its address-space. 
-      That is, assertions are not explicitly tagged with their address space validity
-\item \textit{updating address-space mappings}: We present logical abstractions to enable 
-      updating not only pages of typical data in memory, but also page tables themselves.\footnote{Prior work relied on unfolding operational semantics
-      to verify page table updates.}
-\item \textit{explicitly-modal assertions}: Our logic includes a means to talk about facts being true
-      in another address space
-\item \textit{address-space switch as changing the "World" of truth}: Switching from one address-space to another logically
-      becomes a simultaneous introduction-and-elimination of a pair of modal assertions (for different address spaces)
-\end{enumerate}
+We describe a program logic (a separation logic) along the lines suggested earlier, where every assertion is relative
+to an address space in which it is interpreted, allowing us to define \emph{virtual points-to} assertions that make claims
+about memory locations in a particular address space. Virtual addresses, and even virtual points-to assertions, 
+are not tagged with their address spaces in any way. Memory access in this logic is validated through the use 
+of virtual points-to assertions in pre-conditions, which guarantee that address translations succeed.
+This supports rules for updating not only typical data in memory that happens to be subject to address translation, but
+manipulation of the page tables themselves via virtual addresses (as demanded by all modern hardware), also
+via virtual points-to assertions.
+To support specifications that deal with multiple address spaces, our logic incorporates a hybrid-style modality
+$[r](P)$ to state that an assertion is true in another (assertion-specified) address space rather than the address space
+currently active in hardware, which is not only useful for virtual memory manager invariants but critical to reasoning
+about change-of-address-space.
+By developing this within the \iris framework, we obtain additional features (e.g., fractional permissions) that allow us to verify
+some of the most subtle and technically challenging instruction sequences in an OS kernel (Section \ref{sec:experiment}).
 
-The first viewpoint, that the truth of an assertion is relative to an address space, has far-reaching consequences.
-Therefore, as a first step, we work entirely in a pointwise lifting of Iris's base BI logic,
+% We derive a program logic (a separation logic) supporting the following stances and constraints:
+% \begin{enumerate}
+% \item \textit{address-spaces as modal contexts}: Assertions in our logic are context-dependent,
+%   in the sense that their truth depends on which address space they are used in, due to the need to support virtual points-to assertions.
+% \item \textit{sharing}: The physical location backing a virtual address's storage is located (during a page table walk) through a 
+%       set of physical page-table (L4-L1 page-tables) acceses that are shared amongst different virtual addresses (specifically,
+%       those on the same page of memory\footnote{of in the case of L2 or higher levels of tables, within a given broader region.}).
+%       This sharing imposes constraints on defining points-to assertions
+%       in terms of physical (L4-L1) page-table memory accesses
+% \item \textit{context-agnostic-resources}: each virtual address is valid under a certain address-space, 
+%       but it does not represent this \textit{knowledge} of its address-space. 
+%       That is, assertions are not explicitly tagged with their address space validity
+% \item \textit{updating address-space mappings}: We present logical abstractions to enable 
+%       updating not only pages of typical data in memory, but also page tables themselves.\footnote{Prior work relied on unfolding operational semantics
+%       to verify page table updates.}
+% \item \textit{explicitly-modal assertions}: Our logic includes a means to talk about facts being true
+%       in another address space
+% \item \textit{address-space switch as changing the "World" of truth}: Switching from one address-space to another logically
+%       becomes a simultaneous introduction-and-elimination of a pair of modal assertions (for different address spaces)
+% \end{enumerate}
+
+% The idea that the truth of an assertion is relative to an address space has far-reaching consequences.
+To support making assertions depend on a choice of address space, we work entirely in a pointwise lifting of Iris's base BI logic,
 essentially working with separation logic assertions indexed by a choice of page table root as a $\mathcal{W}_{64}$, which we call $\textsf{vProp }\Sigma$:\footnote{
   \iris experts may notice our \lstinline|-b>| resembles another variety of pointwise lifting that already exists in the main \iris
   distribution~\cite{dang2019rustbelt,dang2022compass}. This is essentially true, but the standard formalization does not work for index types which
@@ -73,10 +88,10 @@ The assertion $\textsf{r}\;\mapsto_{\textsf{r}}\{q\}\;\textsf{rv}$ ensures the o
 The fraction $\qfrac$ with value 1 asserts the unique ownership of the register mapping, and grants update permission on it, 
 otherwise, any value $0 < \qfrac <1$ represents partial ownership granting readonly permission on the mapping.
 
-\paragraph{Physical memory  points-to} The soundness proofs for our logic's rules largely center around page-table-walk accesses as in Figure \ref{fig:coq_addr_translation},
- where (inside the helper functions) we need to split a 64-bit address into 52-bits' worth of segments
-that specify the table indices used to locate physical page numbers for successive pages in the walk, and 12-bit segments containing various control bits.
-For this reason we have two notions of physical points-to facts. The primitive notion closest to our machine model is captured by an assertion
+\paragraph{Physical memory  points-to} The soundness proofs for our logic's rules largely center around 
+proving that page-table-walk accesses as in Figure \ref{fig:pagetables} succeed, which requires assertions
+dealing with physical memory locations.
+We have two notions of physical points-to facts. The primitive notion closest to our machine model is captured by an assertion
 $ \textsf{pfn} \ \sim \ \textsf{pageoff} \mapsto_{\textsf{a}} \; \{\textsf{q}\} \; \textsf{v} $, where \textsf{pfn} (a $\mathcal{W}_{52}$ \emph{page frame number}) essentially selects a 4KB page of physical memory,
 and \textsf{pageoff} (a $\mathcal{W}_{12}$) is an offset within that page.
 % could be an 52-bits masked address to level 4 table 
@@ -289,28 +304,28 @@ of the physical page table walk for each virtual-to-physical translation in $\Th
 
 
   
-Figure \ref{fig:logicaladdrspace} depicts the relationships between these pieces, for a single
-address space.
-The invariant for the currently active address space (solid round square labelled as 
-$\mathcal{I}$\textsf{ASpace} in Figure \ref{fig:logicaladdrspace}) asserts authorative ownership (i.e. 
-update capability), $\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$, of the ghost map $\Theta$
-describing virtual-to-physical address translations
--- shown as a solid-round-head arrow to $\mathcal{A}\textsf{PTableWalk}$.
-Each virtual points-to assertion (dashed round square labelled as \textsf{Virtual PointsTo}
- in Figure \ref{fig:peraspaceinvariant})
-asserts fragmental ownership of the ghost map $\Theta$, $\sumwalkabs\vaddr\qfrac\paddr$,
-shown via the dashed-diamond-head arrow to $\mathcal{A}\textsf{PTableWalk}$. Specifically, it asserts that
-the virtual address the virtual points-to assertion concerns corresponds to some physical address.
-There exists only one persistent authorative ownership 
-($\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$) which collects the fragmental 
-ghost page-table-walk mapping ($\sumwalkabs\vaddr\qfrac\paddr$),
- shown as double-ended solid arrow 1 to N imposing the update protocol.
+% Figure \ref{fig:logicaladdrspace} depicts the relationships between these pieces, for a single
+% address space.
+% The invariant for the currently active address space (solid round square labelled as 
+% $\mathcal{I}$\textsf{ASpace} in Figure \ref{fig:logicaladdrspace}) asserts authorative ownership (i.e. 
+% update capability), $\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$, of the ghost map $\Theta$
+% describing virtual-to-physical address translations
+% -- shown as a solid-round-head arrow to $\mathcal{A}\textsf{PTableWalk}$.
+% Each virtual points-to assertion (dashed round square labelled as \textsf{Virtual PointsTo}
+%  in Figure \ref{fig:peraspaceinvariant})
+% asserts fragmental ownership of the ghost map $\Theta$, $\sumwalkabs\vaddr\qfrac\paddr$,
+% shown via the dashed-diamond-head arrow to $\mathcal{A}\textsf{PTableWalk}$. Specifically, it asserts that
+% the virtual address the virtual points-to assertion concerns corresponds to some physical address.
+% There exists only one persistent authorative ownership 
+% ($\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$) which collects the fragmental 
+% ghost page-table-walk mapping ($\sumwalkabs\vaddr\qfrac\paddr$),
+%  shown as double-ended solid arrow 1 to N imposing the update protocol.
 
-\begin{figure}
-   \includegraphics[width=0.75\columnwidth]{logical_addr_space.png}
-  \caption{Logical Resources of Address-Space Abstraction (1 Address Space)}
-  \label{fig:logicaladdrspace}
-  \end{figure}
+% \begin{figure}
+%    \includegraphics[width=0.75\columnwidth]{logical_addr_space.png}
+%   \caption{Logical Resources of Address-Space Abstraction (1 Address Space)}
+%   \label{fig:logicaladdrspace}
+%   \end{figure}
 
 \paragraph{From A Single Address Space to Many}
 In principle the resources from each individual address space should be collected into a single
@@ -415,6 +430,7 @@ Physical points-tos and register value assertions, when treated as \textsf{vProp
 % \end{remark}
 
 \subsection{The Impact of Changing Address Spaces on Modal Assertions}
+\todo[inline]{Colin must update this to address the frame rule comments from the last submission}
 % \subsection{Considering Hoare Doubles in the Context of Switching Address-Space}
 % \subsubsection{Issues with Using Hoare Triples in Address-Space Specification}
 \label{sec:issues}

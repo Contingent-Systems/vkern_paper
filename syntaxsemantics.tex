@@ -102,14 +102,14 @@
     {\\hline}{{\rule{\linewidth}{0.5pt}}}1
     %
 }[keywords,comments,strings]
-
-\section{Machine State \& Syntax}
+\section{Machine State and Semantics}
+% \section{Machine State \& Syntax}
 \label{sec:syntax}
 To develop our core logical ideas, we instantiate \textsf{Iris} with a simple language for streams of instructions, 
 and a logical machine model corresponding to execution of x86-64 assembly instructions with virtual memory enabled on the 
 CPU.
 
-\subsection{Registers and Memory}
+% \subsection{Registers and Memory}
 Programs we demonstrate in this paper requires accessing two types of computer resource: registers and memory.
 A register identifier, $\reg$, is chosen from a fixed finite set of register identifiers, $\regset$. 
 We use these identifiers $\reg$ for register names such as \texttt{rax}, \texttt{r8}, or \texttt{cr3}. Our model includes
@@ -161,7 +161,7 @@ For clarity and ease of representation, we use machine words, $\loc \in \Loc$, w
 for memory addresses, values, and offsets, rather than distinct location types that wrap machine words.
 For example, $\kw{w}_{12}$ is a 12-bit word, which can be obtained for example truncating away 52 bits of a 64-bit word ($\kw{w}_{64}$).
 
-\subsection{State}
+% \subsection{State}
 \label{sec:state}
 We represent the machine state mainly as a finite map of registers to register values and a map of word-aligned physical memory addresses 
 to 64-bit physical memory values. 
@@ -169,32 +169,35 @@ Thus our states $\sigma$ include register maps $\sigma.\mathcal{R}: \kw{greg} \r
 memory maps $\sigma.\mathcal{M}: \Locft \rightharpoonup_{\textrm{fin}} (\Loctw \rightharpoonup_{\textrm{fin}} \Locsf )$.
 Of particular note, \texttt{cr3}, the page table register, is included in the machine state.
 % As one might have already anticipated from the syntax we introduce, we do not bind any value of an evaluated expression. All the indices and accessed values are treated as globally referenced. In align with this design choice, our expression is a stream of instructions, which is not evaluated to a value to be bound, but changes the machine state through the indices (e.g. $\kw{r}\in\kw{greg}$) -- to the global maps.
-\subsection{Instructions}
+
+
+% \subsection{Instructions}
 \label{sec:instructions}
 
-\begin{figure}[t]
-\begin{lstlisting}[language=Coq,mathescape]
- Definition translate (rtv: word 64) ($\sigma$: state) (vaddr: word 64): word 64 + MemFail :=
-      l4e $\leftarrow$ translate_top_level $\sigma.\mathcal{M}$ rtv vaddr;
-      l3e $\leftarrow$ translate_from_l4e $\sigma.\mathcal{M}$ l4e vaddr;
-      l2e $\leftarrow$ translate_from_l3e $\sigma.\mathcal{M}$ l3e vaddr;
-      l1e $\leftarrow$ translate_from_l2e $\sigma.\mathcal{M}$ l2e vaddr;
-      addr $\leftarrow$ translate_from_l1e $\sigma.\mathcal{M}$ l1e vaddr;
-      return concat (shift_dropn addr 3 three_lt64) low3.
-\end{lstlisting}
-\vspace{-1em}
-\caption{\coq implementation of address translation (slightly simplified).}
-\label{fig:coq_addr_translation}
-\end{figure}
+% \begin{figure}[t]
+% \begin{lstlisting}[language=Coq,mathescape]
+%  Definition translate (rtv: word 64) ($\sigma$: state) (vaddr: word 64): word 64 + MemFail :=
+%       l4e $\leftarrow$ translate_top_level $\sigma.\mathcal{M}$ rtv vaddr;
+%       l3e $\leftarrow$ translate_from_l4e $\sigma.\mathcal{M}$ l4e vaddr;
+%       l2e $\leftarrow$ translate_from_l3e $\sigma.\mathcal{M}$ l3e vaddr;
+%       l1e $\leftarrow$ translate_from_l2e $\sigma.\mathcal{M}$ l2e vaddr;
+%       addr $\leftarrow$ translate_from_l1e $\sigma.\mathcal{M}$ l1e vaddr;
+%       return concat (shift_dropn addr 3 three_lt64) low3.
+% \end{lstlisting}
+% \todo[inline]{I don't think we need this given a more compact version of Figure \ref{fig:pagetables}}
+% \vspace{-1em}
+% \caption{\coq implementation of address translation (slightly simplified).}
+% \label{fig:coq_addr_translation}
+% \end{figure}
 
 Programs in our logic are instruction sequences \instrs, which are formed by either a basic instruction \iskip, or prefixing an existing instruction
 sequence with an additional instruction (\iseq\instr\instrs).
 We model (and later, give program logic rules for) instructions for basic register moves, and reading and writing memory.
 The latter require page table walks.
-Figure \ref{fig:coq_addr_translation} gives a slightly simplified version of our address translation code in monadic style:
-starting from the root page table address \textsf{rtv}, the virtual address \textsf{w} is either resolved to a physical address or an error is returned.
-The full set of possible errors is not relevant to this paper; our logic is tailored for kernel code which should not fault,
-so our proof rules guarantee no memory failures occur --- that the page table walk for any dereferenced address will succeed.
+% Figure \ref{fig:coq_addr_translation} gives a slightly simplified version of our address translation code in monadic style:
+% starting from the root page table address \textsf{rtv}, the virtual address \textsf{w} is either resolved to a physical address or an error is returned.
+% The full set of possible errors is not relevant to this paper; our logic is tailored for kernel code which should not fault,
+% so our proof rules guarantee no memory failures occur --- that the page table walk for any dereferenced address will succeed.
 
 % Page-table walk shown in Figure \ref{fig:pagetables} is realized with physical memory \texttt{load}s and \textsf{store}s for the entries in the 
 % page-tables which are simply modelled as lookup and updates to an instance of a memory map with 64 bit entries. In the address translation,
@@ -212,7 +215,8 @@ The most important instructions we model are memory-accessing variants of the x8
   \textsf{mov}~r_r~[r_m]
   \end{array}
   \]
-The semantic of each is realized by first translating the virtual-memory address of a memory location stored in $r_m$ to a physical memory location,
+The semantics of each is realized by first translating the virtual-memory address of a memory location stored in $r_m$ to a physical memory location
+per the description in Section \ref{sec:backgroundonmachinemodel},
 then either updating those memory contents with the contents of register $r_r$ (\TirNameStyle{WriteToMemFromReg}) 
 or loading the value at that physical memory location into the register $r_r$
 (\TirNameStyle{WriteToRegFromMem}). 
