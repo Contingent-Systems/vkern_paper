@@ -187,11 +187,64 @@ whose value is a constant offset from the physical address a practice sometimes 
 is typically not literally the identity function, but adding a constant offset).\footnote{Some kernels do this for all physical memory on the machine, simplifying interaction
 with DMA devices.}
 
+\begin{figure*}
+\[
+\begin{array}{l}
+  \mathcal{I}\textsf{ASpace}(\ptablestore,m)\stackrel{\triangle}{=} \textsf{ASpace\_Lookup}(\ptablestore,\Xi,m) \ast \\
+  \qquad\qquad\qquad \bigast{(\vaddr, \textsf{paddr})\in \ptablestore}{\exists\;(\textsf{l4e, l3e, l2e, l1e, paddr})\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr\textsf{, l4e, l3e, l2e, l1e, paddr})} \\
+  \qquad\qquad\qquad \bigast{(\vaddr, \textsf{paddr})\in \Xi}{\exists\; (\textsf{qfrac, val, vaddr}) \ldotp \ulcorner \textsf{vaddr} = \textsf{paddr} + \textsf{KERNBASE} \urcorner \ast  \underbrace{\sumwalkabs\vaddr\qfrac\paddr }_\text{Ghost translation} \ast \\
+\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad    \underbrace{\paddr \mapsto_{\mathsf{p}}\{\textsf{qfrac}\}\; \vale}_\text{Physical location} \ast \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner }\\
+  \textsf{ where } \\
+   \textsf{ASpace\_Lookup} (\ptablestore,m) \stackrel{\triangle}{=} \lambda\textsf{ cr3val} \ldotp \; \exists \gammaPred \; \ldotp \ulcorner m \; !!\; \textsf{cr3val} = \textsf{Some } \gammaPred \urcorner \ast
+   \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \ast \\ \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad \ownGhost\gammaPred{\authfull{\ptableabswalk\Xi}}
+  
+\end{array}
+\]
+\caption{Global Address-Space Invariant in Figure \ref{fig:peraspaceinvariant} extended with a ghost map bookkeeping identity mappings }
+  \label{fig:peraspaceinvariant_with_p2v_extension}
+  \end{figure*}
+
+
 Work to verify the full page table walk is ongoing, but we have verified the key step for a small x86-64 kernel, which is the physical-to-virtual
 conversion (often appearing as a macro \texttt{P2V} in C source code). In our small kernel, as in larger kernels, \texttt{P2V} is actually just addition,
 though the Hoare triple we verify for this add instruction is rather complex:
 
-\todo[inline]{typeset as a triple}
+\begin{figure}\footnotesize
+\begin{lstlisting}[mathescape]
+;; Assume the save-space is in rdi, load-space in rsi
+;; First, save yielding context
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast [\rtv'+56](\mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother})}_{\rtv}$
+$\specline{ \texttt{rsi}\mapsto_{\textsf{r}} \rtv' \ast \texttt{rdi}\mapsto_{\textsf{r}} \_ \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} \ast  \texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} }_{\rtv}$
+$\specline{\texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
+$\specline{\texttt{rdi+0} \mapsto_{\textsf{v}} \_ \ast \texttt{rdi+8} \mapsto_{\textsf{v}} \_ \ast \texttt{rdi+16} \mapsto_{\textsf{v}} \_ \ast \texttt{rdi+24} \mapsto_{\textsf{v}} \_ \ast \texttt{rdi+32} \mapsto_{\textsf{v}} \_}_{\rtv}$
+$\specline{\texttt{rdi+40} \mapsto_{\textsf{v}} \_ \ast \texttt{rdi+48} \mapsto_{\textsf{v}} \_\ast \texttt{rdi+56} \mapsto_{\textsf{v}} \_}_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast [\rtv'+56](\mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother})}_{\rtv}$
+$\specline{ \texttt{rdi}\mapsto_{\textsf{r}} \_ \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} \ast  \texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} }_{\rtv}$
+$\specline{\texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
+$\specline{\texttt{rdi+0} \mapsto_{\textsf{v}} \texttt{rbxv} \ast \texttt{rdi+8} \mapsto_{\textsf{v}} \texttt{rspv} \ast \texttt{rdi+16} \mapsto_{\textsf{v}} \texttt{rbpv} \ast \texttt{rdi+24} \mapsto_{\textsf{v}} \texttt{r12v} \ast }_{\rtv}$
+$\specline{\texttt{rdi+32} \mapsto_{\textsf{v}} \texttt{r13v} \ast \texttt{rdi+40} \mapsto_{\textsf{v}} \texttt{r14v} \ast \texttt{rdi+48} \mapsto_{\textsf{v}} \texttt{r15v}\ast \texttt{rdi+56} \mapsto_{\textsf{v}} \rtv}_{\rtv}$    
+;; This offsetst physical address at KERNBASE!
+add r,  
+... ;; mov rbp, r12, r13, r14, to offsets 16, 24, 32, and 40 from rsi
+mov r15, 48[rsi]
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast [\rtv'+56](\mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother})}_{\rtv}$
+$\specline{ \texttt{rdi}\mapsto_{\textsf{r}} \_ \ast \texttt{rbx}\mapsto_{\textsf{r}} \rtv'+0 \ast  \texttt{rsp}\mapsto_{\textsf{r}} \rtv'+8 \ast \texttt{rbp}\mapsto_{\textsf{r}} \rtv'+16 }_{\rtv}$
+$\specline{\texttt{r12}\mapsto_{\textsf{r}} \rtv'+24 \ast \texttt{r13}\mapsto_{\textsf{r}} \rtv'+32 \ast \texttt{r14}\mapsto_{\textsf{r}} \rtv'+40 \ast \texttt{r15}\mapsto_{\textsf{r}} \rtv'+48}_{\rtv}$
+$\specline{\texttt{rdi+0} \mapsto_{\textsf{v}} \texttt{rbxv} \ast \texttt{rdi+8} \mapsto_{\textsf{v}} \texttt{rspv} \ast \texttt{rdi+16} \mapsto_{\textsf{v}} \texttt{rbpv} \ast \texttt{rdi+24} \mapsto_{\textsf{v}} \texttt{r12v} \ast }_{\rtv}$
+$\specline{\texttt{rdi+32} \mapsto_{\textsf{v}} \texttt{r13v} \ast \texttt{rdi+40} \mapsto_{\textsf{v}} \texttt{r14v} \ast \texttt{rdi+48} \mapsto_{\textsf{v}} \texttt{r15v}\ast \texttt{rdi+56} \mapsto_{\textsf{v}} \rtv}_{\rtv}$
+;; Switch to the new address space
+mov cr3, 56[rsi]
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast [\rtv'+56](\mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother}) }_{\rtv}$
+$\specline{ \texttt{rdi}\mapsto_{\textsf{r}} \_ \ast \texttt{rbx}\mapsto_{r} \rtv'+0 \ast  \texttt{rsp}\mapsto_{\textsf{r}} \rtv'+8 \ast \texttt{rbp}\mapsto_{\textsf{r}} \rtv'+16 }_{\rtv}$
+$\specline{\texttt{r12}\mapsto_{\textsf{r}} \rtv'+24 \ast \texttt{r13}\mapsto_{\textsf{r}} \rtv'+32 \ast \texttt{r14}\mapsto_{\textsf{r}} \rtv'+40 \ast \texttt{r15}\mapsto_{\textsf{r}} \rtv'+48}_{\rtv}$
+$\specline{\texttt{rdi+0} \mapsto_{\textsf{v}} \texttt{rbxv} \ast \texttt{rdi+8} \mapsto_{\textsf{v}} \texttt{rspv} \ast \texttt{rdi+16} \mapsto_{\textsf{v}} \texttt{rbpv} \ast  \texttt{rdi+24} \mapsto_{\textsf{v}} \texttt{r12v} \ast }_{\rtv}$
+$\specline{\texttt{rdi+32} \mapsto_{\textsf{v}} \texttt{r13v} \ast \texttt{rdi+40} \mapsto_{\textsf{v}} \texttt{r14v} \ast \texttt{rdi+48} \mapsto_{\textsf{v}} \texttt{r15v}\ast \texttt{rdi+56} \mapsto_{\textsf{v}} \rtv}_{\rtv}$
+$\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \sqsubseteq $
+$\specline{ [\rtv](\texttt{Pcurrent}) \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother}}_{\rtv'+56}$
+\end{lstlisting}
+\caption{Basic task switch code that switches address spaces.}
+\label{fig:mapping_code}
+\end{figure}
 
 We can see that this specification neatly encapsulates reasoning about invariants on the page tables in terms of general modal assumptions.\todo{speculative
 but ought to turn out this way}
