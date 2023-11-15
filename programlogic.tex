@@ -366,22 +366,15 @@ and doing so requires a way to talk about other address spaces, and means to swi
 
 % In Figure \ref{fig:addrswitch}, we see two different address-spaces rooted at R0 and R1 in the pre/post condition. To be put into words, while switching an address-space by executing \lstinline|mov_ctl|) updating the  \lstinline|cr3|, it is expected to mention resources of two different address-spaces in the specification. In the precondition,  \lstinline|cr3| is loaded with R0 and all the virtual-pointsto assertions $a_0 \mapsto_{\textsf{v}}p_0$ and $a_1 \mapsto_{\textsf{v}}p_1$ are in the current-view of the memory and valid in the ambient logic \textsf{vProp}. The other address-space with the root address R1 has its own resources ($b_0 \mapsto_{\textsf{v}}p_3$ and $b_1 \mapsto_{\textsf{v}}p_4$) which are invalid under the current address space rooted at R0. This pattern of specification requires resources being mentioned under the \textit{world} they are valid, i.e. a modal-framing within the specification. Once the current address-space becomes the one with root address R1, i.e.  \lstinline|cr3| is loaded with R1, the context-resources $b_0 \mapsto_{\textsf{v}}p_3$ and $b_1 \mapsto_{\textsf{v}}p_4$ are loaded into the current-view of the memory, and all the other resources that are valid under R0 are introduced into the modal context rooted at R0
 \begin{figure}
-\[
-  \begin{array}{r@{\qquad}l}
-    \hbox{(\TirNameStyle{ModalAddressSpace})} &
-         [r](\mathsf{P}) \;: \mathsf{vProp} \; \Sigma \; \stackrel{\triangle}{=} \; \lambda \_,\; \mathsf{P}~\mathsf{r}.\\
-    \hbox{(\TirNameStyle{ModalAddressSpaceMono})} & (\textsf{P} \vdash \textsf{Q}) \vdash  ([r](\textsf{P}) \vdash  [r](\textsf{Q}))\\
-    \hbox{(\TirNameStyle{ModalAddressSpaceSep})} & [r](\textsf{P} \ast \textsf{Q}) \dashv\vdash ([r](\textsf{P}) \ast [r](\textsf{Q})\\
-    \hbox{(\TirNameStyle{ModalAddressSpaceAnd})} &   [r](\textsf{P}\land \textsf{Q}) \dashv\vdash [r](\textsf{P})\land [r](\textsf{Q})\\    
-    \hbox{(\TirNameStyle{ModalAddressSpaceOr})} &    [r](\textsf{P}\lor \textsf{Q}) \dashv\vdash [r](\textsf{P})\lor [r](\textsf{Q})\\   
-    % \hbox{(\TirNameStyle{ModalAddressSpacePure})} &  \textsf{pure\_vprop P}(\textsf{iPropI }\Sigma)\textsf{ : vProp }\Sigma \stackrel{\triangle}{=} \; \lambda \_ \ldotp \textsf{P}\\
-    \hbox{(\TirNameStyle{ModalAddressSpaceFact})} &  \textsf{Fact P} \stackrel{\triangle}{=} \;\forall \; ,r \; r' \ldotp  \textsf{P r} \dashv\vdash \textsf{P r'}\\
-    % \hbox{(\TirNameStyle{ModalAddressSpaceFactIntroElim})} \\
-    % \qquad\qquad \textsf{Fact pure\_vprop P} \vdash  ([r](\textsf{pure\_vprop P}) \dashv\vdash (\textsf{pure\_vprop P}) (\textsf{vProp }\Sigma))\\
-    \hbox{(\TirNameStyle{ModalAddressSpaceFactIntroElim})} 
-    &\textsf{Fact P} \vdash  ([r](\textsf{P}) \dashv\vdash (\textsf{P}) %(\textsf{vProp }\Sigma))\\
-  \end{array}
-  \]
+\begin{mathpar}
+    [r](\mathsf{P}) \;: \mathsf{vProp} \; \Sigma \; \stackrel{\triangle}{=} \; \lambda \_,\; \mathsf{P}~\mathsf{r} \and
+    \textsf{Fact P} \stackrel{\triangle}{=} \;\forall \; ,r \; r' \ldotp  \textsf{P r} \dashv\vdash \textsf{P r'}\\
+    \inferrule{}{(\textsf{P} \vdash \textsf{Q}) \vdash  ([r](\textsf{P}) \vdash  [r](\textsf{Q}))}\and
+    \inferrule{}{[r](\textsf{P} \ast \textsf{Q}) \dashv\vdash ([r](\textsf{P}) \ast [r](\textsf{Q})}\and
+    \inferrule{}{[r](\textsf{P}\land \textsf{Q}) \dashv\vdash [r](\textsf{P})\land [r](\textsf{Q})}\and
+    \inferrule{}{[r](\textsf{P}\lor \textsf{Q}) \dashv\vdash [r](\textsf{P})\lor [r](\textsf{Q})}\and
+    \inferrule{}{\textsf{Fact P} \vdash  ([r](\textsf{P}) \dashv\vdash (\textsf{P})} %(\textsf{vProp }\Sigma))\\
+\end{mathpar}
   \caption{Other-space Modality and Its Laws}
   \label{fig:modaldef}
   \end{figure}
@@ -394,23 +387,19 @@ and evaluates the truth of $P$ as if $r$ were the page table root. This simple d
 what we need in order for assertions in one address space to talk about assertions in another.
 \looseness=-1
 
-\todo[inline,color=cyan]{Colin revision frontier}
+% The inspiration for this assertion comes from hybrid logic~\cite{blackburn1995hybrid,areces2001hybrid,goranko1996hierarchies,gargov1993modal},
+% which as mentioned earlier uses as modalities the names of worlds in a Kripke model to state
+% that an assertion is true in that specific world.
+% Conceptually the address space rooted at some physical address (intended as the start of an L4 table)
+% is a distinct world, and it makes sense to name it by referring to the root of the
+% supporting page table structure. However, rather than explicitly building a Kripke model for our
+% assertions, we inherit them by lifting the model of our ambient logic, Iris.
 
-The inspiration for this assertion comes from hybrid logic~\cite{blackburn1995hybrid,areces2001hybrid,goranko1996hierarchies,gargov1993modal},
-which as mentioned earlier uses as modalities the names of worlds in a Kripke model to state
-that an assertion is true in that specific world.
-Conceptually the address space rooted at some physical address (intended as the start of an L4 table)
-is a distinct world, and it makes sense to name it by referring to the root of the
-supporting page table structure. However, rather than explicitly building a Kripke model for our
-assertions, we inherit them by lifting the model of our ambient logic, Iris.
-
-This assertion is also useful in proofs: we can prove that this modality follows certain useful laws, and that it interacts with
-a class of assertions which are true regardless of which address space they are evaluated in.
-The other-space modality distributes over the various separation logic connectives, and follows the rule of
+We can prove that this modality follows certain useful laws: that its truth is independent of the address
+space in which it is considered,  it distributes over various logical connectives, and it follows the rule of
 consequence.
-We also define a class of \textsf{vProp}s we call \textsf{Fact}s, which are those assertions
-which ignore their address space entirely.
-Physical points-tos and register value assertions, when treated as \textsf{vProp}s, are \textsf{Fact}s.
+We call \textsf{vProp} assertions whose truth is independent of the current address space
+\textsf{Fact}s; these include other-space assertions, physical memory points-tos, and register assertions.
 \textsf{Fact}s can move in and out of other-space modalities freely.
 
 
@@ -444,13 +433,12 @@ Physical points-tos and register value assertions, when treated as \textsf{vProp
 % \end{remark}
 
 \subsection{The Impact of Changing Address Spaces on Modal Assertions}
-\todo[inline]{Colin must update this to address the frame rule comments from the last submission}
 % \subsection{Considering Hoare Doubles in the Context of Switching Address-Space}
 % \subsubsection{Issues with Using Hoare Triples in Address-Space Specification}
 \label{sec:issues}
 An important subtlety arises with supporting \lstinline|mov|s into \lstinline|cr3|. Consider the hypothetical rule
 \begin{mathpar}
-\inferrule[Broken]{ }{
+\inferrule*[left=Broken]{ }{
   \{P \ast \textsf{cr3}\mapsto_{r} \;r_1 \ast r \mapsto_{r} \;r_2 \ast [r_2](Q)\}
   \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
   \{[r_1](P) \ast \textsf{cr3} \mapsto_{r} r_2 \ast r \mapsto_{r} r_2 \ast Q\}
@@ -458,7 +446,7 @@ An important subtlety arises with supporting \lstinline|mov|s into \lstinline|cr
 \end{mathpar}
 which is slightly simplified (by dropping per-address-space resources) for clarity in making the following point.
 This rule captures the intuitive change of address space in a Hoare triple.
-The problem with this is that it interacts quite poorly with the traditional frame
+This interacts quite poorly with the traditional frame
 rule and the modal flavor of virtual points-to assertions.
 If we abbreviate the pre- and post-conditions above as \textsf{Pre} and \textsf{Post}:
 \begin{mathpar}
@@ -475,12 +463,9 @@ If we abbreviate the pre- and post-conditions above as \textsf{Pre} and \textsf{
   }
 \end{mathpar}
 Notice that both the precondition and postcondition assert that $a\mapsto_\mathsf{v} x$ in the current address space, but we have no basis for concluding that address translation is preserved by the change of address space. So this derivation clearly leads to an unsound conclusion. 
-This suggestss that the traditional frame rule and the Hoare triple presentation of the change-of-address-space rule cannot soundly coexist in the same system.
-The heart of the problem is that while updating \lstinline|cr3| is \emph{physically} local, it globally changes the interpretation of virtual addresses. So it is simply unsound to frame around \lstinline|cr3| updates.
-In hindsight this is not surprising, because we have essentially defined
-our assertions to depend on resources they do not explicitly mention --- the value of \lstinline|cr3|.
-However, it has important impacts on our formal development.
-
+The essential problem is that the frame rule is motivated by local reasoning about local updates, but
+a switch of address space is a \emph{global} change, since it may invalidate information about virtual addresses.
+Thus framing around \lstinline|cr3| updates is unsound, which has important impacts on our formal development.
 
 Switching to Hoare doubles resolves this problem because an under-appreciated subtlety of Hoare doubles 
 is that typically \emph{there is no primitive frame rule}. 
@@ -488,8 +473,10 @@ Instead each verification essentially includes a local frame that it passes to t
 (think continuation-passing style), giving each overall rule a \emph{global} (rather than local) precondition. For most rules this is not that important, but it does permit rules that have global effects on their preconditions.
 
 This is then how we justify our actual rule for \lstinline|cr3| updates:
+\todo[inline]{Ismail: Can we chat Wednesday about this rule, which has cr3 register pointstos instead of the cr3 subscripts?
+The subscript form might make the derivation of a frame rule harder.}
 \begin{mathpar}
-\inferrule[ChangeAddressSpace]{
+\inferrule*[left=ChangeAddressSpace]{
   \{[r_1](P) \ast cr3 \mapsto_{r} r_2 \ast r \mapsto_{r} r_2 \ast Q\}\overline{is}
 }{
   \{P \ast cr3 \mapsto_{r} r_1 \ast r \mapsto_{r} r_2 \ast [r_2](Q)\}
@@ -501,7 +488,7 @@ Because the precondition on this rule is global, we avoid issues with framing.
 
 If we wanted to consider a frame rule that would work for this logic, we could consider:
 \begin{mathpar}
-  \inferrule[Cr3Frame]{
+  \inferrule*[left=Cr3Frame]{
     \{P\ast cr3=v\}\;C\;\{ Q \ast cr3=v\}
   }{
     \{R\ast P\ast cr3=v\}\;C\;\{ R \ast Q \ast cr3=v\}
@@ -511,12 +498,14 @@ By demanding that \lstinline|cr3| be held constant (or rather, at least restored
 Attempting to derive a frame rule as some work using Hoare doubles does~\cite{Chlipala2013Bedrock}
 would enforce this restriction.
 
-Readers familiar with dynamic frames~\cite{parkinson2011relationship} might find it useful to notice that a different perspective on this matter is that virtual points-to assertions are self-stable \emph{except} for changes in \lstinline|cr3|, so framing would then naturally require other means of holding \lstinline|cr3| constant (or saving and restoring it).
-Virtual points-to assertions could be made self-stable by also giving them partial ownership over \lstinline|cr3| assertions, but this would require explicitly plumbing that ownership from \emph{all} assertions back to any place an address space change might occur; this would seem to be a far graver loss of modularity than this extra quirk in framing discussions.
+Another useful perspective on this might be the dynamic frames~\cite{parkinson2011relationship} 
+view: virtual points-to assertions are self-stable \emph{except} for changes in \lstinline|cr3|, so framing would then naturally require other means of holding \lstinline|cr3| constant (or saving and restoring it).
+% Virtual points-to assertions could be made self-stable by also giving them partial ownership over \lstinline|cr3| assertions, but this would require explicitly plumbing that ownership from \emph{all} assertions back to any place an address space change might occur; this would seem to be a far graver loss of modularity than this extra quirk in framing discussions.
 
 
 \subsection{Selected Logical Rules}
 \label{sec:selected_rules}
+\todo[inline]{Ismail: Please update this section with rip stuff}
 To address the issues described in Section \ref{sec:issues}, we give our logic using
 the Hoare-Double definition in Figure \ref{fig:wpddefinition}.\footnote{The figure does
 omit some low-level Iris details related to stuckness and observations, which play no meaningful
@@ -676,5 +665,5 @@ which is the (full) Hoare double version of the address space switch rule propos
 Our rules from Figure \ref{fig:wpdamd} are proven sound in Iris against an assembly-level hardware model
 implementing a fragment of x86-64 including 64-bit address translation with 4-level page tables.
 
-At the moment our proofs do rely on 11 small axioms of properties which should be provable, but
+At the moment our proofs do rely on 11\todo{update!} small axioms of properties which should be provable, but
 are challenging to discharge due to some representation choices in our model.\footnote{See \lstinline|srx/x64/machine/current_axioms.v|}
