@@ -557,14 +557,14 @@ not used by the first instruction in sequence through and on to subsequent instr
 
 \begin{figure}
 \begin{mathpar}
-  \inferrule[WriteToRegFromReg]{
-  \{P \ast r_d \mapsto_{r} \textsf{rvs} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}_{\textsf{rtv}}\;\overline{ is}
-}{
-  \{P \ast r_d \mapsto_{r} \textsf{rvd} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}_{\textsf{rtv}}
-  \textsf{ mov}~\textsf{r}_d,~\textsf{r}_s;\;\overline{is}
+%  \inferrule[WriteToRegFromReg]{
+%  \{P \ast r_d \mapsto_{r} \textsf{rvs} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}_{\textsf{rtv}}\;\overline{ is}
+%}{
+%  \{P \ast r_d \mapsto_{r} \textsf{rvd} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}_{\textsf{rtv}}
+%  \textsf{ mov}~\textsf{r}_d,~\textsf{r}_s;\;\overline{is}
   %\lstinline|mov %cr3, r| 
-}
-\\
+%}
+%\\
 % \inferrule[WriteToPhysMemFromReg]{
 %   \{P \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}_{\textsf{rtv}}\;\overline{ is}  
 % }{
@@ -593,13 +593,13 @@ not used by the first instruction in sequence through and on to subsequent instr
   \textsf{ mov}~[\textsf{r}_a],~\textsf{r}_s;\;\overline{is}
 }
 \\
-\inferrule[WriteToRegCtlFromReg]{
-  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}  \}_{\textsf{rvs}} \overline{is}
-}{
-  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}   \}_{\textsf{rtv}}
-  \textsf{mov}~\textsf{cr3},~r_s;\;\overline{is}
+%\inferrule[WriteToRegCtlFromReg]{
+%  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}  \}_{\textsf{rvs}} \overline{is}
+%}{
+%  \{P \ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}   \}_{\textsf{rtv}}
+%  \textsf{mov}~\textsf{cr3},~r_s;\;\overline{is}
   %\lstinline|mov %cr3, r| 
-}\\
+%}\\
 \inferrule[WriteToRegCtlFromRegModal]{
   \{[\textsf{rtv}](P \ast \mathcal{I}\textsf{ASpace})\ast \mathcal{I}\textsf{ASpace} \ast R\ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}  \}_{\textsf{rvs}} \overline{is}
 }{
