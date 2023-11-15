@@ -186,7 +186,7 @@ Most kernels maintain an invariant on their page tables that the virtual address
 whose value is a constant offset from the physical address a practice sometimes referred to as \emph{identity mapping} (even though the physical-to-virtual translation
 is typically not literally the identity function, but adding a constant offset).\footnote{Some kernels do this for all physical memory on the machine, simplifying interaction
 with DMA devices.}
-
+\newcommand{\qfraczero}{\textsf{qfrac}}
 \newcommand{\true}{\textsf{true}}
 \tikzstyle{boxedassert_border} = [sharp corners,line width=0.2pt]
 \NewDocumentCommand \boxedassertpv {O{} m o}{%
@@ -210,12 +210,12 @@ with DMA devices.}
 \begin{figure*}
 \[
 \begin{array}{l}
-  \mathcal{I}\textsf{ASpace}(\ptablestore,\Xi,m)\stackrel{\triangle}{=} \textsf{ASpace\_Lookup}(\ptablestore,\Xi,m) \ast \\
+  \mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)\stackrel{\triangle}{=} \textsf{ASpace\_Lookup}(\ptablestore,\Xi,m) \ast \\
   \qquad\qquad\qquad \bigast{(\vaddr, \textsf{paddr})\in \ptablestore}{\exists\;(\textsf{l4e, l3e, l2e, l1e, paddr})\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr\textsf{, l4e, l3e, l2e, l1e, paddr})} \\
-  \qquad\qquad\qquad \bigast{(\textsf{paddr}) \in \Xi}{\exists\; (\textsf{qfrac, val, vaddr}) \ldotp \ulcorner \textsf{vaddr} = \textsf{paddr} + \textsf{KERNELBASE} \urcorner \ast  \underbrace{\sumwalkabs\vaddr\qfrac\paddr }_\text{Ghost translation} \ast \\
+  \qquad\qquad\qquad \bigast{(\paddr) \in \Xi}{\exists\; (\textsf{qfrac, q, val,}\vaddr) \ldotp \ulcorner \vaddr = \paddr + \textsf{KERNELBASE} \urcorner \ast  \underbrace{\sumwalkabs\vaddr\qfrac\paddr }_\text{Ghost translation} \ast \\
 \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad    \underbrace{\paddr \mapsto_{\mathsf{p}}\{\textsf{qfrac}\}\; \vale}_\text{Physical location} \ast \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner }\\
   \textsf{ where } \\
-   \textsf{ASpace\_Lookup} (\ptablestore,m) \stackrel{\triangle}{=} \lambda\textsf{ cr3val} \ldotp \; \exists \gammaPred \; \ldotp \ulcorner m \; !!\; \textsf{cr3val} = \textsf{Some } \gammaPred \urcorner \ast
+   \textsf{ASpace\_Lookup}_{\textsf{id}}(\ptablestore,m) \stackrel{\triangle}{=} \lambda\textsf{ cr3val} \ldotp \; \exists \gammaPred \; \ldotp \ulcorner m \; !!\; \textsf{cr3val} = \textsf{Some } \gammaPred \urcorner \ast
    \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \ast \\ \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad \ownGhostpv\gammaPred{\authfull{\pvmapping\Xi}}
   
 \end{array}
@@ -234,16 +234,16 @@ though the Hoare triple we verify for this add instruction is rather complex:
 
 \begin{figure}\footnotesize
 \begin{lstlisting}[mathescape]
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\Xi,m) \ast \ulcorner \textsf{KERNELBASE} + \fpaddr > 0 \urcorner }_{\rtv}$
-$\specline{ \texttt{rip}\mapsto_{\textsf{r}} \textsf{iv} \ast \texttt{rflags}\mapsto_{\textsf{r}} \textsf{flaglist} \ast \texttt{rbx}\mapsto_{\textsf{r}} \fpaddr  }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner \textsf{KERNELBASE} + \paddr > 0 \urcorner }_{\rtv}$
+$\specline{ \texttt{rip}\mapsto_{\textsf{r}} \textsf{iv} \ast \texttt{rflags}\mapsto_{\textsf{r}} \textsf{flaglist} \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr  }_{\rtv}$
 $\specline{ \sumapaces\rtv\delta  \ast \sumwalkabs\vaddr\qfrac\fpaddr \ast \sumpv\fpaddr\qfrac\true  }_{\rtv}$
 ;; This offsetst physical address at KERNELBASE!
 add rbx, KERNELBASE
-$\specline{\exists \textsf{flaglistadd, qphysical, q0, w, flaglistadd, val}, \textsf{P} \ast \texttt{rip}\mapsto_{\textsf{r}} \textsf{iv+7} \ast \texttt{rflags}\mapsto_{\textsf{r}} \textsf{flaglistadd} \ast \texttt{rbx}\mapsto_{\textsf{r}} \fpaddr + \textsf{KERNELBASE} }_{\rtv}$
-$\specline{\bigast{(\vaddr, \textsf{paddr})\in \ptablestore}{\exists\;(\textsf{l4e, l3e, l2e, l1e, } \fpaddr)\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr\textsf{, l4e, l3e, l2e, l1e, \fpaddr})}}_{\rtv}$
-$\specline{\mathcal{R} -\ast \bigast{(\fpaddr) \in \Xi}{\exists\; (\textsf{qfrac, val, vaddr}) \ldotp \ulcorner \textsf{vaddr} = \fpaddr + \textsf{KERNELBASE} \urcorner \ast \sumwalkabs\vaddr\qfrac\fpaddr  \ast \paddr \mapsto_{\mathsf{p}}\{\textsf{qfrac}\} \; \vale\ast  \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner}}_{\rtv}$
+$\specline{\exists \qfraczero; \qfrac,\textsf{ flaglistadd, w, flaglistadd, val}, \textsf{P} \ast \texttt{rip}\mapsto_{\textsf{r}} \textsf{iv+7} \ast \texttt{rflags}\mapsto_{\textsf{r}} \textsf{flaglistadd} \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr + \textsf{KERNELBASE} }_{\rtv}$
+$\specline{\bigast{(\vaddr, \paddr)\in \ptablestore}{\exists\;(\textsf{l4e, l3e, l2e, l1e, } \paddr)\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr\textsf{, l4e, l3e, l2e, l1e,} \paddr)}}_{\rtv}$
+$\specline{\mathcal{R} -\ast \bigast{(\paddr) \in \Xi}{\exists\; (\textsf{qfrac, q, val, va}) \ldotp \ulcorner \textsf{va} = \paddr + \textsf{KERNELBASE} \urcorner \ast \sumwalkabs\vaddr\qfrac\paddr  \ast \paddr \mapsto_{\mathsf{p}}\{\textsf{qfrac}\} \; \vale\ast  \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner}}_{\rtv}$
 $\specline{ \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \ast \ownGhostpv\gammaPred{\authfull{\pvmapping\Xi}}}$
-$\specline{ \sumapaces\rtv\delta  \ast\sumwalkabs\vaddr\qfrac\fpaddr \ast \sumpv\fpaddr\qfrac\true \ast \textsf{P}}_{\rtv}$
+$\specline{ \sumapaces\rtv\delta  \ast\sumwalkabs\vaddr\qfrac\paddr \ast \sumpv\paddr\qfraczero\true \ast \textsf{P}}_{\rtv}$
 $\specline{\vaddr \mapsto_{\texttt{vpte}} \{\textsf{q}, \textsf{qfrac}\} \paddr \;(\texttt{val})}$
 \end{lstlisting}
 \caption{Identity mapping of a physical address to a virtual one.}
