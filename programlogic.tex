@@ -136,7 +136,10 @@ Most of the definition lives directly in \textsf{vProp}, using the separation lo
 
 \lstinline|L4_L1_PointsTo| works by
 chaining together the entries for each level, using the sequence of table offsets from the address being translated to index
-each table level, and using the physical page address embedded in each entry.
+each table level, and using the physical page address embedded in each entry.\footnote{
+  The fractions \lstinline|q1| through \lstinline|q4| represent the fractional ownership of each entry based on how many
+  word-aligned addresses might need to share the entry.
+}
 For example, 
   the first level address translation to get the L4 entry (\lstinline|l4e|) 
   uses the masks \textsf{l4M52} with the current \lstinline|cr3| to get the 
@@ -147,7 +150,7 @@ For example,
 The statement of these assertions is simplified by the use of our split physical points-to assertions, since
 each level of tables is page-sized.\footnote{We do not address superpages and hugepages in this paper.}
 This helper definition is also a more explicit \textsf{vProp}, explicitly binding a value for \lstinline|cr3| and using it
-to start the translation process.
+to start the translation process.\todo{Ismail: aren't phys ptstos vProps? Or iProps?}
 
 
 % Given the definition of physical page-pointsto assertion and the root address of virtual-address space as shown in Figure \ref{fig:pagetable}, one can build the physical address-translation for a virtual address (e.g. \textsf{va}) via abstracting the L4-L1 table traversal as the following:
@@ -181,21 +184,18 @@ where the semantics of all assertions are functions from pairs of heaps and page
 }
 Our solution removes some restrictions in this definition by further abstracting the handling of address translation.
 
-\todo[inline,color=cyan]{Colin edit frontier}
-
 \subsection{Aliasing/Sharing Physical Pages}
   \label{sec:sharingpages}  
-  One might have already observed that the virtual points-to definition shown in Figure \ref{fig:strongvirtualpointsto} 
+  The virtual points-to definition shown in Figure \ref{fig:strongvirtualpointsto} 
   is too strong to specify some operations a virtual memory manager may need to do, such as
   move one level of the page table to a different physical location while preserving all virtual-to-physical mappings.\footnote{
     x86-64 hardware, like other architectures, includes a feature (which we do not formalize assertions for) to
     replace an L1 page table address in an L2 entry with a pointer to a \emph{larger} 2MB page (called super-pages), 
     or replace an L2 page table address in an L3 entry with a pointer to a 1GB page (called huge-pages).
   }
-   To speak more concretely, the fractional permissions on the page-table-walk assertion ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}) 
-  ensure fractional ownership of the four physical page table entries accessed by the hardware during address translation,
-  as well as the physical memory holding the data of the virtual points-to.
-  However, this formulation stores knowledge of the page table walk's details with ownership of the backing physical
+  The use of $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}'s
+  virtual points-to definition'
+   stores knowledge of the page table walk's details with ownership of the backing physical
   memory.
   Updating any of these mappings (e.g., moving the page tables in physical memory, as in coallescing for
   superpages or hugepages)
@@ -210,11 +210,12 @@ Our solution removes some restrictions in this definition by further abstracting
     \quad
     \exists \paddr\ldotp
     \exists \delta\ldotp
-    \underbrace{(\lambda\mathit{cr3val}\ldotp\sumapaces{\mathit{cr3val}}\delta)}_\text{\begin{tabular}{c}Find ghost map for this\\address space\end{tabular}} \ast 
-  \underbrace{\sumwalkabs\vaddr\qfrac\paddr }_\text{\begin{tabular}{c}Fractional ownership of \\virt-to-phys translation\end{tabular}}\ast 
-  \underbrace{\paddr \mapsto_{\mathsf{p}}\{\textsf{q}\}\; \vale}_\text{\begin{tabular}{c}Value at\\physical location\end{tabular}}
+    \underbrace{(\lambda\mathit{cr3val}\ldotp\sumapaces{\mathit{cr3val}}\delta)}_\text{Find addr.\;space invariant} \ast 
+  \underbrace{\sumwalkabs\vaddr\qfrac\paddr }_\text{Ghost translation}\ast 
+  \underbrace{\paddr \mapsto_{\mathsf{p}}\{\textsf{q}\}\; \vale}_\text{Physical location}
 \end{array}
 \]
+\vspace{-1em}
 \caption{Virtual-Pointsto for Sharing Pages}
   \label{fig:virtualpointstosharing}
 \end{figure*}  
@@ -224,20 +225,29 @@ Our solution removes some restrictions in this definition by further abstracting
   most code does not care \emph{which physical memory locations are involved in address translation}: it only cares
   that virtual address translation would succeed. The necessary information about the physical page table walk
   must still be tracked, but can be tracked separately from the virtual points-to assertion itself.
+  In practice the decisions about which virtual addresses are valid rest not with code posessing a virtual address, but with
+  the virtual memory manager --- and its invariants.
 
-  We take the approach of separating the physical page-table-walk pointsto ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}) 
-  from the virtual pointsto relation. 
-  To do so, we take advantage of an Iris construction which permits tracking a map in ghost state that maps
-  virtual addresses to the physical addresses they translate to, and has for each key in the map (i.e.,
+  We take separate the physical page-table-walk  
+  from the virtual pointsto relation, replacing it with ghost state that merely guarantees the address translation would succeed.
+  Iris includes a construction which permits tracking a ghost map 
+  from virtual addresses to the physical addresses they translate to, and has for each key in the map (i.e.,
   each virtual address) a token. Updating the virtual-to-physical (ghost) mapping for a virtual address $va$
-  requires full ownership of the token. In addition, we keep an invariant that for each $va\mapsto pa$ mapping
+  requires full ownership of the token. Then the \emph{virtual memory manager's invariant} ensures that for each $va\mapsto pa$ mapping
   in this map, there are \emph{physical} resources sufficient to ensure that address translation for $va$
-  will resolve in the hardware to $pa$. But these physical resources, which specify \emph{which} physical locations
-  are involved in the page table walk, are now separated from but consistent with
-  the knowledge that such resources exist (which is embodied by the token for $va$, which tracks that $va$ maps to $pa$
-  in the ghost map). Thus we can store the token which summarizes the translation and ensures it exists in the virtual
-  points-to, and keep the ghost map and the invariant that every mapping in the ghost map has corresponding physical resources
-  for translation in a separate global invariant for each address space.
+  will resolve in the hardware to $pa$ --- $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$.
+  This allows modification of the page tables themselves as long as the changes do not invalidate overall virtual-to-physical
+  translation.
+  Consistency follows from replacing the page table walk with ownership of the ghost map token for the relevant ghost map
+  entry, preventing the overall translation from being changed separately from the virtual points-to.
+
+  %Thus the specification of \emph{which} physical addresses support translation is separated from the virtual points-to.
+  % But these physical resources, which specify \emph{which} physical locations
+  %are involved in the page table walk, are now separated from but consistent with
+  %the knowledge that such resources exist (which is embodied by the token for $va$, which tracks that $va$ maps to $pa$
+  %in the ghost map). Thus we can store the token which summarizes the translation and ensures it exists in the virtual
+  %points-to, and keep the ghost map and the invariant that every mapping in the ghost map has corresponding physical resources
+  %for translation in a separate global invariant for each address space.
 
   % To do so, we introduce the protocol separating read-only (fragmental) and authorative (full ownership) accesses to the page tables, specifically $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$. 
   % We realize this protocol by embedding it into an already existing \textsf{Iris}'s ghost-map (or view\_maps) construction
@@ -246,17 +256,19 @@ Our solution removes some restrictions in this definition by further abstracting
   The resource algebra itself is instantiated as:
   \[\mathcal{A}\textsf{bsPTableWalk} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \;  ( (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \Loc,\mathord{=}) ))\]
 We replace the physical
- $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$
+ $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in the virtual points-to
 with
 fragmental ownership of the ghost-map ($ \sumwalkabs\vaddr\qfrac\paddr$),
- whose ownership just ensures that the virtual address ($\vaddr$) is mapped to a page (referenced by $\paddr$)
+guaranteeing that ghost map contains an mapping from the virtual address ($\vaddr$) to a physical address ($\paddr$).
 
 
-We place the authorative ownership $\mathcal{A}\textsf{PTableWalk}$ of the ghost-map in a per-address-space invariant
-($\mathcal{I}$\textsf{ASpace} in Figure \ref{fig:peraspaceinvariant}) whose ownership, when combined with the
-fraction stored in the virtual points-to, permits changes in the virtual-to-physical translations.
-By itself, it allows changes to the page tables as long as they do not change the overall mappings from virtual
-to physical addresses.
+We place the authorative ownership of the ghost translation $\mathcal{A}\textsf{PTableWalk}$ in a per-address-space invariant
+$\mathcal{I}$\textsf{ASpace} (Figure \ref{fig:peraspaceinvariant}). 
+$\mathcal{I}$\textsf{ASpace} alone allows changes to the page tables 
+that preserve overall virtual-to-physical translations.
+When combined with the
+fragment stored in the virtual points-to (Figure \ref{fig:virtualpointstosharing}),
+changes in the virtual-to-physical translations become possible.
 
 
 
@@ -280,8 +292,7 @@ the ghost map of virtual-to-physical translations (identified by the ghost name 
  \emph{for each address space}. This means we also require a way to locate the map for the current address space
 from the current root page table pointer stored in \lstinline|cr3|.
 
-Figure \ref{fig:peraspaceinvariant} describes the resources for each address space, which are collected
-for the full address space, but separated from virtual points-to assertions.
+Figure \ref{fig:peraspaceinvariant} describes the resources for each address space.
 $\Theta$ is the logical map from virtual addresses to the physical addresses they should translate to, 
 for the \emph{current} address space, corresponding to the currently installed page tables (the ones
 indicated by \lstinline|cr3|). In Figure \ref{fig:virtualpointstosharing}, the existentially-quantified $\delta$
@@ -296,9 +307,9 @@ The global map itself is tracked by a resource algebra
 \[\mathcal{A}\textsf{spaces} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \;  ( (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \textsc{GhostName},\mathord{=}) )) \]
 
 
-$\mathcal{I}\textsf{ASpace}(\Theta,m)$ is then the resources for the current address space:
-It ensures that the current address space is valid (it has an entry in $m$, whose corresponding
-authoritative map matches $\Theta$), and asserts ownership of the appropriate fractional ownership
+$\mathcal{I}\textsf{ASpace}(\Theta,m)$ is then the resources for the current address space,
+ensuring that the current address space is valid (has an entry in $m$ whose corresponding
+authoritative map matches $\Theta$), and asserting ownership of the appropriate fractional ownership
 of the physical page table walk for each virtual-to-physical translation in $\Theta$ (for the current address space).
 
 
@@ -338,13 +349,13 @@ address space. The reason for this is that in practice, this global resource is 
 the place where kernel-specific assumptions, such as guaranteeing that certain virtual address range
 was mapped in all address spaces, would be enforced. This paper focuses on the
 reasoning principles behind the virtual memory access, and we leave the use of this within a larger
-kernel to future work.
+kernel to future work. We do, however, deal with the existence of multiple address spaces.
 
 \subsection{Address-Space Management}
 \label{sec:aspacemanagement}
-So far, we have introduced logical abstractions for a single address space. However, virtual memory management
-implementations typically handle more than one address-space,
-and doing this requires assertions which talk about other address spaces, and means to switch address spaces.
+So far, we have introduced logical abstractions for a single address space, but VMMs
+ handle more than one address-space,
+and doing so requires a way to talk about other address spaces, and means to switch address spaces.
 % requiring a means to  which we abstract as a ghost map from root address of an address-space to a namespace labelling the address space
 
 % \paragraph{Valid Context-Resources} Fragmental ownership of $\mathcal{A}\textsf{spaces}$ ($\sumapaces\rtv\gammaPred$) conveys the fact that a current address-space ($\gammaPred$) is the one selected, i.e. loaded into the $\rtv$. This simple fact becomes essential when we observe it inside virtual-pointsto definition in Figure \ref{fig:virtualpointstosharing} and pictorially Figure \ref{logicaladdrspace}. Existence of this fragmental ownership ensures that the contextual resource, i.e. a virtual pointsto assertion, resides under the correct address-space, i.e. modal-context, that makes it valid.
@@ -381,6 +392,9 @@ particularly surprising --- as our modal assertions are semantically predicates 
 address, the assertion $[r](P)$ is a modal assertion which ignores the (implicit) current page table root,
 and evaluates the truth of $P$ as if $r$ were the page table root. This simple definition is 
 what we need in order for assertions in one address space to talk about assertions in another.
+\looseness=-1
+
+\todo[inline,color=cyan]{Colin revision frontier}
 
 The inspiration for this assertion comes from hybrid logic~\cite{blackburn1995hybrid,areces2001hybrid,goranko1996hierarchies,gargov1993modal},
 which as mentioned earlier uses as modalities the names of worlds in a Kripke model to state

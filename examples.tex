@@ -222,21 +222,15 @@ a set of unordered block allocations, we can infer their proofs must also trust 
 A critical piece of \emph{trusted} code in verified OS kernels is the assembly code to change the current address space; current verified OS kernels currently lack effective ways to specify and reason about this low-level operation, for reasons outlined in Section \ref{sec:relwork}.
 \begin{figure}\footnotesize
 \begin{lstlisting}[mathescape]
-;; Assume the save-space is in rdi,
-;; load-space in rsi
-;; No need to save/restore caller-save regs
-;; Save yielding context
+;; Assume the save-space is in rdi, load-space in rsi
+;; First, save yielding context
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast [\rtv'+56](\mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother})}_{\rtv}$
 $\specline{ \texttt{rsi}\mapsto_{\textsf{r}} \rtv' \ast \texttt{rdi}\mapsto_{\textsf{r}} \_ \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} \ast  \texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} }_{\rtv}$
 $\specline{\texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
 $\specline{\texttt{rdi+0} \mapsto_{\textsf{v}} \_ \ast \texttt{rdi+8} \mapsto_{\textsf{v}} \_ \ast \texttt{rdi+16} \mapsto_{\textsf{v}} \_ \ast \texttt{rdi+24} \mapsto_{\textsf{v}} \_ \ast \texttt{rdi+32} \mapsto_{\textsf{v}} \_}_{\rtv}$
 $\specline{\texttt{rdi+40} \mapsto_{\textsf{v}} \_ \ast \texttt{rdi+48} \mapsto_{\textsf{v}} \_\ast \texttt{rdi+56} \mapsto_{\textsf{v}} \_}_{\rtv}$
 mov 0[rdi], rbx
-mov 8[rdi], rsp
-mov 16[rdi], rbp
-mov 24[rdi], r12
-mov 32[rdi], r13
-mov 40[rdi], r14
+... ;; mov rsp, rbp, r12, r13, r14, saved to offsets 8, 16, 24, 32, and 40 from rdi
 mov 48[rdi], r15
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast [\rtv'+56](\mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother})}_{\rtv}$
 $\specline{ \texttt{rdi}\mapsto_{\textsf{r}} \_ \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} \ast  \texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} }_{\rtv}$
@@ -251,14 +245,9 @@ $\specline{\texttt{rdi+0} \mapsto_{\textsf{v}} \texttt{rbxv} \ast \texttt{rdi+8}
 $\specline{\texttt{rdi+32} \mapsto_{\textsf{v}} \texttt{r13v} \ast \texttt{rdi+40} \mapsto_{\textsf{v}} \texttt{r14v} \ast \texttt{rdi+48} \mapsto_{\textsf{v}} \texttt{r15v}\ast \texttt{rdi+56} \mapsto_{\textsf{v}} \rtv}_{\rtv}$    
 ;; Restore target context
 mov rbx, 0[rsi] 
-;; This switches to a new stack
-;; This stack may not be mapped in the
-;; current address space!
+;; This switches to a new stack, which may not be mapped in the current address space!
 mov rsp, 8[rsi] 
-mov rbp, 16[rsi]
-mov r12, 24[rsi]
-mov r13, 32[rsi]
-mov r14, 40[rsi]
+... ;; mov rbp, r12, r13, r14, to offsets 16, 24, 32, and 40 from rsi
 mov r15, 48[rsi]
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast [\rtv'+56](\mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother})}_{\rtv}$
 $\specline{ \texttt{rdi}\mapsto_{\textsf{r}} \_ \ast \texttt{rbx}\mapsto_{\textsf{r}} \rtv'+0 \ast  \texttt{rsp}\mapsto_{\textsf{r}} \rtv'+8 \ast \texttt{rbp}\mapsto_{\textsf{r}} \rtv'+16 }_{\rtv}$
