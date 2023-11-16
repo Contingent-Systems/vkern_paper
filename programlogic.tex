@@ -100,11 +100,12 @@ and \textsf{pageoff} (a $\mathcal{W}_{12}$) is an offset within that page.
 From this we can derive a more concise physical points-to when the split is unimportant:
 % Giving a raw 64-bits memory pointsto assertion becomes
 \[\textsf{w} \mapsto_{\textsf{p}} \{q\} \textsf{ v} \stackrel{\triangle}{=} (\textsf{drop 12}~w) \ \sim \ (\textsf{bottom 12}~w)\mapsto_{\textsf{a}} \; \{\textsf{q}\} \textsf{ v} \]
-
+ %I put a newline in between the following two Definitions as the second Definition seems not proper without the newline
 \begin{figure*}
   \begin{lstlisting}[language=Coq]
  Definition $\vaddr\mapsto_{\textsf{t}}\{\textsf{q}\}\; \vpage$ : vProp $\Sigma$ := 
-  $\exists_{\textsf{l4e l3e l2e l1e}} \ldotp$  $\ulcorner$ aligned $\vaddr \urcorner \ast$ L4_L1_PointsTo($\vaddr$ l4e l3e l2e l1e paddr) $\ast$ paddr $\mapsto_{p}\{\mathsf{q}\} \vpage$.
+ $\exists_{\textsf{l4e l3e l2e l1e}} \ldotp$  $\ulcorner$ aligned $\vaddr \urcorner \ast$ L4_L1_PointsTo($\vaddr$ l4e l3e l2e l1e paddr) $\ast$ paddr $\mapsto_{p}\{\mathsf{q}\} \vpage$.
+
  Definition L4_L1_PointsTo (maddr l4e l3e l2e l1e paddr :word 64) : vProp $\Sigma$ := $\lambda$ cr3val.
   $\ulcorner$ entry_present l4e $\land$ entry_present l3e $\land$ entry_present l2e $\land$ entry_present l1e$\urcorner$ $\ast$
   (l4M52 maddr cr3val) $\sim$ (l4off maddr cr3val) $\mapsto_{a}$ {q1}  l4e  $\ast$
