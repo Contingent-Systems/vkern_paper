@@ -557,12 +557,12 @@ not used by the first instruction in sequence through and on to subsequent instr
 
 \begin{figure}
 \begin{mathpar}
-%  \inferrule[WriteToRegFromReg]{
+%  \inferrule[AddRegImm]{
 %  \{P \ast r_d \mapsto_{r} \textsf{rvs} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}_{\textsf{rtv}}\;\overline{ is}
 %}{
 %  \{P \ast r_d \mapsto_{r} \textsf{rvd} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}_{\textsf{rtv}}
 %  \textsf{ mov}~\textsf{r}_d,~\textsf{r}_s;\;\overline{is}
-  %\lstinline|mov %cr3, r| 
+%  \lstinline|mov %cr3, r| 
 %}
 %\\
 % \inferrule[WriteToPhysMemFromReg]{
@@ -580,16 +580,16 @@ not used by the first instruction in sequence through and on to subsequent instr
 % }
 % \\
 \inferrule[WriteToRegFromVirtMem]{
-  \{P \ast \mathcal{I}\textsf{ASpace}\ast \mathcal{I}\textsf{ASpace} \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}_{\textsf{rtv}}\;\overline{is}
+  \{P \ast \mathcal{I}\textsf{ASpace}\ast \mathcal{I}\textsf{ASpace} \ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv + x} \ast \ulcorner x = 3 \lor x =4 \urcorner \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}_{\textsf{rtv}}\;\overline{is}
 }{
-  \{P \ast \mathcal{I}\textsf{ASpace}\ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v} \}_{\textsf{rtv}}
+  \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} \ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v} \}_{\textsf{rtv}}\;
   \textsf{mov}~\textsf{r}_d,~[\textsf{r}_a];\;\overline{is}
 }
 \\
 \inferrule[WriteToVirtMemFromReg]{
-  \{P \ast \mathcal{I}\textsf{ASpace}\ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v} \}_{\textsf{rtv}}\;\overline{ is}  
+  \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv + x} \ast \ulcorner x = 3 \lor x =4 \urcorner \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v} \}_{\textsf{rtv}}\;\overline{ is}  
 }{
-  \{P \ast \mathcal{I}\textsf{ASpace}\ast r_s \mapsto_{r}\{q\}  \textsf{rvs}   \ast r_a \mapsto_{r}\{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{rvs} \}_{\textsf{rtv}}
+  \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}   \ast r_a \mapsto_{r}\{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{rvs} \}_{\textsf{rtv}}
   \textsf{ mov}~[\textsf{r}_a],~\textsf{r}_s;\;\overline{is}
 }
 \\
@@ -601,16 +601,16 @@ not used by the first instruction in sequence through and on to subsequent instr
   %\lstinline|mov %cr3, r| 
 %}\\
 \inferrule[WriteToRegCtlFromRegModal]{
-  \{[\textsf{rtv}](P \ast \mathcal{I}\textsf{ASpace})\ast \mathcal{I}\textsf{ASpace} \ast R\ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}  \}_{\textsf{rvs}} \overline{is}
+  \{[\textsf{rtv}](P \ast \mathcal{I}\textsf{ASpace})\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv + 4} \ast \mathcal{I}\textsf{ASpace} \ast R\ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}  \}_{\textsf{rvs}} \;\overline{is}
 }{
-  \{P \ast \mathcal{I}\textsf{ASpace} \ast [\textsf{rvs}](R \ast\mathcal{I}\textsf{ASpace})\ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}   \}_{\textsf{rtv}}
+  \{P \ast \mathcal{I}\textsf{ASpace} \ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} \ast [\textsf{rvs}](R \ast\mathcal{I}\textsf{ASpace})\ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}   \}_{\textsf{rtv}} \;
   \textsf{mov}~\textsf{cr3},~r_s;\;\overline{is}
   %\lstinline|mov %cr3, r| 
 }\\
 \inferrule[WriteToRegFromRegCtl]{
-  \{P \ast r_d \mapsto_{r} \textsf{rvs} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}_{\textsf{rtv}}\;\overline{ is}
+  \{P \ast  \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv + 4} \ast r_d \mapsto_{r} \textsf{rvs} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}_{\textsf{rtv}}\;\overline{ is}
 }{
-  \{P \ast r_d \mapsto_{r} \textsf{rvd} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}_{\textsf{rtv}}
+  \{P \ast  \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} \ast r_d \mapsto_{r} \textsf{rvd} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}_{\textsf{rtv}}
   \textsf{ mov}~\textsf{r}_d,~\textsf{r}_s;\;\overline{is}
   %\lstinline|mov %cr3, r| 
 }
