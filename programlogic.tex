@@ -556,6 +556,9 @@ Standard for Hoare doubles, there is a frame resource $P$ in each rule for passi
 not used by the first instruction in sequence through and on to subsequent instructions.
 
 \begin{figure}
+  \makeatletter % allow us to mention @-commands
+\def\arcr{\@arraycr}
+\makeatother
 \begin{mathpar}
 %  \inferrule[AddRegImm]{
 %  \{P \ast r_d \mapsto_{r} \textsf{rvs} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}_{\textsf{rtv}}\;\overline{ is}
@@ -575,15 +578,19 @@ not used by the first instruction in sequence through and on to subsequent instr
  \inferrule[AddRegImm]{
    \{P \ast\textsf{rip} \mapsto_{\textsf{r}} \textsf{iv+7} \ast  \ast (r_d \mapsto_{r}  \textsf{rvd+imm} \lor  r_d \mapsto_{r} 0 ) \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}_{\textsf{rtv}}\;\overline{is}
  }{
-   \{\begin{array}{l}
-   P \ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} \ast \textsf{rflags} \mapsto_{\textsf{r}} \textsf{flgs} \ast \ulcorner (\textsf{rvd + imm} > 0 \lor \textsf{rvd + imm} = 0 ) \urcorner \ast \\
+   \left\{
+   \begin{array}{l}
+   P \ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} \ast \textsf{rflags} \mapsto_{\textsf{r}} \textsf{flgs} \ast \ulcorner (\textsf{rvd + imm} > 0 \lor \textsf{rvd + imm} = 0 ) \urcorner \ast \arcr
    r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v}
-   \end{array} \}_{\textsf{rtv}}
+ \end{array}\right\}_{\textsf{rtv}}  \;
    \textsf{add}~\textsf{r}_d,~[\textsf{imm}];\;\overline{is}
  }
  \\
 \inferrule[WriteToRegFromVirtMem]{
-  \{P \ast \mathcal{I}\textsf{ASpace}\ast \mathcal{I}\textsf{ASpace} \ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv + x} \ast \ulcorner x = 3 \lor x =4 \urcorner \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}_{\textsf{rtv}}\;\overline{is}
+  \left\{ \begin{array}{l}
+    P \ast \mathcal{I}\textsf{ASpace}\ast \mathcal{I}\textsf{ASpace} \ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv + x} \ast \ulcorner x = 3 \lor x =4 \urcorner \ast \arcr
+    r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v}
+  \end{array} \right\}_{\textsf{rtv}}\;\overline{is}
 }{
   \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} \ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v} \}_{\textsf{rtv}}\;
   \textsf{mov}~\textsf{r}_d,~[\textsf{r}_a];\;\overline{is}
