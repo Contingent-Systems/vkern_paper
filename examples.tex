@@ -240,7 +240,7 @@ $\specline{ \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \ast \own
 $\specline{ \sumapaces\rtv\delta \ast \sumpv\paddr\qfraczero\true \ast \textsf{P}}_{\rtv}$
 $\specline{\vaddr \mapsto_{\texttt{vpte}} \{\textsf{q}, \textsf{qfrac}\} \paddr \;(\texttt{val})}$
 \end{lstlisting}
-\todo[inline]{Ismail: Should \delta be something else? $\delta$ was used for $\theta$, we need a different gname for $\Xi$.}
+\todo[inline]{Ismail: Should $\delta$ be something else? $\delta$ was used for $\theta$, we need a different gname for $\Xi$.}
 \caption{Converting a physical address of a PTE to a virtual address (without instruction pointer or flag updates).}
 \label{fig:p2v}
 \end{figure}
@@ -283,7 +283,7 @@ lack effective ways to specify and reason about this low-level operation, for re
 \begin{figure}\footnotesize
 \begin{lstlisting}[mathescape]
 ;; Assume the save-space is in rdi, load-space in rsi. First, save the yielding context
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast [\rtv'](\mathcal{I}\texttt{ASpace}(\theta',m') \ast \texttt{Pother}) \ast \texttt{rsi}\mapsto_{\textsf{r}} old \ast \texttt{rdi}\mapsto_{\tnewoldr}} old \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast [\rtv'](\mathcal{I}\texttt{ASpace}(\theta',m') \ast \texttt{Pother}) \ast \texttt{rsi}\mapsto_{\textsf{r}} new \ast \texttt{rdi}\mapsto_{\textsf{r}} old \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} }_{\rtv}$
 $\specline{\texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} \ast \texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
 $\specline{\mathsf{ContextAt}(old,\_) \ast \mathsf{ContextAt}(new,[\mathsf{rbxv}',\ldots,\rtv']) }_{\rtv}$
 mov 0[rdi], rbx
