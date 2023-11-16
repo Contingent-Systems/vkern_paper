@@ -151,7 +151,7 @@ For example,
 The statement of these assertions is simplified by the use of our split physical points-to assertions, since
 each level of tables is page-sized.\footnote{We do not address superpages and hugepages in this paper.}
 This helper definition is also a more explicit \textsf{vProp}, explicitly binding a value for \lstinline|cr3| and using it
-to start the translation process.\todo{Ismail: aren't phys ptstos vProps? Or iProps?}
+to start the translation process.
 
 
 % Given the definition of physical page-pointsto assertion and the root address of virtual-address space as shown in Figure \ref{fig:pagetable}, one can build the physical address-translation for a virtual address (e.g. \textsf{va}) via abstracting the L4-L1 table traversal as the following:
