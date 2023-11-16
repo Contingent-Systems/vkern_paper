@@ -236,14 +236,20 @@ though the Hoare triple we verify for this add instruction is rather complex:
 \begin{lstlisting}[mathescape]
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner \textsf{KERNELBASE} + \paddr > 0 \urcorner }_{\rtv}$
 $\specline{ \texttt{rip}\mapsto_{\textsf{r}} \textsf{iv} \ast \texttt{rflags}\mapsto_{\textsf{r}} \textsf{flaglist} \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr  }_{\rtv}$
-$\specline{ \sumapaces\rtv\delta  \ast \sumwalkabs\vaddr\qfrac\paddr \ast \sumpv\paddr\qfrac\true  }_{\rtv}$
+$\specline{ \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$
 ;; This offsets the physical address bt KERNELBASE!
 add rbx, KERNELBASE
 $\specline{\exists \qfraczero; \qfrac,\textsf{ flaglistadd, w, flaglistadd, val}, \textsf{P} \ast \texttt{rip}\mapsto_{\textsf{r}} \textsf{iv+7} \ast \texttt{rflags}\mapsto_{\textsf{r}} \textsf{flaglistadd} \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr + \textsf{KERNELBASE} }_{\rtv}$
 $\specline{\bigast{(\vaddr, \paddr)\in \ptablestore}{\exists\;(\textsf{l4e, l3e, l2e, l1e, } \paddr)\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr\textsf{, l4e, l3e, l2e, l1e,} \paddr)}}_{\rtv}$
 $\specline{\mathcal{R} -\ast \bigast{(\paddr) \in \Xi}{\exists\; (\textsf{qfrac, q, val, va}) \ldotp \ulcorner \textsf{va} = \paddr + \textsf{KERNELBASE} \urcorner \ast \sumwalkabs\vaddr\qfrac\paddr  \ast \paddr \mapsto_{\mathsf{p}}\{\textsf{qfrac}\} \; \vale\ast  \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner}}_{\rtv}$
 $\specline{ \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \ast \ownGhostpv\gammaPred{\authfull{\pvmapping\Xi}}}$
-$\specline{ \sumapaces\rtv\delta  \ast\sumwalkabs\vaddr\qfrac\paddr \ast \sumpv\paddr\qfraczero\true \ast \textsf{P}}_{\rtv}$
+$\specline{ \sumapaces\rtv\delta  \ast\sumwalkabs\vaddr\qfrac\paddr \ast \sumpv\paddr\qfraczero\true \ast  \paddr \mapsto_{\mathsf{p}}\{\textsf{qfrac}\} \; \vale \ast \textsf{P}}_{\rtv}$
+$\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \sqsubseteq $
+$\specline{\exists \qfraczero; \qfrac,\textsf{ flaglistadd, w, flaglistadd, val}, \textsf{P} \ast \texttt{rip}\mapsto_{\textsf{r}} \textsf{iv+7} \ast \texttt{rflags}\mapsto_{\textsf{r}} \textsf{flaglistadd} \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr + \textsf{KERNELBASE} }_{\rtv}$
+$\specline{\bigast{(\vaddr, \paddr)\in \ptablestore}{\exists\;(\textsf{l4e, l3e, l2e, l1e, } \paddr)\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr\textsf{, l4e, l3e, l2e, l1e,} \paddr)}}_{\rtv}$
+$\specline{\mathcal{R} -\ast \bigast{(\paddr) \in \Xi}{\exists\; (\textsf{qfrac, q, val, va}) \ldotp \ulcorner \textsf{va} = \paddr + \textsf{KERNELBASE} \urcorner \ast \sumwalkabs\vaddr\qfrac\paddr  \ast \paddr \mapsto_{\mathsf{p}}\{\textsf{qfrac}\} \; \vale\ast  \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner}}_{\rtv}$
+$\specline{ \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \ast \ownGhostpv\gammaPred{\authfull{\pvmapping\Xi}}}$
+$\specline{ \sumapaces\rtv\delta \ast \sumpv\paddr\qfraczero\true \ast \textsf{P}}_{\rtv}$
 $\specline{\vaddr \mapsto_{\texttt{vpte}} \{\textsf{q}, \textsf{qfrac}\} \paddr \;(\texttt{val})}$
 \end{lstlisting}
 \caption{Identity mapping of a physical address to a virtual one.}
