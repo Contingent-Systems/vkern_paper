@@ -505,12 +505,9 @@ stashed under an other-space assertion for the initial address space, and pulled
 
 \subsection{Selected Logical Rules}
 \label{sec:selected_rules}
-\todo[inline]{Ismail: Please update this section with rip stuff}
-To address the issues described in Section \ref{sec:issues}, we give our logic using
-the Hoare-Double definition in Figure \ref{fig:wpddefinition}.\footnote{The figure does
+Per the discussion in Section \ref{sec:issues}, we define our logic using Hoare doubles:\footnote{This does
 omit some low-level Iris details related to stuckness and observations, which play no meaningful
 role in our development.}
-\begin{figure} 
   \[
   \begin{array}{l}
     %\textsf{wpd\_def e s E1 } \Phi \;\mathsf{ rtv } : \textsf{iProp }\Sigma := \\
@@ -519,12 +516,9 @@ role in our development.}
    ((\textsf{cr3} \mapsto_{\textsf{r}} \textsf{rtv} \ast \Phi) \textsf{ rtv}) \wand \textsf{WP e } \{\_, \textsf{True} \}
     \end{array}
   \]
-\caption{Unfolded Hoare-Double Definition for \textsf{vProp} Logic }
-\label{fig:wpddefinition}
-\end{figure}
 Our Hoare doubles $\{\Phi\}_\textsf{rtv}\;\textsf{e}$ state that the expression (i.e., sequence of instructions)
 \textsf{e} are safe to execute (will not fault)
-when executed with precondition $\Phi\ast\textsf{cr3}\mapsto_{\textsf{r}} \textsf{rtv}$.
+when executed with \textsf{vProp} precondition $\Phi\ast\textsf{cr3}\mapsto_{\textsf{r}} \textsf{rtv}$.
 \textsf{WP} is Iris's own weakest precondition modality, unmodified~\cite{jung2018iris}.
 Making \textsf{rtv} an explicit parameter to the double, rather than simply using register assertions
 directly solves a technical problem with ensuring that the page table root used to evaluate
@@ -544,16 +538,20 @@ These rules and others (e.g., including accessing memory at an instruction-speci
 value, which is common in most ISAs)
 can be found in our artifact.
 Each rule in Figure \ref{fig:wpdamd}, 
-is annotated with an address value (\textsf{rtv}), 
-i.e. a root address of an address-space, under which the resources mentioned in the specification are valid,
-or equivalently, the assumed value of \lstinline|cr3| prior to executing the instructions.
-In general, we use $\textsf{r}_s$ and $\textsf{r}_d$ to specify source and destination registers
+is annotated with a root (i.e., \lstinline|cr3|) address value (\textsf{rtv}), 
+under which the resources mentioned in the specification are valid.
+In general, we use metavariables $\textsf{r}_s$ and $\textsf{r}_d$ to specify source and destination registers
 for each instruction, and prefix various register value variables with \textsf{rv}.
 We sometimes use $\textsf{r}_a$ to emphasize when a register is expected to hold an address used
 for memory access, though the figure also uses typical assembler conventions of specifying
 memory access operands by bracketing the register holding the memory address.
 Standard for Hoare doubles, there is a frame resource $P$ in each rule for passing resources
-not used by the first instruction in sequence through and on to subsequent instructions.
+not used by the first instruction in sequence through to subsequent instructions.
+Our rules include tracking of each instruction's memory address to track \lstinline|rip| updates, which is critical
+for control transfer instructions. Our development also includes handling of the \lstinline|rflags| register updates from arithmetic instructions.
+Most rules are otherwise standard (e.g., \lstinline|mov| between register, etc.), with Figure \ref{fig:wpdamd} showing the rules
+most unique to our development.
+\looseness=-1
 
 \begin{figure}
   \makeatletter % allow us to mention @-commands
@@ -575,20 +573,20 @@ not used by the first instruction in sequence through and on to subsequent instr
 %   \textsf{ mov}~[\textsf{r}_a],~\textsf{r}_s;\;\overline{is}
 % }
 % \\
- \inferrule[AddRegImm]{
-   \{P \ast\textsf{rip} \mapsto_{\textsf{r}} \textsf{iv+7} \ast  \ast (r_d \mapsto_{r}  \textsf{rvd+imm} \lor  r_d \mapsto_{r} 0 ) \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}_{\textsf{rtv}}\;\overline{is}
- }{
-   \left\{
-   \begin{array}{l}
-   P \ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} \ast \textsf{rflags} \mapsto_{\textsf{r}} \textsf{flgs} \ast \ulcorner (\textsf{rvd + imm} > 0 \lor \textsf{rvd + imm} = 0 ) \urcorner \ast \arcr
-   r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v}
- \end{array}\right\}_{\textsf{rtv}}  \;
-   \textsf{add}~\textsf{r}_d,~[\textsf{imm}];\;\overline{is}
- }
- \\
+ % \inferrule[AddRegImm]{
+ %   \{P \ast\textsf{rip} \mapsto_{\textsf{r}} \textsf{iv+7} \ast  \ast (r_d \mapsto_{r}  \textsf{rvd+imm} \lor  r_d \mapsto_{r} 0 ) \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}_{\textsf{rtv}}\;\overline{is}
+ % }{
+ %   \left\{
+ %   \begin{array}{l}
+ %   P \ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} \ast \textsf{rflags} \mapsto_{\textsf{r}} \textsf{flgs} \ast \ulcorner (\textsf{rvd + imm} > 0 \lor \textsf{rvd + imm} = 0 ) \urcorner \ast \arcr
+ %   r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v}
+ % \end{array}\right\}_{\textsf{rtv}}  \;
+ %   \textsf{add}~\textsf{r}_d,~[\textsf{imm}];\;\overline{is}
+ % }
+ % \\
 \inferrule[WriteToRegFromVirtMem]{
   \left\{ \begin{array}{l}
-    P \ast \mathcal{I}\textsf{ASpace}\ast \mathcal{I}\textsf{ASpace} \ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv + x} \ast \ulcorner x = 3 \lor x =4 \urcorner \ast \arcr
+    P \ast \mathcal{I}\textsf{ASpace}\ast \mathcal{I}\textsf{ASpace} \ast \textsf{rip} \mapsto_{\textsf{r}} {\textsf{iv} + \textsf{MovLen}(\textsf{r}_d,[\textsf{r}_a])} \ast \arcr
     r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v}
   \end{array} \right\}_{\textsf{rtv}}\;\overline{is}
 }{
@@ -597,7 +595,7 @@ not used by the first instruction in sequence through and on to subsequent instr
 }
 \\
 \inferrule[WriteToVirtMemFromReg]{
-  \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv + x} \ast \ulcorner x = 3 \lor x =4 \urcorner \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v} \}_{\textsf{rtv}}\;\overline{ is}  
+  \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} + \textsf{MovLen}(\textsf{r}_d,[\textsf{r}_a])  \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v} \}_{\textsf{rtv}}\;\overline{ is}  
 }{
   \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}   \ast r_a \mapsto_{r}\{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{rvs} \}_{\textsf{rtv}}
   \textsf{ mov}~[\textsf{r}_a],~\textsf{r}_s;\;\overline{is}
@@ -616,45 +614,33 @@ not used by the first instruction in sequence through and on to subsequent instr
   \{P \ast \mathcal{I}\textsf{ASpace} \ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} \ast [\textsf{rvs}](R \ast\mathcal{I}\textsf{ASpace})\ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}   \}_{\textsf{rtv}} \;
   \textsf{mov}~\textsf{cr3},~r_s;\;\overline{is}
   %\lstinline|mov %cr3, r| 
-}\\
-\inferrule[WriteToRegFromRegCtl]{
-  \{P \ast  \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv + 4} \ast r_d \mapsto_{r} \textsf{rvs} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}_{\textsf{rtv}}\;\overline{ is}
-}{
-  \{P \ast  \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} \ast r_d \mapsto_{r} \textsf{rvd} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}_{\textsf{rtv}}
-  \textsf{ mov}~\textsf{r}_d,~\textsf{r}_s;\;\overline{is}
-  %\lstinline|mov %cr3, r| 
 }
+% \\
+% \inferrule[WriteToRegFromRegCtl]{
+%   \{P \ast  \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv + 4} \ast r_d \mapsto_{r} \textsf{rvs} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}_{\textsf{rtv}}\;\overline{ is}
+% }{
+%   \{P \ast  \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} \ast r_d \mapsto_{r} \textsf{rvd} \ast r_s \mapsto_{r}\{q\} \textsf{ rvs} \}_{\textsf{rtv}}
+%   \textsf{ mov}~\textsf{r}_d,~\textsf{r}_s;\;\overline{is}
+%   %\lstinline|mov %cr3, r| 
+% }
 \end{mathpar}
-\todo[inline]{update for rip tracking}
 \caption{Reasoning Rules for Selected \textsf{AMD64} Instructions under}
 \label{fig:wpdamd}
 \end{figure}
 
-We briefly describe several key rules representative of the system.
 
-Figure \ref{fig:wpdamd}, includes two  rules for accessing memory at an address in a register $r_a$. 
+Figure \ref{fig:wpdamd} includes two  rules for accessing memory at an address stored in a register $r_a$. 
 Ultimately, any memory access needs to ensure the relevant address translation would succeed,
 which can be ensured by what we informally call the page-table-walk points-to collection
 ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}).
-
-% We mainly have two options to achieve this. 
-% First one is to use  page-table-walk pointsto 
-% ($\textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v}$), 
-% which is consists of all-physical page-table memory assertions, 
-% to prove the page-table traversal \textsf{AMD64} implements, update the register $r_d$ the value obtained 
-% ($\textsf{v}$) as shown in Figure (\TirNameStyle{WriteToRegFromPhysMem}). 
-% By doing so, we expose the resources ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$) needed only 
-% for the proof of \textsf{AMD64} page-table traversal to the client of the rule. 
-% This breaks the modularity of reasoning we want to maintain in location virtualization.
-
 \TirNameStyle{WriteToRegFromVirtMem} and \TirNameStyle{WriteToVirtMemFromReg}
-each use a virtual-pointsto assertion ($\textsf{vaddr} \mapsto_{\textsf{v},\textsf{rtv}}$),
+each use a virtual-pointsto assertion ($\textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v}$),
 and are nearly-standard (assembly) separation logic rules for memory accesses.
 However, because we split the physical resources for the page table walk from the
 virtual points-to itself (in order to permit the physical page tables to be freely modified
 as long as they preserve virtual-to-physical translations), the rule requires $\mathcal{I}\textsf{ASpace}$
 for the current address space to be carried through.
-While doing the proof of soundness for this rule,
+While doing the proof of soundness for these rules,
 the token ($\sumwalkabs\vaddr\qfrac\paddr$) from the virtual points-to
 is used to extract to extract page-table-traversal points-to collection
 for the relevant address from that resource,
@@ -663,13 +649,15 @@ and then those  physical points-to assertions describing the page table walk
 the operational semantics succeed and have the desired effect.
 
 \paragraph{Updating \lstinline|cr3|} 
-Unlike other rules, \TirNameStyle{WriteToRegCtlFromReg} updates the root address of the 
+Unlike other rules, \TirNameStyle{WriteToRegCtlFromRegModal} updates the root address of the 
 address-space determining the validity of resources, from $\rtv$ before the
-\lstinline|mov| to $\textsf{rvs}$ afterwards.
-From that rule, with one step outside the \textsf{vProp} logic (so it is not quite a derived rule within
-our embedded logic), we can derive 
-\TirNameStyle{WriteToRegCtlFromRegModal},
-which is the (full) Hoare double version of the address space switch rule proposed in Section \ref{sec:issues}.
+\lstinline|mov| to $\textsf{rvs}$ afterwards. The global effects of this rule are reflected in moving
+bare assertions under an other-space modality for $\rtv$, and moving the new address space's assertions out of
+the corresponding modality.
+% From that rule, with one step outside the \textsf{vProp} logic (so it is not quite a derived rule within
+% our embedded logic), we can derive 
+% \TirNameStyle{WriteToRegCtlFromRegModal},
+% which is the (full) Hoare double version of the address space switch rule proposed in Section \ref{sec:issues}.
 
 \subsection{Soundness}
 Our rules from Figure \ref{fig:wpdamd} are proven sound in Iris against an assembly-level hardware model
