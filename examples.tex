@@ -252,27 +252,28 @@ $\specline{\vaddr \mapsto_{\texttt{vpte}} \{\textsf{q}, \textsf{qfrac}\} \paddr 
 
 We can see that this specification neatly encapsulates reasoning about invariants on the page tables in terms of general modal assumptions.\todo{speculative
 but ought to turn out this way}
+This is a simple piece of code whose functionality is critical and whose correctness is highly non-trivial. No prior work engages with this problem.
 
-\citet{kolanski08vstte,kolanski09tphols} verified a single code block with their logic which was roughly Figure \ref{fig:mapping_code} for a 2-level ARM
-page table, but several critical complexities our work deals with were not addressed.
-First, beyond the limitations discussed in Section \ref{sec:overly-restrictive}, Kolanski and Klein assumed that virtual addresses
-for page tables at each level were given as parameters rather than verifying any conversion from physical addresses to virtual addresses (or even axiomatizing their lookup).
-In contrast, our verification articulates the address space invariant from which the physical-to-virtual translation can be implemented.
-Second, our proof deals with the construction of a valid virtual points-to \emph{to the PTE to update} in mapping, which Kolanski and Klein also
-assumed was given.
-\todo{some of this is really an argument for our verification being more thorough, rather than being about our logic}
+% \citet{kolanski08vstte,kolanski09tphols} verified a single code block with their logic which was roughly Figure \ref{fig:mapping_code} for a 2-level ARM
+% page table, but several critical complexities our work deals with were not addressed.
+% First, beyond the limitations discussed in Section \ref{sec:overly-restrictive}, Kolanski and Klein assumed that virtual addresses
+% for page tables at each level were given as parameters rather than verifying any conversion from physical addresses to virtual addresses (or even axiomatizing their lookup).
+% In contrast, our verification articulates the address space invariant from which the physical-to-virtual translation can be implemented.
+% Second, our proof deals with the construction of a valid virtual points-to \emph{to the PTE to update} in mapping, which Kolanski and Klein also
+% assumed was given.
+% \todo{some of this is really an argument for our verification being more thorough, rather than being about our logic}
 
-Reasoning about the page table walk in their logic would have required 
-could reason about the walk, but would need to explicitly prove that all other invariants
-of the kernel, the current address space, and all other address spaces of interest were preserved by each update, because their model
-only supports separation within a single address space. In our model, this follows for free from making
-our separation logic directly aware of address translation and internalizing assumptions about other address spaces as further separable assertions.
-Kolanski and Klein did address part of the walk information for a 2-level page table (a possible ARM configuration), but 
+% Reasoning about the page table walk in their logic would have required 
+% could reason about the walk, but would need to explicitly prove that all other invariants
+% of the kernel, the current address space, and all other address spaces of interest were preserved by each update, because their model
+% only supports separation within a single address space. In our model, this follows for free from making
+% our separation logic directly aware of address translation and internalizing assumptions about other address spaces as further separable assertions.
+% Kolanski and Klein did address part of the walk information for a 2-level page table (a possible ARM configuration), but 
 
-\textsc{seL4} currently still trusts address translations; it models page tables as a data structure in regular memory, thus not capturing the possibility that even
-temporarily destroying the mappings and restoring them can actually crash the OS. \textsc{CertiKOS} papers share little in the way of precise details about
-their virtual memory management, but because their core technology is based on a fork of \textsc{CompCert}, whose model of memory is
-a set of unordered block allocations, we can infer their proofs must also trust these translations.
+% \textsc{seL4} currently still trusts address translations; it models page tables as a data structure in regular memory, thus not capturing the possibility that even
+% temporarily destroying the mappings and restoring them can actually crash the OS. \textsc{CertiKOS} papers share little in the way of precise details about
+% their virtual memory management, but because their core technology is based on a fork of \textsc{CompCert}, whose model of memory is
+% a set of unordered block allocations, we can infer their proofs must also trust these translations.
 
 
 \subsection{Change of Address Space}
