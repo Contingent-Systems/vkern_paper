@@ -283,68 +283,63 @@ This is a simple piece of code whose functionality is critical and whose correct
 
 
 \subsection{Change of Address Space}
-A critical piece of \emph{trusted} code in verified OS kernels is the assembly code to change the current address space; current verified OS kernels currently lack effective ways to specify and reason about this low-level operation, for reasons outlined in Section \ref{sec:relwork}.
+A critical piece of \emph{trusted} code in current verified OS kernels is the assembly code to change the current address space; current verified OS kernels currently 
+lack effective ways to specify and reason about this low-level operation, for reasons outlined in Section \ref{sec:relwork}.
 \begin{figure}\footnotesize
 \begin{lstlisting}[mathescape]
-;; Assume the save-space is in rdi, load-space in rsi
-;; First, save yielding context
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast [\rtv'+56](\mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother})}_{\rtv}$
-$\specline{ \texttt{rsi}\mapsto_{\textsf{r}} \rtv' \ast \texttt{rdi}\mapsto_{\textsf{r}} \_ \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} \ast  \texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} }_{\rtv}$
-$\specline{\texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
-$\specline{\texttt{rdi+0} \mapsto_{\textsf{v}} \_ \ast \texttt{rdi+8} \mapsto_{\textsf{v}} \_ \ast \texttt{rdi+16} \mapsto_{\textsf{v}} \_ \ast \texttt{rdi+24} \mapsto_{\textsf{v}} \_ \ast \texttt{rdi+32} \mapsto_{\textsf{v}} \_}_{\rtv}$
-$\specline{\texttt{rdi+40} \mapsto_{\textsf{v}} \_ \ast \texttt{rdi+48} \mapsto_{\textsf{v}} \_\ast \texttt{rdi+56} \mapsto_{\textsf{v}} \_}_{\rtv}$
+;; Assume the save-space is in rdi, load-space in rsi. First, save the yielding context
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast [\rtv'](\mathcal{I}\texttt{ASpace}(\theta',m') \ast \texttt{Pother}) \ast \texttt{rsi}\mapsto_{\textsf{r}} old \ast \texttt{rdi}\mapsto_{\tnewoldr}} old \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} }_{\rtv}$
+$\specline{\texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} \ast \texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
+$\specline{\mathsf{ContextAt}(old,\_) \ast \mathsf{ContextAt}(new,[\mathsf{rbxv}',\ldots,\rtv']) }_{\rtv}$
 mov 0[rdi], rbx
 ... ;; mov rsp, rbp, r12, r13, r14, saved to offsets 8, 16, 24, 32, and 40 from rdi
 mov 48[rdi], r15
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast [\rtv'+56](\mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother})}_{\rtv}$
-$\specline{ \texttt{rdi}\mapsto_{\textsf{r}} \_ \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} \ast  \texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} }_{\rtv}$
-$\specline{\texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
-$\specline{\texttt{rdi+0} \mapsto_{\textsf{v}} \texttt{rbxv} \ast \texttt{rdi+8} \mapsto_{\textsf{v}} \texttt{rspv} \ast \texttt{rdi+16} \mapsto_{\textsf{v}} \texttt{rbpv} \ast \texttt{rdi+24} \mapsto_{\textsf{v}} \texttt{r12v} \ast}_{\rtv}$
-$\specline{ \texttt{rdi+32} \mapsto_{\textsf{v}} \texttt{r13v} \ast \texttt{rdi+40} \mapsto_{v} \texttt{r14v} \ast \texttt{rdi+48} \mapsto_{\textsf{v}} \texttt{r15v}\ast \texttt{rdi+56} \mapsto_{\textsf{v}} \_}_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast [\rtv'](\mathcal{I}\texttt{ASpace}(\theta',m') \ast \texttt{Pother})  \ast  \texttt{rsi}\mapsto_{\textsf{r}} new \ast \texttt{rdi}\mapsto_{\textsf{r}} old \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} }_{\rtv}$
+$\specline{ \texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} \ast \texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
+$\specline{\mathsf{ContextAt}(old,[\mathsf{rbxv,\ldots,\rtv}]) \ast \mathsf{ContextAt}(new,[\mathsf{rbxv}',\ldots,\rtv']) }_{\rtv}$
 mov 56[%rdi], %cr3
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast [\rtv'+56](\mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother})}_{\rtv}$
-$\specline{ \texttt{rdi}\mapsto_{\textsf{r}} \_ \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} \ast  \texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} }_{\rtv}$
-$\specline{\texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
-$\specline{\texttt{rdi+0} \mapsto_{\textsf{v}} \texttt{rbxv} \ast \texttt{rdi+8} \mapsto_{\textsf{v}} \texttt{rspv} \ast \texttt{rdi+16} \mapsto_{\textsf{v}} \texttt{rbpv} \ast \texttt{rdi+24} \mapsto_{\textsf{v}} \texttt{r12v} \ast }_{\rtv}$
-$\specline{\texttt{rdi+32} \mapsto_{\textsf{v}} \texttt{r13v} \ast \texttt{rdi+40} \mapsto_{\textsf{v}} \texttt{r14v} \ast \texttt{rdi+48} \mapsto_{\textsf{v}} \texttt{r15v}\ast \texttt{rdi+56} \mapsto_{\textsf{v}} \rtv}_{\rtv}$    
+$\specline{\ldots \ast \texttt{rdi+56} \mapsto_{\textsf{v}} \rtv}_{\rtv}$    
 ;; Restore target context
 mov rbx, 0[rsi] 
-;; This switches to a new stack, which may not be mapped in the current address space!
-mov rsp, 8[rsi] 
-... ;; mov rbp, r12, r13, r14, to offsets 16, 24, 32, and 40 from rsi
+mov rsp, 8[rsi] ;; Switch to new stack, which may not be mapped in the current address space!
+... ;; load rbp, r12, r13, r14, from offsets 16, 24, 32, and 40 from rsi
 mov r15, 48[rsi]
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast [\rtv'+56](\mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother})}_{\rtv}$
-$\specline{ \texttt{rdi}\mapsto_{\textsf{r}} \_ \ast \texttt{rbx}\mapsto_{\textsf{r}} \rtv'+0 \ast  \texttt{rsp}\mapsto_{\textsf{r}} \rtv'+8 \ast \texttt{rbp}\mapsto_{\textsf{r}} \rtv'+16 }_{\rtv}$
-$\specline{\texttt{r12}\mapsto_{\textsf{r}} \rtv'+24 \ast \texttt{r13}\mapsto_{\textsf{r}} \rtv'+32 \ast \texttt{r14}\mapsto_{\textsf{r}} \rtv'+40 \ast \texttt{r15}\mapsto_{\textsf{r}} \rtv'+48}_{\rtv}$
-$\specline{\texttt{rdi+0} \mapsto_{\textsf{v}} \texttt{rbxv} \ast \texttt{rdi+8} \mapsto_{\textsf{v}} \texttt{rspv} \ast \texttt{rdi+16} \mapsto_{\textsf{v}} \texttt{rbpv} \ast \texttt{rdi+24} \mapsto_{\textsf{v}} \texttt{r12v} \ast }_{\rtv}$
-$\specline{\texttt{rdi+32} \mapsto_{\textsf{v}} \texttt{r13v} \ast \texttt{rdi+40} \mapsto_{\textsf{v}} \texttt{r14v} \ast \texttt{rdi+48} \mapsto_{\textsf{v}} \texttt{r15v}\ast \texttt{rdi+56} \mapsto_{\textsf{v}} \rtv}_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast [\rtv'](\mathcal{I}\texttt{ASpace}(\theta',m') \ast \texttt{Pother})  \ast  \texttt{rsi}\mapsto_{\textsf{r}} new \ast \texttt{rdi}\mapsto_{\textsf{r}} old \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv}' }_{\rtv}$
+$\specline{\texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv}' \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv}' \ast \texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v}' \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v}' \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v}' \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}'}_{\rtv}$
+$\specline{\mathsf{ContextAt}(old,[\mathsf{rbxv,\ldots,\rtv}]) \ast \mathsf{ContextAt}(new,[\mathsf{rbxv}',\ldots,\rtv']) }_{\rtv}$
 ;; Switch to the new address space
 mov cr3, 56[rsi]
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast [\rtv'+56](\mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother}) }_{\rtv}$
-$\specline{ \texttt{rdi}\mapsto_{\textsf{r}} \_ \ast \texttt{rbx}\mapsto_{r} \rtv'+0 \ast  \texttt{rsp}\mapsto_{\textsf{r}} \rtv'+8 \ast \texttt{rbp}\mapsto_{\textsf{r}} \rtv'+16 }_{\rtv}$
-$\specline{\texttt{r12}\mapsto_{\textsf{r}} \rtv'+24 \ast \texttt{r13}\mapsto_{\textsf{r}} \rtv'+32 \ast \texttt{r14}\mapsto_{\textsf{r}} \rtv'+40 \ast \texttt{r15}\mapsto_{\textsf{r}} \rtv'+48}_{\rtv}$
-$\specline{\texttt{rdi+0} \mapsto_{\textsf{v}} \texttt{rbxv} \ast \texttt{rdi+8} \mapsto_{\textsf{v}} \texttt{rspv} \ast \texttt{rdi+16} \mapsto_{\textsf{v}} \texttt{rbpv} \ast  \texttt{rdi+24} \mapsto_{\textsf{v}} \texttt{r12v} \ast }_{\rtv}$
-$\specline{\texttt{rdi+32} \mapsto_{\textsf{v}} \texttt{r13v} \ast \texttt{rdi+40} \mapsto_{\textsf{v}} \texttt{r14v} \ast \texttt{rdi+48} \mapsto_{\textsf{v}} \texttt{r15v}\ast \texttt{rdi+56} \mapsto_{\textsf{v}} \rtv}_{\rtv}$
-$\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \sqsubseteq $
-$\specline{ [\rtv](\texttt{Pcurrent}) \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother}}_{\rtv'+56}$
+$\specline{ [\rtv](\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast \mathsf{ContextAt}(old,[\mathsf{rbxv,\ldots,\rtv}]) \ast \mathsf{ContextAt}(new,[\mathsf{rbxv}',\ldots,\rtv']))  }_{\rtv}$
+$\specline{ \mathcal{I}\texttt{ASpace}(\theta',m') \ast \texttt{Pother} \ast  \texttt{rsi}\mapsto_{\textsf{r}} new \ast \texttt{rdi}\mapsto_{\textsf{r}} old \ast \ldots }_{\rtv'}$
 \end{lstlisting}
+\vspace{-1em}
 \caption{Basic task switch code that switches address spaces.}
 \label{fig:swtch}
 \end{figure}
 
-Figure \ref{fig:swtch} gives simplified code for a basic task switch, the heart of an OS scheduler implementation. This is code that saves the context (registers and stack) of the running thread (here in a structure pointed to by \lstinline|rdi|'s value shown in Lines 10-16 and Line 23 of Figure \ref{fig:swtch}) and restores the context of an existing thread (from \lstinline|rsi| shown in Lines 28-38 and Line 45), including the corresponding change of address space for a target thread in another process.
-This code assumes the System V AMD64 ABI calling convention, where the normal registers not mentioned are caller-save, and therefore saved on the stack of the thread that calls this code, as well as on the new stack of the thread that is restored, thus only the callee-save registers and \texttt{cr3} must be restored.\footnote{We are simplifying in a couple basic ways. First, we are ignoring non-integer registers (e.g., floating point, vector registers) entirely. Second, we are ignoring that the caller-save registers should still be initialized to 0 to avoid leaking information across processes. We focus on the core logical requirements.}
+Figure \ref{fig:swtch} gives simplified code for a basic task switch, the heart of an OS scheduler implementation. This is code that saves the context (registers and stack)
+of the running thread (here in a structure pointed to by \lstinline|rdi|'s value shown in Lines 5--7 and Line 11 of Figure \ref{fig:swtch}) and restores the context of 
+an existing thread (from \lstinline|rsi| shown in abbreviated Lines 14--17 and Line 22), including the corresponding change of address space for a target thread in another process.
+This code assumes the System V AMD64 ABI calling convention, where the normal registers not mentioned are caller-save, and therefore saved on the stack of the thread
+that calls this code, as well as on the new stack of the thread that is restored, thus only the callee-save registers and \texttt{cr3} must be 
+restored.\footnote{We are simplifying in a couple basic ways. First, we are ignoring non-integer registers (e.g., floating point, vector registers) entirely. Second, we are ignoring that the caller-save registers should still be initialized to 0 to avoid leaking information across processes. We focus on the core logical requirements.}
 With the addition of a return instruction, this code would satisfy the C function signature\footnote{The name comes from the UNIX 6th Edition \lstinline|swtch| function, the source of the infamous ``You are not expected to understand this'' comment~\cite{lions1996lions}.}
 \begin{lstlisting}[language=C]
 void swtch(context_t* save, context_t* restore);
 \end{lstlisting}
-A call to this code begins executing one thread (Lines 10-16) in one address space ($\rtv$ in Figure \ref{fig:swtch}) (whose information will be saved in \lstinline[language=C]|save| shown in Line 22) and finishes execution executing a different thread in a different address space (whose information is initially in \lstinline[language=C]|restore| Line 29).
+A call to this code begins executing one thread (up through Line 17) in one address space ($\rtv$), whose information will be saved in a structure at address $old$,
+and finishes execution executing a different thread in a different address space (whose information is initially in $new$).
 
-Because this code does not directly update the instruction pointer, it is worth explaining \emph{how} this switches threads: by switching stacks. This is meant to be called with a return address for the current thread stored on the current stack when called --- which must be reflected in the calling convention. In particular, the precondition of the return address on the initial stack requires the callee-save register values at the time of the call: those stored in the first half of the code.
-Likewise, part of the invariant of the stack of the second thread, the one being restored, is that the return address on \emph{that} stack requires the saved callee-save registers stored in that context to be in registers as its precondition.
+Because this code does not directly update the instruction pointer, it is worth explaining \emph{how} this switches threads: by switching address spaces and stacks. 
+This is meant to be called with a return address for the current thread stored on the current stack when called --- which must be reflected in the calling convention. 
+In particular, the precondition of the return address on the initial stack requires the callee-save register values at the time of the call: those stored in the first 
+half of the code.
+Likewise, part of the invariant of the stack of the second thread, the one being restored, is that the return address on \emph{that} stack requires the saved 
+callee-save registers stored in that context to be in registers as its precondition.
 
-The wrinkle, and the importance of the modal treatment of assertions, is that the target thread's precondition is \emph{relative to its address space}, not the address space of the calling thread shown as 
-\[[\rtv'+56](\mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother})\]
+The wrinkle, and the importance of the modal treatment of assertions, is that the target thread's precondition is \emph{relative to its address space}, 
+not the address space of the calling thread shown as 
+\[[\rtv'](\mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother})\]
 in the specfication. 
 Thus the precondition of this code,
 in context, would include that the initial stack pointer (before \lstinline|rsp| is updated)
@@ -357,20 +352,22 @@ the stack pointer saved in the context to restore expects the same of the saved 
 The other-space modality plays a critical role here; \textsf{Pother} would contain these assumptions in the other
 address space.
 
-Lines 10--16 save the current context into memory (in the current address space).
-Line 22 saves the initial page table root.
-Lines 33--38 begin restoring the target context, including the stack pointer (line 33),
-which may not be mapped in the address space at that time: it is the stack for the context being
-loaded into the CPU.
-The actual address switch occurs on line 45, which is verified with our modal rule for updating \lstinline|cr3|,
-and thus shifts resources in and out of other-space modalities as appropriate.
+% Lines 10--16 save the current context into memory (in the current address space).
+% Line 22 saves the initial page table root.
+% Lines 33--38 begin restoring the target context, including the stack pointer (line 33),
+% which may not be mapped in the address space at that time: it is the stack for the context being
+% loaded into the CPU.
+% The actual address switch occurs on line 45, which is verified with our modal rule for updating \lstinline|cr3|,
+% and thus shifts resources in and out of other-space modalities as appropriate.
 
 The postcondition is analagous to the precondition, but interpreted \emph{in the new address space}: the then-current (updated) stack would have a return address expecting the new (restored) register values (again, in \textsf{Pother}),
 and the saved context's invariant captures the precondition for restoring its execution \emph{in the previous address space} (as part of \textsf{P}). 
-%At that point, it is safe to execute a return (or in a variant on this for user-mode and/or preemptive scheduling, a return-from-interrupt instruction).
 
-Note that immediately after the page table switch, the points-to information about the saved and restored contexts is \emph{also} guarded by a modality (Specification Line 52)
-\[ [\rtv](\texttt{Pcurrent}) \qquad \textsf{ where Pcurrent is all available logical assertions under addrress-space} \rtv\]
-for the old address space, since there is no automatic guarantee that that memory is mapped in the new address space.  The ability to transfer that points-to information out of that modality is specific to a given kernel's design. Kernels that map kernel memory into all address spaces would need to ensure and specify enough specific details about memory mappings to allow a proof of an elimination rule for specific modally-constrained points-to assertions.
-Following Spectre and Meltdown, this kernel design became less prevalent because speculative execution of accesses to kernel addresses could leak information even if the access did eventually cause a fault (the user/kernel mode permission check was done after fetching data from memory). Thus many modern kernels have reverted to the older kernel design where the kernel inhabits its own unique address space, and user processes have only enough extra material mapped in their address spaces to switch into the kernel (CPUs do not speculate past updates to \texttt{cr3}).
+Note that immediately after the page table switch, the points-to information about the saved and restored contexts is guarded by a modality for the retiring
+address space \rtv (Line 23). This is enforced by \textsc{WriteToRegCtlFromRegModal} (Figure \ref{fig:wpdamd}), and is sensible because
+there is no general guarantee that the data structures of the previous addres space are mapped in the new address space.
+The ability to transfer that points-to information out of that modality is specific to a given kernel's design. 
+Kernels that map kernel memory into all address spaces would need to ensure and specify enough specific details about memory mappings to allow a 
+proof of an elimination rule for specific modally-constrained points-to assertions.
+% Following Spectre and Meltdown, this kernel design became less prevalent because speculative execution of accesses to kernel addresses could leak information even if the access did eventually cause a fault (the user/kernel mode permission check was done after fetching data from memory). Thus many modern kernels have reverted to the older kernel design where the kernel inhabits its own unique address space, and user processes have only enough extra material mapped in their address spaces to switch into the kernel (CPUs do not speculate past updates to \texttt{cr3}).
 
