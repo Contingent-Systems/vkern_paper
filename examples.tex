@@ -236,7 +236,7 @@ though the Hoare triple we verify for this add instruction is rather complex:
 \begin{lstlisting}[mathescape]
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner \textsf{KERNELBASE} + \paddr > 0 \urcorner }_{\rtv}$
 $\specline{ \texttt{rip}\mapsto_{\textsf{r}} \textsf{iv} \ast \texttt{rflags}\mapsto_{\textsf{r}} \textsf{flaglist} \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr  }_{\rtv}$
-$\specline{ \sumapaces\rtv\delta  \ast \sumwalkabs\vaddr\qfrac\fpaddr \ast \sumpv\fpaddr\qfrac\true  }_{\rtv}$
+$\specline{ \sumapaces\rtv\delta  \ast \sumwalkabs\vaddr\qfrac\paddr \ast \sumpv\paddr\qfrac\true  }_{\rtv}$
 ;; This offsets the physical address bt KERNELBASE!
 add rbx, KERNELBASE
 $\specline{\exists \qfraczero; \qfrac,\textsf{ flaglistadd, w, flaglistadd, val}, \textsf{P} \ast \texttt{rip}\mapsto_{\textsf{r}} \textsf{iv+7} \ast \texttt{rflags}\mapsto_{\textsf{r}} \textsf{flaglistadd} \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr + \textsf{KERNELBASE} }_{\rtv}$
