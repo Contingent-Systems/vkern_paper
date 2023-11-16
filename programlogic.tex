@@ -572,13 +572,13 @@ not used by the first instruction in sequence through and on to subsequent instr
 %   \textsf{ mov}~[\textsf{r}_a],~\textsf{r}_s;\;\overline{is}
 % }
 % \\
-% \inferrule[WriteToRegFromPhysMem]{
-%   \{P \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}_{\textsf{rtv}}\;\overline{is}
-% }{
-%   \{P \ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}_{\textsf{rtv}}
-%   \textsf{mov}~\textsf{r}_d,~[\textsf{r}_a];\;\overline{is}
-% }
-% \\
+ \inferrule[AddRegImm]{
+   \{P \ast (r_d \mapsto_{r}  \textsf{rvd+imm} \lor  r_d \mapsto_{r} 0 ) \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}_{\textsf{rtv}}\;\overline{is}
+ }{
+   \{P \ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} \ast \textsf{rflags} \mapsto_{\textsf{r}} \textsf{flgs} \ast \ulcorner (\textsf{rvd + imm} > 0 \lor \textsf{rvd + imm} = 0 ) \urcorner \ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{t}} \textsf{v} \}_{\textsf{rtv}}
+   \textsf{add}~\textsf{r}_d,~[\textsf{imm}];\;\overline{is}
+ }
+ \\
 \inferrule[WriteToRegFromVirtMem]{
   \{P \ast \mathcal{I}\textsf{ASpace}\ast \mathcal{I}\textsf{ASpace} \ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv + x} \ast \ulcorner x = 3 \lor x =4 \urcorner \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}_{\textsf{rtv}}\;\overline{is}
 }{
