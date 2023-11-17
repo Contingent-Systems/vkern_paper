@@ -380,9 +380,9 @@ other cores to ensure they also flush the relevant ranges of their own TLBs.
 Currently no formal hardware model exists with sufficient detail to reason about IPIs in full detail.
 Multicore extensions of \textsc{seL4}~\cite{von2013clustered} and \textsc{CertiKOS}~\cite{gu2016certikos} also trust this functionality.
 
-Fully grounded trust for this would require a formal model of how hardware populates ACPI tables~\todo{cite} and formal verification of ACPI
+Fully grounded trust for this would require a formal model of how hardware populates ACPI tables and formal verification of ACPI
 parsing code on general-purpose desktop and server machines, or a formalized and verified
-parsing of flattened device trees~\todo{cite device tree spec} (plus trust that a system was booted with a correct FDT) for (semi-)embedded systems like single-board
+parsing of flattened device trees (plus trust that a system was booted with a correct FDT) for (semi-)embedded systems like single-board
 ARM and RISC-V machines. Either route would also require detailed treatment of memory-mapped IO triggering
 interrupts on other CPUs. This is far beyond any formal model of computer hardware that exists today,
 and far out of scope for this paper.
