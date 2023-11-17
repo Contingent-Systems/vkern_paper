@@ -46,7 +46,7 @@
 %% for your publication.
 %%
 %%
-\documentclass[acmsmall,screen,nonacm]{acmart}
+\documentclass[acmsmall,screen,nonacm,review,anonymous]{acmart}
 \settopmatter{printacmref=false}
 %%
 %% \BibTeX command to typeset BibTeX logo in the docs
@@ -346,8 +346,9 @@ We implemented these ideas in a derived separation logic within Iris, and proved
 the rules for essential memory- and address-space-change-related x86-64 instructions 
 sound against a hardware model of 64-bit 4-level address translation.
 Finally, we used our rules to verify the correctness of key VMM instruction sequences,
-including giving the first assembly-level proof of correctness in a program logic for a change
-of address space, against a specification which clearly identifies which assertions hold in which address space.
+including giving the first assembly-level proof of correctness for a change
+of address space expressing which assertions hold in which address space, and the first physical-to-virtual translation proof.
+\looseness=-1
 % In the future we plan to 
 % extend our work in multiple directions, such as generalizing our assertions and proof rules
 % to support large-page functionality common to virtual memory subsystems (superpages, hugepages),

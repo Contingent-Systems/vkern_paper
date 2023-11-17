@@ -67,17 +67,19 @@ fan out, the bottleneck is the number of entries in the root table. For their 32
 still 4Kb (4096 bytes), and each entry (consumed entirely by a virtual points-to in their scheme) is 4 bytes, so they have a 
 maximum of 1024 virtual points-tos in their ARMv6 configuration. Any assertion which implies more than that number
 of virtual addresses are mapped implies false in their logic.
-(They do formulate their logic over an abstract model, but every architecture would incur a similar limitation;
-Na\"ively transferring their model to x86-64 4-level tables would yield a limit of 512 assertions (also a 4Kb root page, 
-but 8-byte entries).
+(They do formulate their logic over an abstract model, but every architecture would incur a similar limitation.)
+% Na\"ively transferring their model to x86-64 4-level tables would yield a limit of 512 assertions (also a 4Kb root page, 
+% but 8-byte entries).
 Our definitions make use of fractional permissions throughout; Figure \ref{fig:strongvirtualpointsto}'s definition
 of \lstinline|L4_L1_PointsTo| ellides the specific fractions used, but it in fact asserts 1/512 ownership of
 the L1 entry, 1/($512^2$) of the L2 entry, and so on, so each entry may map the appropriate number of machine words.
+\looseness=-1
 
-As noted earlier, Kolanski and Klein's logics, by collocating both the physical ownership of the page table walk
-as part of the virtual points-to itself, preempt support for changes to page tables which do not actually affect 
+As noted earlier, by collocating both the physical ownership of the page table walk
+as part of the virtual points-to itself these logics preempt support for changes to page tables which do not actually affect 
 address translation. We address this by moving from Figure \ref{fig:strongvirtualpointsto}'s definition (essentially Kolanski and Klein's
 with fractional sharing of intermediate table entries) to Figure \ref{fig:virtualpointstosharing}'s.
+\looseness=-1
 
 Kolanski and Klein do verify code to map in a new page by installing an L1 page table entry, akin to our Figure \ref{fig:mapping_code}.
 However, our logic treatment of mapping goes beyond theirs. 
@@ -92,6 +94,7 @@ translation can be done in our logic with appropriate kernel invariants (Section
 Kolanski and Klein's model may not be able to do so --- because the virtual points-to owns the physical resources associated with
 intermediate page table entries, it appears impossible to have a virtual points-to for a page table entry that is part of the
 page table walk for another virtual address.
+\looseness=-1
 
 The other major distinction is that Kolanski and Klein have no explicit accounting for other address spaces.
 Their logic does not deal with change of address space, and has no way to assert that certain facts hold
@@ -116,12 +119,11 @@ disjunctions to an extended points-to definition; embedding ``regular'' separati
 is the appropriate next step to extend reasoning to usermode programs running with a kernel that may demand-page the program's
 memory.
 
-As noted earlier, our other-space modality comes from ideas in hybrid logic~\cite{areces2001hybrid,blackburn1995hybrid,gargov1993modal,goranko1996hierarchies},
+As noted earlier, our other-space modality derives from hybrid logic~\cite{areces2001hybrid,blackburn1995hybrid,gargov1993modal,goranko1996hierarchies},
 where modalities are indexed by \emph{nominals} which are names for specific individual states in a Kripke model.
-We are aware of only two prior works combining these ideas with program logics, one showing that traditional
-nominals extends the expressive power of separation logic~\cite{brotherston2014parametric}, another
-using nominals to refer to states of other actors in an actor language~\cite{gordon2019modal}.
-
+Little prior work combines these ideas with program logics: \citet{brotherston2014parametric} show that traditional
+nominals extends the expressive power of separation logic, and \citet{gordon2019modal}
+uses nominals to refer to states of other actors in an actor language.
 % As noted throughout the paper, the inspiration for our other-space modality comes from hybrid logic~\cite{areces2001hybrid,blackburn1995hybrid,gargov1993modal,goranko1996hierarchies},
 % where modalities are indexed by \emph{nominals} which are names for specific individual states in a Kripke model.
 % We are aware of only two prior works combining hybrid logics with program logics specifically. 
@@ -134,7 +136,7 @@ using nominals to refer to states of other actors in an actor language~\cite{gor
 % where nominals named the local state of individual actors (with such assertions stabilized with a 
 % rely/guarantee approach). 
 Beyond these, there is limited work on the interaction of hybrid logic with substructural logics, in restricted forms
-that do not affect expressivity~\cite{despeyroux2014hybrid,chaudhuri2019hybrid}.
+that do not affect expressivity~\cite{despeyroux2014hybrid,chaudhuri2019hybrid}.\looseness=-1
 % Primarily there is a line of work on hybrid linear logic (\HyLL)~\cite{despeyroux2014hybrid}, 
 % originally used as a way to more conveniently express aspects of transition systems in linear logic. 
 % However, \HyLL's proof rules offer no non-trivial interactions with multiplicative connectives 
