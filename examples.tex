@@ -248,55 +248,43 @@ Subtly, the operation ensures the relevant table entry is readable, but the exac
 of the value in memory --- so full ownership is returned only for unused entries.
 This is a simple piece of code whose functionality is critical and whose correctness is highly non-trivial. No prior work engages with this problem.
 \subsubsection{Traversing Page Tables}
-
+As we explain in Section \ref{}, a traversal over a page-table tree can be done through the indices into the tables at each level followed by obtaining the address of the next table. In Figure \ref{fig:getnexttable}, we see how to obtain a 
 \begin{figure}\footnotesize
-\begin{lstlisting}[mathescape]
+ \begin{lstlisting}[mathescape]
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner \textsf{OFF} + \paddr > 0 \urcorner \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$   
 push   rbp
 mov    rsp,rbp
 sub    0x20,rsp
 mov    rdi,-0x8[rbp]
+;;  pte_t *next;
 
 mov    -0x8[rbp],rdi
 mov    [rdi],rdi
 and    0x1,rdi
 mov    rdi,rax
+
+;;  if (!entry->present) {
 cmp    0x0,rax
 jne    161 <pte_get_next_table_succ+0xa1>
 
 lea    -0x10[rbp],rdi
+
+;;pte_initialize(&next);
 callq  70 <pte_initialize>
 mov    -0x8[rbp],rdi
 mov    [rdi],rax
+
+;; entry->writable = 1
+;;entry->user_acc = 1;
+;;entry->pfn = PTE_ADDR_TO_PHYS_PFN((uintptr_t) next);
+;;entry->present = 1;
 and    0xfffffffffffffffd,rax
 or     0x2,rax
 mov    rax,[rdi]
+...
+;;}
 
-mov    -0x8[rbp],rax
-mov    [rax],rdi
-and    0xfffffffffffffffb,%rdi
-or     0x4,rdi
-mov    rdi,[rax]
-
-mov    -0x10[rbp],rax
-movabs 0x0,rdi	115: R_X86_64_64	KERN_BASE
-sub    rdi,rax
-shr    0xc,rax
-mov    -0x8[rbp],rdi
-mov    [rdi],rcx
-movabs 0xffffffffff,rdx
-and    rdx,rax
-shl    0xc,rax
-movabs 0xfff0000000000fff,rdx
-and    rdx,rcx
-or     rax,rcx
-mov    rcx,[rdi]
-
-mov    -0x8[rbp],rax
-mov    [rax],rcx
-and    0xfffffffffffffffe,rcx
-or     0x1,rcx
-mov    rcx,[rax]
-
+;;uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr);
 mov    -0x8[rbp],rax
 mov    [rax],rax
 shr    0xc,rax
@@ -305,23 +293,93 @@ and    rcx,rax
 shl    0xc,rax
 mov    rax,-0x18[rbp]
 
+;;uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr);
 mov    -0x18[rbp],rax
 movabs 0x0,rcx	187: R_X86_64_64	KERN_BASE
 add    rcx,rax
+
+;;next = (pte_t *) next_virt_addr;
 mov    rax,-0x20[rbp]
 mov    -0x20[rbp],rax
 mov    rax,-0x10[rbp]
 
- mov    -0x10[rbp],rax
- add    0x20,rsp
- pop    rbp
- ret
+;;return next
+mov    -0x10[rbp],rax
+add    0x20,rsp
+pop    rbp
+ret
+\end{lstlisting}
+\vspace{-1em}
+\caption{ in Figure \ref{fig:walkpgdir}.}
+\label{fig:getnexttable}
+\end{figure}
+
+\begin{figure}\footnotesize
+  \begin{lstlisting}[mathescape]
+;;pte_t *walkpgdir_succ(pte_t *pml4, const void *va) {
+push   rbp
+mov    rsp,rbp
+sub    0x40,rsp
+mov    rdi,-0x8[rbp]
+mov    rsi,-0x10[rbp]
+
+;;pte_t *pml4_entry = &pml4[PML4EX(va)];
+mov    -0x8[rbp],[rsi]
+mov    -0x10[rbp],rdi
+shr    0x27,rdi
+and    0x1ff,rdi
+shl    0x3,rdi
+add    rdi,rsi
+mov    rsi,-0x18[rbp]
+
+;;pte_t *pdp = pte_get_next_table_succ(pml4_entry);
+mov    -0x18[rbp],rdi
+callq  <pte_get_next_table_succ>
+mov    rax,-0x20[rbp]
+
+;;pte_t *pdp_entry = &pdp[PDPEX(va)];
+mov    -0x20[rbp],rax
+mov    -0x10[rbp],rsi
+shr    0x1e,rsi
+and    0x1ff,rsi
+shl    0x3,rsi
+add    rsi,rax
+mov    rax,-0x28[rbp]
+
+;;pte_t *pd = pte_get_next_table_succ(pdp_entry);
+mov    -0x28[rbp],rdi
+callq  <pte_get_next_table_succ>
+mov    rax,-0x30[rbp]
+
+;;pte_t *pd_entry = &pd[PDEX(va)];
+mov    -0x30[rbp],rax
+mov    -0x10[rbp],rsi
+shr    0x15,rsi
+and    0x1ff,rsi
+shl    0x3,rsi
+add    rsi,rax
+mov    rax,-0x38[rbp]
+
+;;pte_t *pt = pte_get_next_table_succ(pd_entry);
+mov    -0x38[rbp],rdi
+callq  <pte_get_next_table_succ>
+mov    rax,-0x40[rbp]
+
+;;return &pt[PTEX(va)];
+mov    -0x40[rbp],rax
+mov    -0x10[rbp],rsi
+shr    0xc,rsi
+and    0x1ff,rsi
+shl    0x3,rsi
+add    rsi,rax
+add    0x40,rsp
+pop    rbp
+retq   
 \end{lstlisting}
 \vspace{-1em}
 \caption{Traversing page-tables, and allocating entries as needed while mapping-a-page in Figure \ref{fig:mappingcode}.}
 \label{fig:walkpgdir}
 \end{figure}
-
 % \citet{kolanski08vstte,kolanski09tphols} verified a single code block with their logic which was roughly Figure \ref{fig:mapping_code} for a 2-level ARM
 % page table, but several critical complexities our work deals with were not addressed.
 % First, beyond the limitations discussed in Section \ref{sec:overly-restrictive}, Kolanski and Klein assumed that virtual addresses
