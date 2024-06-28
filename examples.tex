@@ -175,6 +175,7 @@ Traversing the page tables is itself challenging functionality to verify: loadin
 This problem repeats at each level of the page table: assuming the code has \emph{somehow} read the appropriate L4 (or L3, or L2) entry, those entries again
 yield physical addresses, not virtual.
 
+\subsubsection{Identity Mappings}
 Most kernels maintain an invariant on their page tables that the virtual address of any page used for a page table lives at a virtual address
 whose value is a constant offset from the physical address a practice sometimes referred to as \emph{identity mapping} (even though the physical-to-virtual translation
 is typically not literally the identity function, but adding a constant offset).\footnote{Some kernels do this for all physical memory on the machine, simplifying interaction
@@ -234,18 +235,31 @@ associated with \paddr\ by $\Xi$ in Figure \ref{fig:peraspaceinvariant_with_p2v_
 \label{fig:p2v}
 \end{figure}
 
-Work to verify the full page table walk is ongoing, but we have verified the critical step for a small x86-64 kernel, which is the physical-to-virtual
+As part of the full page table walk verification, we have verified the critical step for a small x86-64 kernel, which is the physical-to-virtual
 conversion (often appearing as a macro \texttt{P2V} in C source code). In our small kernel, as in larger kernels, \texttt{P2V} is actually just addition,
 but the correctness of this simple instruction is quite subtle, as shown in Figure \ref{fig:p2v}.
 Beyond a frame ($P$), the precondition requires the current address space invariant, a check that the addition will not overflow, the physical address to convert
 (in \lstinline|rbx|), knowledge that the current address space is valid, and knowledge that the physical address is in a range dedicated
 to page table entries (as this physical-to-virtual conversion is only guaranteed for page table memory). 
 The latter uses an additional ghost set added to the per-address-space
-invariant per Figure \ref{fig:peraspaceinvariant_with_p2v_extension}. The extended invariant owns, for each memory location dedicated to page tables, some fraction of
+invariant per Figure \ref{fig:peraspaceinvariant_with_p2v_extension}.\todo{should we also discuss the following before while introducing the invariant?} The extended invariant owns, for each memory location dedicated to page tables, some fraction of
 that physical memory, and also guarantees the offset is the correct calculation.
 Subtly, the operation ensures the relevant table entry is readable, but the exact portion of ownership returned must be determined by inspecting the valid bit
 of the value in memory --- so full ownership is returned only for unused entries.
 This is a simple piece of code whose functionality is critical and whose correctness is highly non-trivial. No prior work engages with this problem.
+\subsubsection{Traversing Page Tables}
+
+\begin{figure}\footnotesize
+\begin{lstlisting}[mathescape]
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner \textsf{OFF} + \paddr > 0 \urcorner \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$
+add rbx, OFF ;; shift physical address by identity mapping constant OFF
+$\specline{\textsf{P} \ast \exists \qfraczero; \qfrac,\textsf{ w, val},  \texttt{rbx}\mapsto_{\textsf{r}} \paddr + \textsf{OFF} \ast \sumapaces\rtv\delta \ast \sumpv\paddr\qfrac\true \ast \vaddr \mapsto_{\texttt{vpte}} \{\textsf{q}, \textsf{qfrac}\} \paddr \;(\texttt{val})}$
+$\specline{\ulcorner \vaddr = \paddr + \textsf{OFF} \urcorner \ast \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner \ast \sumwalkabs\vaddr\qfrac\paddr \ast (R \wand \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)) }_{\rtv}$
+\end{lstlisting}
+\vspace{-1em}
+\caption{Traversing page-tables, and allocating entries as needed while mapping-a-page in Figure \ref{fig:mappingcode}.}
+\label{fig:walkpgdir}
+\end{figure}
 
 % \citet{kolanski08vstte,kolanski09tphols} verified a single code block with their logic which was roughly Figure \ref{fig:mapping_code} for a 2-level ARM
 % page table, but several critical complexities our work deals with were not addressed.
