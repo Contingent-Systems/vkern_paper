@@ -80,7 +80,7 @@ In Figure \ref{fig:mapping_code}, we see an address ($\vaddr$) currently not
 mapped to a page ($\theta \; !!\; \vaddr = \texttt{None}$). Mapping a fresh
 phyiscal page to back the desired virtual page first requires ensuring
 the existence of a memory location for an appropriate L1 table entry.
-The code uses a helper function \lstinline|pte\_walkpgdir (discussed again in Section \ref{sec:traversing}).
+The code uses a helper function \lstinline|pte\_walkpgdir| (discussed again in Section \ref{sec:traversing}).
 \lstinline|pte\_walkpgdir|'s postcondition contains physical pointsto assertions for a partial page table walk reaching the
 L1 entry (l1e), ensuring higher levels of the page table exist. 
 The postcondition also includes a virtual \emph{PTE}
@@ -242,7 +242,7 @@ Beyond a frame ($P$), the precondition requires the current address space invari
 (in \lstinline|rbx|), knowledge that the current address space is valid, and knowledge that the physical address is in a range dedicated
 to page table entries (as this physical-to-virtual conversion is only guaranteed for page table memory). 
 The latter uses an additional ghost set added to the per-address-space
-invariant per Figure \ref{fig:peraspaceinvariant_with_p2v_extension}.\todo{should we also discuss the following before while introducing the invariant?} The extended invariant owns, for each memory location dedicated to page tables, some fraction of
+invariant per Figure \ref{fig:peraspaceinvariant_with_p2v_extension}. The extended invariant owns, for each memory location dedicated to page tables, some fraction of
 that physical memory, and also guarantees the offset is the correct calculation.
 Subtly, the operation ensures the relevant table entry is readable, but the exact portion of ownership returned must be determined by inspecting the valid bit
 of the value in memory --- so full ownership is returned only for unused entries.
@@ -251,10 +251,71 @@ This is a simple piece of code whose functionality is critical and whose correct
 
 \begin{figure}\footnotesize
 \begin{lstlisting}[mathescape]
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner \textsf{OFF} + \paddr > 0 \urcorner \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$
-add rbx, OFF ;; shift physical address by identity mapping constant OFF
-$\specline{\textsf{P} \ast \exists \qfraczero; \qfrac,\textsf{ w, val},  \texttt{rbx}\mapsto_{\textsf{r}} \paddr + \textsf{OFF} \ast \sumapaces\rtv\delta \ast \sumpv\paddr\qfrac\true \ast \vaddr \mapsto_{\texttt{vpte}} \{\textsf{q}, \textsf{qfrac}\} \paddr \;(\texttt{val})}$
-$\specline{\ulcorner \vaddr = \paddr + \textsf{OFF} \urcorner \ast \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner \ast \sumwalkabs\vaddr\qfrac\paddr \ast (R \wand \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)) }_{\rtv}$
+push   rbp
+mov    rsp,rbp
+sub    0x20,rsp
+mov    rdi,-0x8[rbp]
+
+mov    -0x8[rbp],rdi
+mov    [rdi],rdi
+and    0x1,rdi
+mov    rdi,rax
+cmp    0x0,rax
+jne    161 <pte_get_next_table_succ+0xa1>
+
+lea    -0x10[rbp],rdi
+callq  70 <pte_initialize>
+mov    -0x8[rbp],rdi
+mov    [rdi],rax
+and    0xfffffffffffffffd,rax
+or     0x2,rax
+mov    rax,[rdi]
+
+mov    -0x8[rbp],rax
+mov    [rax],rdi
+and    0xfffffffffffffffb,%rdi
+or     0x4,rdi
+mov    rdi,[rax]
+
+mov    -0x10[rbp],rax
+movabs 0x0,rdi	115: R_X86_64_64	KERN_BASE
+sub    rdi,rax
+shr    0xc,rax
+mov    -0x8[rbp],rdi
+mov    [rdi],rcx
+movabs 0xffffffffff,rdx
+and    rdx,rax
+shl    0xc,rax
+movabs 0xfff0000000000fff,rdx
+and    rdx,rcx
+or     rax,rcx
+mov    rcx,[rdi]
+
+mov    -0x8[rbp],rax
+mov    [rax],rcx
+and    0xfffffffffffffffe,rcx
+or     0x1,rcx
+mov    rcx,[rax]
+
+mov    -0x8[rbp],rax
+mov    [rax],rax
+shr    0xc,rax
+movabs 0xffffffffff,rcx
+and    rcx,rax
+shl    0xc,rax
+mov    rax,-0x18[rbp]
+
+mov    -0x18[rbp],rax
+movabs 0x0,rcx	187: R_X86_64_64	KERN_BASE
+add    rcx,rax
+mov    rax,-0x20[rbp]
+mov    -0x20[rbp],rax
+mov    rax,-0x10[rbp]
+
+ mov    -0x10[rbp],rax
+ add    0x20,rsp
+ pop    rbp
+ ret
 \end{lstlisting}
 \vspace{-1em}
 \caption{Traversing page-tables, and allocating entries as needed while mapping-a-page in Figure \ref{fig:mappingcode}.}
