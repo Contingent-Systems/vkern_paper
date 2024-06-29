@@ -248,7 +248,7 @@ Subtly, the operation ensures the relevant table entry is readable, but the exac
 of the value in memory --- so full ownership is returned only for unused entries.
 This is a simple piece of code whose functionality is critical and whose correctness is highly non-trivial. No prior work engages with this problem.
 \subsubsection{Traversing Page Tables}
-As we explain in Section \ref{}, a traversal over a page-table tree can be done through the indices into the tables at each level followed by obtaining the address of the next table. In Figure \ref{fig:getnexttable}, we see how to obtain a 
+As we explain in Section \ref{}, a traversal over a page-table tree can be done through the indices into the tables at each level followed by obtaining the address of the next table. In Figure \ref{fig:getnexttable}, we see how to obtain a physicall address of the next level page-table. 
 \begin{figure}\footnotesize
  \begin{lstlisting}[mathescape]
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner \textsf{OFF} + \paddr > 0 \urcorner \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$   
@@ -274,7 +274,8 @@ callq  70 <pte_initialize>
 mov    -0x8[rbp],rdi
 mov    [rdi],rax
 
-;; entry->writable = 1
+;;setting the fields of the entry with a fresh allocated page
+;;entry->writable = 1
 ;;entry->user_acc = 1;
 ;;entry->pfn = PTE_ADDR_TO_PHYS_PFN((uintptr_t) next);
 ;;entry->present = 1;
