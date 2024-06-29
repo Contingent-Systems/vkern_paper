@@ -248,7 +248,19 @@ Subtly, the operation ensures the relevant table entry is readable, but the exac
 of the value in memory --- so full ownership is returned only for unused entries.
 This is a simple piece of code whose functionality is critical and whose correctness is highly non-trivial. No prior work engages with this problem.
 \subsubsection{Traversing Page Tables}
-As we explain in Section \ref{}, a traversal over a page-table tree can be done through the indices into the tables at each level followed by obtaining the address of the next table. In Figure \ref{fig:getnexttable}, we see how to obtain the physicall address of the next level page-table. Traversal start from the root address of the L4 table (\textsf{pte\_t *pml4} as a parameter to \textsf{walkpgdir}). Then, we obtain the address of the entry in the L4 table via the index in the virtual address (\textsf{va}). Finally, we call \textsf{get\_next\_table} to get the virtual address to the next level page-table -- L3. Withing \textsf{get\_next\_table} first checks if the entry whose address is passed as a parameter -- e.g., for L4 \textsf{pml4[PML4EX(va)]}. In case of absence, \textsf{pte\_initialize} is called for a physical-zeroed page (\textsf{kalloc} -- currently an axiom as it is not part of \textsf{pte} module) to be backing the physical frame address of the entry --  \textsf{entry->pfn = PTE\_ADDR\_TO\_PHYS\_PFN((uintptr\_t) next)}.
+As we explain in Section \ref{}, a traversal over a page-table tree can be done through the indices into the tables at each level followed by obtaining the address of the next table. In Figure \ref{fig:getnexttable}, we see how to obtain the physicall address of the next level page-table. Traversal start from the root address of the L4 table (\textsf{pte\_t *pml4} as a parameter to \textsf{walkpgdir}). Then, we obtain the address of the entry in the L4 table via the index in the virtual address (\textsf{va}).
+\[
+\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner \textsf{OFF} + \paddr > 0 \urcorner \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}
+\]
+Finally, we call \textsf{get\_next\_table} to get the virtual address to the next level page-table -- L3.
+\[
+\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner \textsf{OFF} + \paddr > 0 \urcorner \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}
+\]
+Within \textsf{get\_next\_table} first checks if the entry whose address is passed as a parameter -- e.g., for L4 \textsf{pml4[PML4EX(va)]}.
+\[
+\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner \textsf{OFF} + \paddr > 0 \urcorner \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}
+\]
+In case of absence, \textsf{pte\_initialize} is called for a physical-zeroed page (\textsf{kalloc} -- currently an axiom as it is not part of \textsf{pte} module) to be backing the physical frame address of the entry --  \textsf{entry->pfn = PTE\_ADDR\_TO\_PHYS\_PFN((uintptr\_t) next)}. Once we make sure that the frame of the page-table entry is backed with an allocated physical page, 
 \begin{figure*}[ht]
 \begin{tabular}{p{0.47\textwidth}p{0.47\textwidth}}
   \begin{lstlisting}[mathescape,basicstyle=\scriptsize\ttfamily]
