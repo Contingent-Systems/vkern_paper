@@ -288,27 +288,10 @@ mov    -0x18[rbp],rdi
 callq  <pte_get_next_table_succ>
 mov    rax,-0x20[rbp]
 ;;pte_t *pdp_entry = &pdp[PDPEX(va)];
-mov    -0x20[rbp],rax
-mov    -0x10[rbp],rsi
-shr    0x1e,rsi
-and    0x1ff,rsi
-shl    0x3,rsi
-add    rsi,rax
-mov    rax,-0x28[rbp]
-;;pte_t *pd = pte_get_next_table_succ(pdp_entry);
-mov    -0x28[rbp],rdi
-callq  <pte_get_next_table_succ>
-mov    rax,-0x30[rbp]
-;;pte_t *pd_entry = &pd[PDEX(va)];
-mov    -0x30[rbp],rax
-mov    -0x10[rbp],rsi
-shr    0x15,rsi
-and    0x1ff,rsi
-shl    0x3,rsi
-add    rsi,rax
-mov    rax,-0x38[rbp]
-;;pte_t *pt = pte_get_next_table_succ(pd_entry);
-mov    -0x38[rbp],rdi
+...
+...
+...
+;;last call at L1 for virtual address to physical page 
 callq  <pte_get_next_table_succ>
 mov    rax,-0x40[rbp]
 ;;return &pt[PTEX(va)];
