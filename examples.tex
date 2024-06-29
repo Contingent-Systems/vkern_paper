@@ -248,10 +248,40 @@ Subtly, the operation ensures the relevant table entry is readable, but the exac
 of the value in memory --- so full ownership is returned only for unused entries.
 This is a simple piece of code whose functionality is critical and whose correctness is highly non-trivial. No prior work engages with this problem.
 \subsubsection{Traversing Page Tables}
-As we explain in Section \ref{}, a traversal over a page-table tree can be done through the indices into the tables at each level followed by obtaining the address of the next table. In Figure \ref{fig:getnexttable}, we see how to obtain a physicall address of the next level page-table. 
+As we explain in Section \ref{}, a traversal over a page-table tree can be done through the indices into the tables at each level followed by obtaining the address of the next table. In Figure \ref{fig:getnexttable}, we see how to obtain the physicall address of the next level page-table.
+
 \begin{figure}\footnotesize
  \begin{lstlisting}[mathescape]
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner \textsf{OFF} + \paddr > 0 \urcorner \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$   
+;;void pte_initialize(pte_t **table) {
+push   rbp
+mov    rsp,rbp
+sub    0x10,rsp
+mov    rdi,-0x8[rbp]
+   
+;;Allocate a full page for 512 8-byte entries
+;;pte_t *local = kalloc();
+;;clear the entire table. Ensures present (and reserved, etc.) bits are 0
+callq  81 <pte_initialize+0x11>	7d: R_X86_64_PLT32	kalloc-0x4
+mov    rax,-0x10[rbp]
+   
+;;*table = local;
+mov    -0x10[rbp],rax
+mov    -0x8[rbp],rdi
+mov    rax,[rdi]
+;;return;
+add    0x10,rsp
+pop    rbp
+retq   
+  \end{lstlisting}
+\vspace{-1em}
+\caption{ in Figure \ref{fig:getnexttable}.}
+\label{fig:pteinitialize}
+\end{figure}
+
+\begin{figure}\footnotesize
+ \begin{lstlisting}[mathescape]
+   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner \textsf{OFF} + \paddr > 0 \urcorner \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$
+;; pte_t *pte_get_next_table_succ(pte_t *entry) {
 push   rbp
 mov    rsp,rbp
 sub    0x20,rsp
