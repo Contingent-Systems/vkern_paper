@@ -233,7 +233,7 @@ with DMA devices.}
 \begin{lstlisting}[mathescape]
 \[
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner\urcorner \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$ 
-\mathsf{pte\_initialize}(\mathsf{next})
+pte_initialize(&next)
 ...
   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner \textsf{OFF} + \paddr > 0 \urcorner \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$
 add rbx, OFF ;; shift physical address by identity mapping constant OFF
