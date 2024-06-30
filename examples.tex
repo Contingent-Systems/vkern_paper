@@ -212,9 +212,11 @@ $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m
 mov    -0x8[rbp],rdi
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} \ast \sumpv\paddr\qfrac\true  \sumapaces\rtv\delta   }_{\rtv}$
 mov     rdi, r8
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} \ast \textsf{entry-KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \sumpv\paddr\qfrac\true  \sumapaces\rtv\delta  }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \sumpv\paddr\qfrac\true  \sumapaces\rtv\delta  }_{\rtv}$
+$\specline{ \textsf{entry-KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner \textsf{qfrac}=1 \leftrightarrow \textsf{not\_present entry} \urcorner}$
 mov    [r8],rdi
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast rdi  \mapsto_{\textsf{r}} \textsf{entry\_val} \ast \textsf{entry-KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \sumpv\paddr\qfrac\true  \sumapaces\rtv\delta  }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast rdi  \mapsto_{\textsf{r}} \textsf{entry\_val} \ast \sumpv\paddr\qfrac\true  \sumapaces\rtv\delta  }_{\rtv}$
+$\specline{ \textsf{entry-KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner \textsf{qfrac}=1 \leftrightarrow \textsf{not\_present entry} \urcorner }$
 and    0x1,rdi
 mov    rdi,rax
 ;;  if (!entry->present) {
@@ -224,7 +226,6 @@ lea    -0x10[rbp],rdi
 ;;pte_initialize(&next);
 callq  70 <pte_initialize>
 ...
-;;}
 \end{lstlisting}
 \vspace{-1em}
 \caption{Making sure that \textsf{entry}'s frame is referencing to an address backed up by a physical page.}
