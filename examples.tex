@@ -213,10 +213,10 @@ mov    -0x8[rbp],rdi
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} \ast \sumpv\paddr\qfrac\true  \sumapaces\rtv\delta   }_{\rtv}$
 mov     rdi, r8
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \sumpv\paddr\qfrac\true  \sumapaces\rtv\delta  }_{\rtv}$
-$\specline{ \textsf{entry-KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner \textsf{qfrac}=1 \leftrightarrow \textsf{not\_present entry} \urcorner}$
+$\specline{ \textsf{entry-KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }\urcorner}$
 mov    [r8],rdi
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast rdi  \mapsto_{\textsf{r}} \textsf{entry\_val} \ast \sumpv\paddr\qfrac\true  \sumapaces\rtv\delta  }_{\rtv}$
-$\specline{ \textsf{entry-KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner \textsf{qfrac}=1 \leftrightarrow \textsf{not\_present entry} \urcorner }$
+$\specline{ \textsf{entry-KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }  \urcorner }$
 and    0x1,rdi
 mov    rdi,rax
 ;;  if (!entry->present) {
@@ -232,7 +232,7 @@ callq  70 <pte_initialize>
 \label{fig:calltopteinitialize}
 \end{figure}
 
-As we see in Figure \ref{fig:loadentry}, we have the physical address (\textsf{entry}) of the page table entry kept in the register $r8$, but not the memory mapping to load the entry value referenced by the physical address \textsf{entry}. 
+As we see in Figure \ref{fig:calltopteinitialize}, we have the physical address (\textsf{entry}) of the page table entry kept in the register $\texttt{r8}$, but not the memory mapping to load the entry value referenced by the physical address \textsf{entry}. We need to construct this virtual mappings for \textsf{entry}.
 \subsubsection{Identity Mappings}
 Most kernels maintain an invariant on their page tables that the virtual address of any page used for a page table lives at a virtual address
 whose value is a constant offset from the physical address a practice sometimes referred to as \emph{identity mapping} (even though the physical-to-virtual translation
@@ -257,13 +257,11 @@ with DMA devices.}
 \caption{Global Address-Space Invariant in Figure \ref{fig:peraspaceinvariant} extended with a ghost map bookkeeping identity mappings }
   \label{fig:peraspaceinvariant_with_p2v_extension}
   \end{figure*}
-Now, to read the value referenced by physical address \textsf{entry} in Figure \ref{fig:loadentry}, first, we open our the addresss-space invariant ($\mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)$), and obtain the virtual mapping out of the identity mapping $\Xi$ with the side condition
-
+Now, to read the value referenced by physical address \textsf{entry} in Figure \ref{fig:calltopteinitialize}, first, we open our the addresss-space invariant ($\mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)$), and obtain the virtual mapping out of the identity mapping $\Xi$ with the side condition
 \begin{equation*}
  \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner \tag{*}
 \end{equation*}
- 
- assuring that looking up identity mappings are safe, because the full ownership asserts the non-presence of the entry which requires allocation a new physical page and setting the presence bit. By obtaining the identity mapping for \textsf{entry} in Figure \ref{fig:loadentry} -- ($\textsf{entry-KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry\_val}$ with page addr \textsf{entry}),
+ assuring that looking up identity mappings are safe, because the full ownership asserts the non-presence of the entry which requires allocation a new physical page and setting the presence bit. By obtaining the identity mapping for \textsf{entry} in Figure \ref{fig:calltopteinitialize} -- ($\textsf{entry-KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val}$ with page addr \textsf{entry}),
  \[
  \begin{array}{l}
 \specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{entry\},m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast r8  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast rdi  \mapsto_{\textsf{r}} \textsf{entry} \ast \textsf{entry-KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry\_val} \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}
