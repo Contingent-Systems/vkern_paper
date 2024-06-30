@@ -175,33 +175,27 @@ Traversing the page tables is itself challenging functionality to verify: loadin
 This problem repeats at each level of the page table: assuming the code has \emph{somehow} read the appropriate L4 (or L3, or L2) entry, those entries again
 yield physical addresses, not virtual.
 
-As we explain in Section \ref{}, a traversal over a page-table tree can be done through the indices into the tables at each level followed by obtaining the address of the next table. In Figure \ref{fig:getnexttable}, we see how to obtain the physicall address of the next level page-table. Traversal start from the root address of the L4 table (\textsf{pte\_t *pml4} given as a parameter to \textsf{walkpgdir}). Then, we obtain the address of the entry in the L4 table via the index in the virtual address (\textsf{va}).
+\subsubsection{Loading Page-Table Address Value}
+In Figure \ref{fig:getnexttable}, we see how to obtain the physical address of the next level page-table. Traversal start from the root address of the page-table tree (the address of L4 table \textsf{pte\_t *pml4}) given as a parameter to \textsf{pte\_walkpgdir}). Then, we obtain the address of the entry (\textsf{pml4[PML4EX(va)]}) in the L4 table via the index in the virtual address (\textsf{va}).
 
-Finally, we call \textsf{get\_next\_table} to get the virtual address to the next level page-table -- L3.
-Within \textsf{get\_next\_table} first checks if the entry whose address is passed as a parameter -- e.g., for L4 \textsf{pml4[PML4EX(va)]}.
-In case of absence, \textsf{pte\_initialize} is called for a physical-zeroed page (\textsf{kalloc} -- currently an axiom as it is not part of \textsf{pte} module) to be backing the physical frame address of the entry.
+Finally, we call \textsf{get\_next\_table} to get the virtual address to the next level page-table -- at this point the address of L3 table.
+Within \textsf{get\_next\_table} first checks if the entry whose address is passed as a parameter ($\textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry}$). To be able to do so, it needs to load the entry value (a 64-bits word divided into bit-fields for corresponding fileds shown in Section {}) and check that \textit{presence} bit of the entry is set or not.
 \begin{figure}\footnotesize
-\begin{lstlisting}[mathescape]
-\[
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner\urcorner \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$
-
-;;  if (!entry->present) {
-cmp    0x0,rax
-jne    161 <pte_get_next_table_succ+0xa1>
-lea    -0x10[rbp],rdi
-;;pte_initialize(&next);
-callq  70 <pte_initialize>
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner\urcorner \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$
-...
-
-;;}
-\end{lstlisting}
+  \begin{lstlisting}[mathescape]
+;;if(entry->present)
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast r8  \mapsto_{\textsf{r}} \textsf{\_} \ast rdi  \mapsto_{\textsf{r}} \textsf{\_} \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$
+mov    -0x8[rbp],rdi
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast r8  \mapsto_{\textsf{r}} \textsf{\_} \ast rdi  \mapsto_{\textsf{r}} \textsf{entry} \ast \textsf{entry} \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$ 
+mov     rdi, r8
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast r8  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast rdi  \mapsto_{\textsf{r}} \textsf{entry} \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$ 
+mov    [r8],rdi
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast r8  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast rdi  \mapsto_{\textsf{r}} \textsf{entry} \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$ 
+  \end{lstlisting}
 \vspace{-1em}
 \caption{Making sure that \textsf{entry}'s frame is referencing to an address backed up by a physical page.}
-\label{fig:calltopteinitialize}
+\label{fig:loadentry}
 \end{figure}
-
-Once we make sure that the frame of the page-table entry is backed with an allocated physical page, we can obtain the virtual address of the next level-page table (\textsf{next} of function \textsf{get\_next\_table} in Figure \ref{}) via looking up the \textit{identity mapping} from the physical address (the address value referenced by \textsf{entry->pfn}) to virtual address value to be returned by \textsf{get\_next\_table}.
+As we see in Figure \ref{fig:loadentry}, we have the physical address (\textsf{entry}) of the page table entry kept in the register $r8$, but not the memory mapping to load the entry value referenced by the physical address \textsf{entry}. 
 \subsubsection{Identity Mappings}
 Most kernels maintain an invariant on their page tables that the virtual address of any page used for a page table lives at a virtual address
 whose value is a constant offset from the physical address a practice sometimes referred to as \emph{identity mapping} (even though the physical-to-virtual translation
@@ -247,8 +241,42 @@ with DMA devices.}
 \caption{Global Address-Space Invariant in Figure \ref{fig:peraspaceinvariant} extended with a ghost map bookkeeping identity mappings }
   \label{fig:peraspaceinvariant_with_p2v_extension}
   \end{figure*}
+Now, to read the value referenced by physical address \textsf{entry} in Figure \ref{fig:loadentry}, first, we open our the addresss-space invariant ($\mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)$), and obtain the virtual mapping out of the identity mapping $\Xi$ with the side condition
+\[
+ \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner
+ \]
+ assuring that looking up identity mappings are safe, because the full ownership asserts the non-presence of the entry which requires allocation a new physical page and setting the presence bit. By obtaining the identity mapping for \textsf{entry} in Figure \ref{fig:loadentry} -- ($\textsf{entry-KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry\_val}$ with page addr \textsf{entry}),
+ \[
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{entry\},m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast r8  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast rdi  \mapsto_{\textsf{r}} \textsf{entry} \ast \textsf{entry-KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry\_val} \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$ 
+mov    [r8],rdi
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast r8  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast rdi  \mapsto_{\textsf{r}} \textsf{entry\_val} \ast  \textsf{entry-KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry\_val} \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$ 
+ \]
+ we are able to load the \textsf{entry\_val} into \textsf{rdi}, and check the presence bit via $and 0x1,rdi$.
 
+ \subsubsection{Ensuring Presence of Entry}
+In case of absence, \textsf{pte\_initialize} is called for a physical-zeroed page (\textsf{kalloc} -- currently an axiom as it is not part of \textsf{pte} module but the allocator's) to be backing the physical frame address of the entry.
 
+\begin{figure}\footnotesize
+\begin{lstlisting}[mathescape]
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner\urcorner \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$
+
+;;  if (!entry->present) {
+cmp    0x0,rax
+jne    161 <pte_get_next_table_succ+0xa1>
+lea    -0x10[rbp],rdi
+;;pte_initialize(&next);
+callq  70 <pte_initialize>
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner\urcorner \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$
+...
+
+;;}
+\end{lstlisting}
+\vspace{-1em}
+\caption{Making sure that \textsf{entry}'s frame is referencing to an address backed up by a physical page.}
+\label{fig:calltopteinitialize}
+\end{figure}
+
+Once we make sure that the frame of the page-table entry is backed with an allocated physical page, we can obtain the virtual address of the next level-page table (\textsf{next} of function \textsf{get\_next\_table} in Figure \ref{}) via looking up the \textit{identity mapping} from the physical address (the address value referenced by \textsf{entry->pfn}) to virtual address value to be returned by \textsf{get\_next\_table}.
 \begin{figure}\footnotesize
 \begin{lstlisting}[mathescape]
 \[
@@ -398,6 +426,7 @@ ret
 \label{fig:getnexttable}
 \end{figure*}
 
+\subsubsection{}
 
 %\caption{Traversing page-tables, and allocating entries as needed while mapping-a-page in Figure \ref{fig:mappingcode}.}
 % \citet{kolanski08vstte,kolanski09tphols} verified a single code block with their logic which was roughly Figure \ref{fig:mapping_code} for a 2-level ARM
