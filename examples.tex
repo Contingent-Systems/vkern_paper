@@ -278,20 +278,18 @@ mov    [r8],rdi
  we are able to load the \textsf{entry\_val} into \textsf{rdi}, and check the presence bit via $and 0x1,rdi$.
 
  \subsubsection{Ensuring Presence of Entry}
- Accessing the presence bit and checking the value allow (Lines 7-13 in Figure \ref{fig:calltopteinitialize}) us to exploit the fact in the side condition (*) such that we can own twe introduced for the  
+ Accessing the presence bit and checking the value allow (Lines 7-13 in Figure \ref{fig:calltopteinitialize}) us to exploit the fact in the side condition (*) in such a way that the condition ($\textsf{entry}\mapsto\textsf{present}$ determines whether we take the non-presence path (Lines 12-19 in Figure \ref{calltopteinitialize}) with full ownership ($\textsf{qfrac} = 1$) to set the entry with proper values for the bitfields, e.g., frame showing freshly allocated page and presence bit.
+ 
 In case of absence, \textsf{pte\_initialize} is called for a physical-zeroed page (\textsf{kalloc} -- currently an axiom as it is not part of \textsf{pte} module but the allocator's) to be backing the physical frame address of the entry.
-
+\mytodo{Discuss with Colin: v2p and spec on pteinitialize. After clarification expand this piece a little bit more. Right now we have physical pointsto returned from kalloc so pfn is directly set not through v2p}
 Once we make sure that the frame of the page-table entry is backed with an allocated physical page, we can obtain the virtual address of the next level-page table (\textsf{next} of function \textsf{get\_next\_table} in Figure \ref{}) via looking up the \textit{identity mapping} from the physical address (the address value referenced by \textsf{entry->pfn}) to virtual address value to be returned by \textsf{get\_next\_table}.
 \begin{figure}\footnotesize
 \begin{lstlisting}[mathescape]
-\[
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner\urcorner \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$
-
 ;;if (!entry->present) {
   ...
 
 ;;}
-;; uintptr_t next_phys_addr = PTE_PFN_TO_ADDR(entry->pfn);
+...
 ;;uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr);
   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner \textsf{OFF} + \paddr > 0 \urcorner \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$
 add rbx, KERNBASE ;; shift physical address by identity mapping constant OFF
@@ -316,122 +314,6 @@ that physical memory, and also guarantees the offset is the correct calculation.
 Subtly, the operation ensures the relevant table entry is readable, but the exact portion of ownership returned must be determined by inspecting the valid bit
 of the value in memory --- so full ownership is returned only for unused entries.
 This is a simple piece of code whose functionality is critical and whose correctness is highly non-trivial. No prior work engages with this problem.
-
-\begin{figure*}[ht]
-\begin{tabular}{p{0.47\textwidth}p{0.47\textwidth}}
-  \begin{lstlisting}[mathescape,basicstyle=\scriptsize\ttfamily]
-;;void pte_initialize(pte_t **table) {
-...
-     
-;;Allocate a full page for 512 8-byte entries
-;;pte_t *local = kalloc();
-;;clear the entire table. Ensures present (and reserved, etc.) bits are 0
-callq  81 <pte_initialize+0x11>	7d: R_X86_64_PLT32	kalloc-0x4
-mov    rax,-0x10[rbp]
-   
-;;*table = local;
-mov    -0x10[rbp],rax
-mov    -0x8[rbp],rdi
-mov    rax,[rdi]
-
-;;return;
-...
-
-;;pte_t *walkpgdir_succ(pte_t *pml4, const void *va) 
-push   rbp
-mov    rsp,rbp
-sub    0x40,rsp
-mov    rdi,-0x8[rbp]
-mov    rsi,-0x10[rbp]
-;;pte_t *pml4_entry = &pml4[PML4EX(va)];
-mov    -0x8[rbp],[rsi]
-mov    -0x10[rbp],rdi
-shr    0x27,rdi
-and    0x1ff,rdi
-shl    0x3,rdi
-add    rdi,rsi
-mov    rsi,-0x18[rbp]
-;;pte_t *pdp = pte_get_next_table_succ(pml4_entry);
-mov    -0x18[rbp],rdi
-callq  <pte_get_next_table_succ>
-mov    rax,-0x20[rbp]
-;;pte_t *pdp_entry = &pdp[PDPEX(va)];
-...
-...
-...
-;;last call at L1 for virtual address to physical page 
-callq  <pte_get_next_table_succ>
-mov    rax,-0x40[rbp]
-;;return &pt[PTEX(va)];
-mov    -0x40[rbp],rax
-mov    -0x10[rbp],rsi
-shr    0xc,rsi
-and    0x1ff,rsi
-shl    0x3,rsi
-add    rsi,rax
-add    0x40,rsp
-pop    rbp
-retq   
-  \end{lstlisting}&
-  \begin{lstlisting}[mathescape,basicstyle=\scriptsize\ttfamily]
-   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner \textsf{OFF} + \paddr > 0 \urcorner \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$
-;; pte_t *pte_get_next_table_succ(pte_t *entry) {
-push   rbp
-mov    rsp,rbp
-sub    0x20,rsp
-mov    rdi,-0x8[rbp]
-;;  pte_t *next;
-mov    -0x8[rbp],rdi
-mov    [rdi],rdi
-and    0x1,rdi
-mov    rdi,rax
-;;  if (!entry->present) {
-cmp    0x0,rax
-jne    161 <pte_get_next_table_succ+0xa1>
-lea    -0x10[rbp],rdi
-;;pte_initialize(&next);
-callq  70 <pte_initialize>
-mov    -0x8[rbp],rdi
-mov    [rdi],rax
-;;setting the fields of the entry with a fresh allocated page
-;;entry->writable = 1
-;;entry->user_acc = 1;
-;;entry->pfn = PTE_ADDR_TO_PHYS_PFN((uintptr_t) next);
-;;entry->present = 1;
-and    0xfffffffffffffffd,rax
-or     0x2,rax
-mov    rax,[rdi]
-...
-;;}
-;;uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr);
-mov    -0x8[rbp],rax
-mov    [rax],rax
-shr    0xc,rax
-movabs 0xffffffffff,rcx
-and    rcx,rax
-shl    0xc,rax
-mov    rax,-0x18[rbp]
-;;uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr);
-mov    -0x18[rbp],rax
-movabs 0x0,rcx	187: R_X86_64_64	KERN_BASE
-add    rcx,rax
-;;next = (pte_t *) next_virt_addr;
-mov    rax,-0x20[rbp]
-mov    -0x20[rbp],rax
-mov    rax,-0x10[rbp]
-;;return next
-mov    -0x10[rbp],rax
-add    0x20,rsp
-pop    rbp
-ret
-  \end{lstlisting}
-  \end{tabular}
-\vspace{-1em}
-\caption{ in Figure \ref{fig:walkpgdir}.}
-\label{fig:getnexttable}
-\end{figure*}
-
-\subsubsection{}
 
 %\caption{Traversing page-tables, and allocating entries as needed while mapping-a-page in Figure \ref{fig:mappingcode}.}
 % \citet{kolanski08vstte,kolanski09tphols} verified a single code block with their logic which was roughly Figure \ref{fig:mapping_code} for a 2-level ARM
