@@ -245,7 +245,7 @@ $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \textsf
 ;;entry->pfn = next
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
 $\specline{\sumpv\paddr\qfrac\true \ast \sumapaces\rtv\delta  }_{\rtv}$
-$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land (\textsf{entry\_present entry\_val}) \urcorner }_{\rtv}$
+$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val\_present} \ast \ulcorner  \textsf{qfrac} = 1 \land (\textsf{entry\_present entry\_val}) \urcorner }_{\rtv}$
 $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
 ;;}
 ...
@@ -305,8 +305,8 @@ Concretely speaking, before Line 7 in Figure \ref{fig:calltopteinitialize}, to r
  assuring that looking up identity mappings are safe, because the full ownership asserts the non-presence of the entry which requires allocation a new physical page and setting the presence bit. By obtaining the identity mapping for \textsf{entry} in Figure \ref{fig:calltopteinitialize} -- ($\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val}$ with page addr \textsf{entry}),
  \[
  \begin{array}{l}
-\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{entry\},m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast r8  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast rdi  \mapsto_{\textsf{r}} \textsf{entry} \ast \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry\_val} \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}
-mov    [r8],rdi
+\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{entry\},m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast r8  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast rdi  \mapsto_{\textsf{r}} \textsf{entry} \ast \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry\_val} \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv} \\
+mov    [r8],rdi\\
 \specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast r8  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast rdi  \mapsto_{\textsf{r}} \textsf{entry\_val} \ast  \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry\_val} \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}
 \end{array}
  \]
@@ -320,7 +320,7 @@ mov    [r8],rdi
   \label{sec:p2v}
  Once we make sure that the frame of the page-table entry ($\textsf{entry}\mapsto\textsf{pfn}$)is backed with an allocated physical page, we must obtain the virtual address of the next level-page table (Line 46 in \ref{calltopteinitialize}). To do so, as for obtaining any virtual page-table address, we, again, need to open the invariant look up the \textit{identity mapping} for the physical address ($\textsf{entry}\mapsto \textsf{pfn}$). 
 
-This actually constitutes a very critical piece of the full page table walk verification, and we have verified the critical step for a small x86-64 kernel, which is the physical-to-virtual conversion (often appearing as a macro \texttt{P2V} inside the macro \textsf{ PTE\_PFN\_TO\_ADDR} in C source code). In our small kernel, as in larger kernels, \texttt{P2V} is actually just addition, but the correctness of this simple instruction is quite subtle and relies on identity mappings explained in the previous section (Section \ref{subsec:identitymappings}) as a part of address-space invariant.  As as separate Lemma shown in Figure \ref{fig:p2v}, 
+This actually constitutes a very critical piece of the full page table walk verification, and we have verified the critical step for a small x86-64 kernel, which is the physical-to-virtual conversion (often appearing as a macro \texttt{P2V} inside the macro \textsf{ PTE\_PFN\_TO\_ADDR} in C source code). In our small kernel (Line 46 in Figure \ref{calltopteinitialize}), as in larger kernels, \texttt{P2V} is actually just addition, but the correctness of this simple instruction is quite subtle and relies on identity mappings explained in the previous section (Section \ref{subsec:identitymappings}) as a part of understanding our address-space invariant in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}.
 \begin{figure}\footnotesize
 \begin{lstlisting}[mathescape]
 ...
@@ -335,16 +335,16 @@ $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m
 $\specline{\sumpv\paddr\qfrac\true \ast \sumapaces\rtv\delta  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land (\textsf{entry\_present entry\_val}) \urcorner }$
 $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr} \ast \texttt{rcx} \mapsto_{\textsf{r}} \textsf{KERNBASE} }_{\rtv}$
-$\specline{ \texttt{nextpaddr+KERNBASE} \mapsto_{\textsf{vpte,qfracn}} \textsf{nextpaddr w64\_zero} \ }_{\rtv}$
+$\specline{ \texttt{nextpaddr+KERNBASE} \mapsto_{\textsf{vpte,qfracn}} \textsf{nextpaddr w64\_zero} }_{\rtv}$
 ...
 ;;next = (pte_t *) next_virt_addr;
 ;;clean up the stack and return next
 \end{lstlisting}
 \vspace{-1em}
-\caption{Converting a physical address of a PTE to a virtual address (w/o instruction pointer or flag updates). $R$ abbreviates the resources
-associated with \paddr\ by $\Xi$ in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}.}
+\caption{Converting a physical address of a PTE to a virtual address (w/o instruction pointer or flag updates).}
 \label{fig:p2v}
 \end{figure}
+As shown in Figure \ref{fig:p2v}, \lstinline|rcx| holds the offset value \textsf{KERNBASE} which gives us the virtual address (\textsf{nextpaddr+KERNBASE}) to look-up in the identity map ($\Xi$) of the kernel invariant. Assuming the path for \textsf{pte\_initialize} is taken, we can obtain the virtual pte-pointsto for the physical address \textsf{nextpaddr} (Line 13 in Figure \ref{fig:p2v}).
 
 %\begin{figure}\footnotesize
 %\begin{lstlisting}[mathescape]
