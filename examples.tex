@@ -201,9 +201,7 @@ This problem repeats at each level of the page table: assuming the code has \emp
 yield physical addresses, not virtual.
 
 \subsubsection{Loading Page-Table Address Value}
-In Figure \ref{fig:getnexttable}, we see how to obtain the physical address of the next level page-table. Traversal start from the root address of the page-table tree (the address of L4 table \textsf{pte\_t *pml4}) given as a parameter to \textsf{pte\_walkpgdir}). Then, we obtain the address of the entry (\textsf{pml4[PML4EX(va)]}) in the L4 table via the index in the virtual address (\textsf{va}).
-
-Finally, we call \textsf{get\_next\_table} to get the virtual address to the next level page-table -- at this point the address of L3 table.
+We call \textsf{get\_next\_table} to get the virtual address to the next level page-table. In Figure \ref{fig:calltopteinitialize}, we present the critical piece of \textsf{get\_next\_table}, and construct the specification of it 
 Within \textsf{get\_next\_table} first checks if the entry whose address is passed as a parameter ($\textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry}$). To be able to do so, it needs to load the entry value (a 64-bits word divided into bit-fields for corresponding fileds shown in Section {}) and check that \textit{presence} bit of the entry is set or not.
 
 \begin{figure}\footnotesize
@@ -226,13 +224,21 @@ lea    -0x10[rbp],rdi
 ;;pte_initialize(&next);
 callq  70 <pte_initialize>
 ...
+;;}
+;; uintptr_t next_phys_addr = PTE_PFN_TO_ADDR(entry->pfn);
+...
+;;uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr);
+mov    -0x18[rbp],rax
+movabs 0x0,rcx	                187: R_X86_64_64	KERN_BASE
+add    rcx,rax
+...
 \end{lstlisting}
 \vspace{-1em}
 \caption{Making sure that \textsf{entry}'s frame is referencing to an address backed up by a physical page.}
 \label{fig:calltopteinitialize}
 \end{figure}
 
-As we see in Figure \ref{fig:calltopteinitialize}, we have the physical address (\textsf{entry}) of the page table entry kept in the register $\texttt{r8}$, but not the memory mapping to load the entry value referenced by the physical address \textsf{entry}. We need to construct this virtual mappings for \textsf{entry}.
+As we see in Figure \ref{fig:calltopteinitialize}, we have the physical address (\textsf{entry}) of the page table entry kept in the register $\texttt{r8}$, but not the memory mapping to load the entry value referenced by the physical address \textsf{entry} (Line 7 in Figure \ref{fig:calltopteinitialize}). We need to construct this virtual mappings for \textsf{entry}.
 \subsubsection{Identity Mappings}
 Most kernels maintain an invariant on their page tables that the virtual address of any page used for a page table lives at a virtual address
 whose value is a constant offset from the physical address a practice sometimes referred to as \emph{identity mapping} (even though the physical-to-virtual translation
@@ -257,7 +263,7 @@ with DMA devices.}
 \caption{Global Address-Space Invariant in Figure \ref{fig:peraspaceinvariant} extended with a ghost map bookkeeping identity mappings }
   \label{fig:peraspaceinvariant_with_p2v_extension}
   \end{figure*}
-Now, to read the value referenced by physical address \textsf{entry} in Figure \ref{fig:calltopteinitialize}, first, we open our the addresss-space invariant ($\mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)$), and obtain the virtual mapping out of the identity mapping $\Xi$ with the side condition
+Before Line 7 in Figure \ref{fig:calltopteinitialize}, to read the value referenced by physical address \textsf{entry}, first we open our the addresss-space invariant ($\mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)$), and then obtain the virtual mapping out of the identity mapping $\Xi$ with the side condition
 \begin{equation*}
  \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner \tag{*}
 \end{equation*}
@@ -272,28 +278,8 @@ mov    [r8],rdi
  we are able to load the \textsf{entry\_val} into \textsf{rdi}, and check the presence bit via $and 0x1,rdi$.
 
  \subsubsection{Ensuring Presence of Entry}
- Accessing the presence bit and checking the value allow us to exploit the fact in the side condition ()such that we can own twe introduced for the  
+ Accessing the presence bit and checking the value allow (Lines 7-13 in Figure \ref{fig:calltopteinitialize}) us to exploit the fact in the side condition (*) such that we can own twe introduced for the  
 In case of absence, \textsf{pte\_initialize} is called for a physical-zeroed page (\textsf{kalloc} -- currently an axiom as it is not part of \textsf{pte} module but the allocator's) to be backing the physical frame address of the entry.
-
-\begin{figure}\footnotesize
-\begin{lstlisting}[mathescape]
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner\urcorner \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$
-
-;;  if (!entry->present) {
-cmp    0x0,rax
-jne    161 <pte_get_next_table_succ+0xa1>
-lea    -0x10[rbp],rdi
-;;pte_initialize(&next);
-callq  70 <pte_initialize>
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner\urcorner \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$
-...
-
-;;}
-\end{lstlisting}
-\vspace{-1em}
-\caption{Making sure that \textsf{entry}'s frame is referencing to an address backed up by a physical page.}
-\label{fig:calltopteinitialize}
-\end{figure}
 
 Once we make sure that the frame of the page-table entry is backed with an allocated physical page, we can obtain the virtual address of the next level-page table (\textsf{next} of function \textsf{get\_next\_table} in Figure \ref{}) via looking up the \textit{identity mapping} from the physical address (the address value referenced by \textsf{entry->pfn}) to virtual address value to be returned by \textsf{get\_next\_table}.
 \begin{figure}\footnotesize
