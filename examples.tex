@@ -262,8 +262,22 @@ with DMA devices.}
 \vspace{-1em}
 \caption{Global Address-Space Invariant in Figure \ref{fig:peraspaceinvariant} extended with a ghost map bookkeeping identity mappings }
   \label{fig:peraspaceinvariant_with_p2v_extension}
-  \end{figure*}
-Before Line 7 in Figure \ref{fig:calltopteinitialize}, to read the value referenced by physical address \textsf{entry}, first we open our the addresss-space invariant ($\mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)$), and then obtain the virtual mapping out of the identity mapping $\Xi$ with the side condition
+\end{figure*}
+
+As part of the full page table walk verification, we have verified the critical step for a small x86-64 kernel, which is the physical-to-virtual
+conversion (often appearing as a macro \texttt{P2V} inside the macro \textsf{ PTE\_PFN\_TO\_ADDR} in C source code). In our small kernel, as in larger kernels, \texttt{P2V} is actually just addition,
+but the correctness of this simple instruction is quite subtle, as shown in Figure \ref{fig:p2v} -- showing the section of the \textsf{get\_next\_table} in Figure \ref{calltopteinitialize} after the entry presence ensured (Lines 1-19 in Figure \ref{fig:calltopteinitialize}).
+Beyond a frame, the precondition before Line 7 requires the current address space invariant, a check that the addition will not overflow, the physical address to convert
+(in \lstinline|rax|), knowledge that the current address space is valid, and knowledge that the physical address is in a range dedicated
+to page table entries (as this physical-to-virtual conversion is only guaranteed for page table memory). 
+The latter uses an additional ghost set added to the per-address-space
+invariant per Figure \ref{fig:peraspaceinvariant_with_p2v_extension}. The extended invariant owns, for each memory location dedicated to page tables, some fraction of
+that physical memory, and also guarantees the offset is the correct calculation.
+Subtly, the operation ensures the relevant table entry is readable, but the exact portion of ownership returned must be determined by inspecting the valid bit
+of the value in memory --- so full ownership is returned only for unused entries.
+This is a simple piece of code whose functionality is critical and whose correctness is highly non-trivial. No prior work engages with this problem.
+
+Consequently, before Line 7 in Figure \ref{fig:calltopteinitialize}, to read the value referenced by physical address \textsf{entry}, first we open our the addresss-space invariant ($\mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)$), and then obtain the virtual mapping out of the identity mapping $\Xi$ with the side condition
 \begin{equation*}
  \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner \tag{*}
 \end{equation*}
@@ -282,7 +296,7 @@ mov    [r8],rdi
  
 In case of absence, \textsf{pte\_initialize} is called for a physical-zeroed page (\textsf{kalloc} -- currently an axiom as it is not part of \textsf{pte} module but the allocator's) to be backing the physical frame address of the entry.
 \mytodo{Discuss with Colin: v2p and spec on pteinitialize. After clarification expand this piece a little bit more. Right now we have physical pointsto returned from kalloc so pfn is directly set not through v2p}
-Once we make sure that the frame of the page-table entry is backed with an allocated physical page, we can obtain the virtual address of the next level-page table (\textsf{next} of function \textsf{get\_next\_table} in Figure \ref{}) via looking up the \textit{identity mapping} from the physical address (the address value referenced by \textsf{entry->pfn}) to virtual address value to be returned by \textsf{get\_next\_table}.
+Once we make sure that the frame of the page-table entry is backed with an allocated physical page, we can obtain the virtual address of the next level-page table (\textsf{next} of function \textsf{get\_next\_table} in Figure \ref{}) via looking up the \textit{identity mapping} from the physical address (the address value referenced by $\textsf{entry}\mapsto\textsf{pfn}$) to virtual address value to be returned by \textsf{get\_next\_table}.
 \begin{figure}\footnotesize
 \begin{lstlisting}[mathescape]
 ;;if (!entry->present) {
@@ -290,30 +304,19 @@ Once we make sure that the frame of the page-table entry is backed with an alloc
 
 ;;}
 ...
+mov    rax,-0x18[rbp]
 ;;uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr);
-  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ulcorner \textsf{OFF} + \paddr > 0 \urcorner \ast \texttt{rbx}\mapsto_{\textsf{r}} \paddr \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}$
-add rbx, KERNBASE ;; shift physical address by identity mapping constant OFF
-$\specline{\textsf{P} \ast \exists \qfraczero; \qfrac,\textsf{ w, val},  \texttt{rbx}\mapsto_{\textsf{r}} \paddr + \textsf{OFF} \ast \sumapaces\rtv\delta \ast \sumpv\paddr\qfrac\true \ast \vaddr \mapsto_{\texttt{vpte}} \{\textsf{q}, \textsf{qfrac}\} \paddr \;(\texttt{val})}$
-$\specline{\ulcorner \vaddr = \paddr + \textsf{OFF} \urcorner \ast \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner \ast \sumwalkabs\vaddr\qfrac\paddr \ast (R \wand \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)) }_{\rtv}$
-\end{lstlisting}
+mov    -0x18[rbp],rax
+movabs $0x0,rcx            187: R_X86_64_64	KERN_BASE
+add    rcx,rax
+mov    rax,-0x20[rbp]
 \vspace{-1em}
 \caption{Converting a physical address, whose exsitence is made certain, of a PTE to a virtual address (w/o instruction pointer or flag updates). $R$ abbreviates the resources
 associated with \paddr\ by $\Xi$ in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}.}
 \label{fig:p2v}
 \end{figure}
 
-As part of the full page table walk verification, we have verified the critical step for a small x86-64 kernel, which is the physical-to-virtual
-conversion (often appearing as a macro \texttt{P2V} inside the macro \textsf{ PTE\_PFN\_TO\_ADDR} in C source code). In our small kernel, as in larger kernels, \texttt{P2V} is actually just addition,
-but the correctness of this simple instruction is quite subtle, as shown in Figure \ref{fig:p2v}.
-Beyond a frame ($P$), the precondition requires the current address space invariant, a check that the addition will not overflow, the physical address to convert
-(in \lstinline|rbx|), knowledge that the current address space is valid, and knowledge that the physical address is in a range dedicated
-to page table entries (as this physical-to-virtual conversion is only guaranteed for page table memory). 
-The latter uses an additional ghost set added to the per-address-space
-invariant per Figure \ref{fig:peraspaceinvariant_with_p2v_extension}. The extended invariant owns, for each memory location dedicated to page tables, some fraction of
-that physical memory, and also guarantees the offset is the correct calculation.
-Subtly, the operation ensures the relevant table entry is readable, but the exact portion of ownership returned must be determined by inspecting the valid bit
-of the value in memory --- so full ownership is returned only for unused entries.
-This is a simple piece of code whose functionality is critical and whose correctness is highly non-trivial. No prior work engages with this problem.
+
 
 %\caption{Traversing page-tables, and allocating entries as needed while mapping-a-page in Figure \ref{fig:mappingcode}.}
 % \citet{kolanski08vstte,kolanski09tphols} verified a single code block with their logic which was roughly Figure \ref{fig:mapping_code} for a 2-level ARM
