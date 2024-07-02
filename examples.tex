@@ -229,11 +229,11 @@ mov    -0x8[rbp],rdi
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{\_}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry}  }_{\rtv}$
 $\specline{ \mathsf{entry} \in \Xi \ast \sumapaces\rtv\delta  }_{\rtv}$
 mov     rdi, r8
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ entry \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} }_{\rtv}$
 $\specline{ \sumapaces\rtv\delta  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$
 mov    [r8],rdi
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ entry \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}   }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}   }_{\rtv}$
 $\specline{ \sumapaces\rtv\delta  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
 and    0x1,rdi
@@ -241,24 +241,24 @@ mov    rdi,rax
 ;;  if (!entry->present) {
 cmp    0x0,rax
 jne    161 <pte_get_next_table_succ+0xa1>
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ entry \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val} }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val} }_{\rtv}$
 $\specline{ \sumapaces\rtv\delta  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
 mov    rbp,rdi
 sub    0x10, rdi
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ entry \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
 $\specline{ \sumapaces\rtv\delta  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
 ;;pte_initialize(&next);
 callq  70 <pte_initialize>
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ entry \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
 $\specline{\sumapaces\rtv\delta }_{\rtv}$
-$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
+$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
 $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \textsf{nextpaddr} \mapsto_{\textsf{p}} \textsf{w64\_zero}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
 ;;entry->present = 1;
 ;;entry->pfn = next
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ entry \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val'}  }_{\rtv}$
-$\specline{ \sumapaces\rtv\delta  \ast \mathsf{entry\_val.pfn} \in \Xi \setminus \{ entry \} }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val'}  }_{\rtv}$
+$\specline{ \sumapaces\rtv\delta   \} }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val\_present} \ast \ulcorner  \textsf{qfrac} = 1 \land (\textsf{entry\_present entry\_val'}) \urcorner }_{\rtv}$
 $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
 ;;}
@@ -325,11 +325,13 @@ to execute Line 7 in \ref{fig:calltopteinitialize} that can either be mutated or
  \begin{array}{l}
    \specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast \textsf{entry} \in \Xi }_{\rtv}  \\
 \sqsubseteq \\
-   \specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{entry\},m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast  \textsf{entry} \notin \Xi }_{\rtv} \\
- \specline{     \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} \ast \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv} \\
+   \specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} }_{\rtv}\\
+   \specline{ \sumapaces\rtv\delta  }_{\rtv} \\
+\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv} \\
 \mathsf{mov} \;   [ \mathsf{r8} ],\mathsf{rdi}\\
-\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{\textsf{entry}\},m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast  \textsf{entry} \notin \Xi}_{\rtv} \\
-\specline{  \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val} \ast  \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}
+ \specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} }_{\rtv}\\
+   \specline{ \sumapaces\rtv\delta  }_{\rtv} \\
+\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv} \\
  \end{array}
  \]
  \vspace{-1em}
@@ -350,17 +352,17 @@ This actually constitutes a very critical piece of the full page table walk veri
 \begin{figure}\footnotesize
 \begin{lstlisting}[mathescape]
 ...
-;;uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr);
+;;uintptr_t next_virt_addr = (uintptr_t) P2V(next<<12);
 movabs 0x0,rcx	                187: R_X86_64_64	KERN_BASE
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
-$\specline{\sumpv\paddr\qfrac\true \ast \sumapaces\rtv\delta  }_{\rtv}$
-$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land (\textsf{entry\_present entry\_val}) \urcorner }$
-$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr} \ast  \texttt{rcx} \mapsto_{\textsf{r}} \textsf{KERNBASE}  }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val'}  }_{\rtv}$
+$\specline{ \sumapaces\rtv\delta  \ast \mathsf{entry\_val'.pfn}<<12 \in \Xi \setminus \{ \mathsf{entry} \} }_{\rtv}$
+$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val\_present} \ast \ulcorner  \textsf{qfrac} = 1 \land (\textsf{entry\_present entry\_val'}) \urcorner }_{\rtv}$
+$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
 add    rcx,rax
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
-$\specline{\sumpv\paddr\qfrac\true \ast \sumapaces\rtv\delta  }_{\rtv}$
-$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land (\textsf{entry\_present entry\_val}) \urcorner }$
-$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr} \ast \texttt{rcx} \mapsto_{\textsf{r}} \textsf{KERNBASE} }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} , \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val'}  }_{\rtv}$
+$\specline{ \sumapaces\rtv\delta  \ast \mathsf{entry\_val'.pfn}<<12 \in \Xi \setminus \{ \mathsf{entry} \} }_{\rtv}$
+$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val\_present} \ast \ulcorner  \textsf{qfrac} = 1 \land (\textsf{entry\_present entry\_val'}) \urcorner }_{\rtv}$
+$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
 $\specline{ \texttt{nextpaddr+KERNBASE} \mapsto_{\textsf{vpte,qfracn}} \textsf{nextpaddr w64\_zero} }_{\rtv}$
 ...
 ;;next = (pte_t *) next_virt_addr;
