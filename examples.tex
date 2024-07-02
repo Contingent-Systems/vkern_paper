@@ -229,7 +229,7 @@ cmp    0x0,rax
 jne    161 <pte_get_next_table_succ+0xa1>
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val} }_{\rtv}$
 $\specline{\sumpv\paddr\qfrac\true \ast \sumapaces\rtv\delta  }_{\rtv}$
-$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
+$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
 mov    rbp,rdi
 sub    0x10, rdi
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
@@ -239,13 +239,13 @@ $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry 
 callq  70 <pte_initialize>
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
 $\specline{\sumpv\paddr\qfrac\true \ast \sumapaces\rtv\delta  }_{\rtv}$
-$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land v\lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
+$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
 $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \textsf{nextpaddr} \mapsto_{\textsf{p}} \textsf{w64\_zero}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
 ;;entry->present = 1;
 ;;entry->pfn = next
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val'}  }_{\rtv}$
 $\specline{\sumpv\paddr\qfrac\true \ast \sumapaces\rtv\delta  }_{\rtv}$
-$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val\_present} \ast \ulcorner  \textsf{qfrac} = 1 \land (\textsf{entry\_present entry\_val}) \urcorner }_{\rtv}$
+$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val\_present} \ast \ulcorner  \textsf{qfrac} = 1 \land (\textsf{entry\_present entry\_val'}) \urcorner }_{\rtv}$
 $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
 ;;}
 ...
@@ -274,9 +274,10 @@ with DMA devices.}
 \begin{array}{l}
   \mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)\stackrel{\triangle}{=}\\ \textsf{ASpace\_Lookup}_{\textsf{id}}(\ptablestore,\Xi,m) \ast 
   \bigast{(\vaddr, \textsf{paddr})\in \ptablestore}{\exists\;(\textsf{l4e, l3e, l2e, l1e, paddr})\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr\textsf{, l4e, l3e, l2e, l1e, paddr})} \\
-  \bigast{(\paddr) \in \Xi}{\exists\; (\textsf{qfrac, q, val,}\vaddr) \ldotp \ulcorner \vaddr = \paddr + \textsf{OFF} \urcorner \ast  \underbrace{\sumwalkabs\vaddr\qfrac\paddr }_\text{Ghost translation} \ast 
+  \bigast{(\paddr) \in \Xi}{\exists\; (\textsf{qfrac, q, val,}\vaddr) \ldotp \ulcorner \vaddr = \paddr + \textsf{KERNBASE} \urcorner \ast \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner \\
+                           \qquad\qquad\qquad\qquad\qquad\qquad          \underbrace{\sumwalkabs\vaddr\qfrac\paddr }_\text{Ghost translation} \ast 
 % \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad    
-\underbrace{\paddr \mapsto_{\mathsf{p}}\{\textsf{qfrac}\}\; \vale}_\text{Physical location} \ast \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner }\\
+\underbrace{\paddr \mapsto_{\mathsf{p}}\{\textsf{qfrac}\}\; \vale}_\text{Physical location}}\\
   \textsf{ where } \\
    \textsf{ASpace\_Lookup}_{\textsf{id}}(\ptablestore,\Xi,m) \stackrel{\triangle}{=} \lambda\textsf{ cr3val} \ldotp \; \exists \gammaPred \; \ldotp \ulcorner m \; !!\; \textsf{cr3val} = \textsf{Some } \gammaPred \urcorner \ast
    \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \ast  \ownGhostpv\gammaPred{\authfull{\pvmapping\Xi}}
@@ -288,9 +289,8 @@ with DMA devices.}
   \label{fig:peraspaceinvariant_with_p2v_extension}
 \end{figure*}
 
-Beyond a frame, the precondition before Line 7 requires the current address space invariant, a check that the addition will not overflow, the physical address to convert
-(in \lstinline|rax|), knowledge that the current address space is valid, and knowledge that the physical address is in a range dedicated
-to page table entries (as this physical-to-virtual conversion is only guaranteed for page table memory). 
+Beyond a frame, the precondition before Line 7 requires the current address space invariant, and knowledge that \textsf{entry} is in the identity-map ($\Xi$) -- $\textsf{paddr} \in \Xi$. By knowing this, we can also refer to the facts in the invariant that are related to a physical page-table addresses is in a range dedicated to page-table entries (as this physical-to-virtual conversion is only guaranteed for page table memory), and check that the addition of the offset (i.e. \textsf{KERNBASE}) to a physical page-table address do not overflow (in \lstinline|rax|).
+
 The latter uses an additional ghost set added to the per-address-space
 invariant per Figure \ref{fig:peraspaceinvariant_with_p2v_extension}. The extended invariant owns, for each memory location dedicated to page tables, some fraction of
 that physical memory, and also guarantees the offset is the correct calculation.
@@ -298,18 +298,30 @@ Subtly, the operation ensures the relevant table entry is readable, but the exac
 of the value in memory --- so full ownership is returned only for unused entries.
 This is a simple piece of code whose functionality is critical and whose correctness is highly non-trivial. No prior work engages with this problem.
 
-Concretely speaking, before Line 7 in Figure \ref{fig:calltopteinitialize}, to read the value referenced by physical address \textsf{entry}, first we open our the addresss-space invariant ($\mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)$), and then obtain the virtual mapping out of the identity mapping $\Xi$ with the side condition (*)
+Concretely speaking, before Line 7 in Figure \ref{fig:calltopteinitialize}, to read the value referenced by physical address \textsf{entry}, first, we open our the addresss-space invariant ($\mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)$), and then obtain the virtual mapping out of the identity mapping $\Xi$ with the side condition (*)
 \begin{equation*}
  \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner \tag{*}
 \end{equation*}
- assuring that looking up identity mappings are safe, because the full ownership asserts the non-presence of the entry which requires allocation a new physical page and setting the presence bit. By obtaining the identity mapping for \textsf{entry} in Figure \ref{fig:calltopteinitialize} -- ($\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val}$ with page addr \textsf{entry}),
- \[
+ assuring that looking up identity mappings are safe. The subtle justification relies on the fact that the full ownership asserts the non-presence of the entry, accessing to which requires allocation a new physical page and having the presence bit set. By obtaining the identity mapping for \textsf{entry} needed before Line 7 in Figure \ref{fig:calltopteinitialize}, we have to get it from the $Xi$ with the specification shown in \ref{fig:lookingupidpampping}, relying on the 
+ 
+ \begin{figure*}
+   \footnotesize
+   \[
  \begin{array}{l}
-\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{entry\},m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast r8  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast rdi  \mapsto_{\textsf{r}} \textsf{entry} \ast \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry\_val} \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv} \\
-mov    [r8],rdi\\
-\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast r8  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast rdi  \mapsto_{\textsf{r}} \textsf{entry\_val} \ast  \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry\_val} \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}
-\end{array}
+   \specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast r8  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast }_{\rtv} \\
+\specline{  rdi  \mapsto_{\textsf{r}} \textsf{entry\_val} \ast  \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry\_val} \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv} \\
+\sqsubseteq \\
+   \specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{entry\},m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast r8  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast }_{\rtv} \\
+ \specline{     rdi  \mapsto_{\textsf{r}} \textsf{entry} \ast \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry\_val} \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv} \\
+\mathsf{mov} \;   [ \mathsf{r8} ],\mathsf{rdi}\\
+\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{\textsf{entry}\},m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast r8  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast }_{\rtv} \\
+\specline{  rdi  \mapsto_{\textsf{r}} \textsf{entry\_val} \ast  \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry\_val} \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}
+ \end{array}
  \]
+ \vspace{-1em}
+\caption{Global Address-Space Invariant in Figure \ref{fig:peraspaceinvariant} extended with a ghost map bookkeeping identity mappings }
+  \label{fig:lookingupidpampping}
+ \end{figure*}
  we are able to load the \textsf{entry\_val} into \textsf{rdi}, and check the presence bit via $and \;0x1,rdi$.
 
  \subsubsection{Ensuring Presence of an Entry}
