@@ -302,29 +302,29 @@ Concretely speaking, before Line 7 in Figure \ref{fig:calltopteinitialize}, to r
 \begin{equation*}
  \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner \tag{*}
 \end{equation*}
- assuring that looking up identity mappings are safe. The subtle justification relies on the fact that the full ownership asserts the non-presence of the entry, accessing to which requires allocation a new physical page and having the presence bit set. By obtaining the identity mapping for \textsf{entry} needed before Line 7 in Figure \ref{fig:calltopteinitialize}, we have to get it from the $Xi$ with the specification shown in \ref{fig:lookingupidpampping}, relying on the 
- 
+assuring that looking up identity mappings are safe. The subtle justification relies on the fact that the full ownership asserts the non-presence of the entry, accessing to which requires allocation a new physical page and having the presence bit set. Acquiring the identity mapping for \textsf{entry} needed before Line 7 in Figure \ref{fig:calltopteinitialize}, we need the knowledge $\textsf{entry} \in \Xi$ to peel-out the fractional token representing the ghost address translation from the offsetted virtual address (\textsf{entry+KERNBASE}) to the physical page address (\textsf{entry}) and physical pointsto relation from the physical address \textsf{entry} to an existentially quantified value (\textsf{entry\_val}) and the side condition (*) we explained above. In in Figure \ref{fig:lookingupidpampping}, we see that all the logical resources needed to construct a virtual-pte pointsto
+\[ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \]
+to execute Line 7 in \ref{fig:calltopteinitialize} that can either be mutated or not based on the side condition (*).
  \begin{figure*}
    \footnotesize
    \[
  \begin{array}{l}
-   \specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast r8  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast }_{\rtv} \\
-\specline{  rdi  \mapsto_{\textsf{r}} \textsf{entry\_val} \ast  \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry\_val} \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv} \\
+   \specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast \textsf{entry} \in \Xi }_{\rtv}  \\
 \sqsubseteq \\
-   \specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{entry\},m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast r8  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast }_{\rtv} \\
- \specline{     rdi  \mapsto_{\textsf{r}} \textsf{entry} \ast \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry\_val} \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv} \\
+   \specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{entry\},m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast  \textsf{entry} \notin \Xi }_{\rtv} \\
+ \specline{     \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} \ast \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv} \\
 \mathsf{mov} \;   [ \mathsf{r8} ],\mathsf{rdi}\\
-\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{\textsf{entry}\},m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast r8  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast }_{\rtv} \\
-\specline{  rdi  \mapsto_{\textsf{r}} \textsf{entry\_val} \ast  \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry\_val} \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}
+\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{\textsf{entry}\},m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast  \textsf{entry} \notin \Xi}_{\rtv} \\
+\specline{  \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val} \ast  \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \sumapaces\rtv\delta  \ast \sumpv\paddr\qfrac\true  }_{\rtv}
  \end{array}
  \]
  \vspace{-1em}
-\caption{Global Address-Space Invariant in Figure \ref{fig:peraspaceinvariant} extended with a ghost map bookkeeping identity mappings }
+\caption{Peel-out the resources needed for the virtual-pte pointsto relation for physical address \textsf{entry} to be accessed in Line 7 in Figure \ref{fig:calltopteinitialize}. }
   \label{fig:lookingupidpampping}
  \end{figure*}
- we are able to load the \textsf{entry\_val} into \textsf{rdi}, and check the presence bit via $and \;0x1,rdi$.
 
  \subsubsection{Ensuring Presence of an Entry}
+After obtaining the identity mapping for \textsf{entry}, we are able to load the \textsf{entry\_val} into \textsf{rdi}, and check the presence bit via $and \;0x1,rdi$.
  Accessing the presence bit and checking the value allow (Lines 7-13 in Figure \ref{fig:calltopteinitialize}) us to exploit the fact in the side condition (*) in such a way that the condition ($\textsf{entry}\mapsto\textsf{present}$ determines whether we take the non-presence path (Lines 12-19 in Figure \ref{fig:calltopteinitialize}) with full ownership ($\textsf{qfrac} = 1$) to set the entry with proper values for the bitfields, e.g., frame showing freshly allocated page and presence bit.
   In case of absence, \textsf{pte\_initialize} is called for a physical-zeroed page (utilizing the page-allocator's \textsf{kalloc} -- currently the only axiom as it is not part of \textsf{pte} (virtual-memory-management) module) to be backing the physical frame address of the entry -- Specification Line 35 in Figure \ref{fig:calltopteinitialize}.
 
