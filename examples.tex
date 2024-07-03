@@ -279,6 +279,8 @@ add    rcx,rax
 \end{figure}
 
 As we see in Figure \ref{fig:calltopteinitialize}, we have the physical address (\textsf{entry}) of the page table entry kept in the register $\texttt{r8}$, but not the virtual memory mapping to load the entry value referenced by the physical address \textsf{entry} (Line 13 in Figure \ref{fig:calltopteinitialize}). We need to construct this virtual mapping for the physical address \textsf{entry}.
+\newcommand{\ventry}[1]{\mathsf{#1}+\mathsf{KERNBASE}}
+\newcommand{\entry}[1]{\mathsf{#1}}
 \subsubsection{Identity Mappings}
 \label{subsec:identitymappings}
 Most kernels maintain an invariant on their page tables that the virtual address of any page used for a page table lives at a virtual address
@@ -315,13 +317,15 @@ Subtly, the operation ensures the relevant table entry is readable, but the exac
 of the value in memory --- so full ownership is returned only for unused entries.
 This is a simple piece of code whose functionality is critical and whose correctness is highly non-trivial. No prior work engages with this problem.
 
-Concretely speaking, before Line 13 in Figure \ref{fig:calltopteinitialize}, to read the value referenced by physical address \textsf{entry}, first, we open our the addresss-space invariant ($\mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)$), and then obtain the virtual mapping out of the identity mapping $\Xi$ 
+Concretely speaking, when we focus on the specfication of Line 13 in Figure \ref{fig:calltopteinitialize} in Figure \ref{fig:lookingupidpampping}, to read the value referenced by physical address \textsf{entry}, as shown in the first specification Line in Figure \ref{fig:lookingupidpampping}, we open our the addresss-space invariant ($\mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)$), and then obtain the fractional ownership of the ghost translation and physical pointsto
+\[\sumwalkabs\ventry\qfrac\entry\ \ast \mathsf{entry}\mapsto_{\mathsf{p,qfrac}}\; \vale \]
+via using the capability $\Xi \;!!\; \textsf{entry} = Some \textsf{ V}$ and left the invariant as in the state $\mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi\setminus\{\mathsf{entry}\},m)$ , and construct the virtual mapping with the resources peeled-out of the identity mapping $\Xi$ 
 \[ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \]
-via using the capability $\Xi \;!!\; \textsf{entry} = Some \textsf{ V}$ under the side condition (*)
+under the side condition (*)
 \begin{equation*}
  \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner \tag{*}
 \end{equation*}
-assuring that looking up an identity mapping is safe under the subtle justification which equates the fact of full ownership to the non-presence of the entry, accessing to which requires allocation a new physical page and having the presence bit set: \textsf{qfrac = 1} is not known for the address \textsf{entry} before the line before Line 13 in Figure \ref{fig:calltopteinitialize} (which makes the entry value accessible not mutable), and can only be known when the entry presence is inspected at Line 19.
+assuring that looking the identity mapping for \textsf{entry} is safe under the subtle justification which equates the full ownership to the non/presence of the entry which can only be known when investigated ad Line 19in Figure \ref{fig:calltopteinitialize}.
  \begin{figure*}
    \footnotesize
    \[
