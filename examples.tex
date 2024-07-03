@@ -310,18 +310,18 @@ with DMA devices.}
 Beyond a frame, the precondition before Line 13 requires the current address space invariant, and knowledge that \textsf{entry} is mapped to a random entry value ($\Xi \;!!\; \mathsf{entry} = Some V$ in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}). By owning this capability, we can also refer to the facts in the invariant that there exists an virtual address from a range set dedicated to page-table entries, as this physical-to-virtual conversion is only guaranteed for page table memory, and obtained by offsetting the physical address ($\textsf{va} = \textsf{pa} + \textsf{KERNBASE}$. 
 We see that to realize identity mappings, an additional ghost map for keeping identity mappings ($\Xi$) added to the per-address-space
 invariant per Figure \ref{fig:peraspaceinvariant_with_p2v_extension}. The extended invariant owns, for each memory location dedicated to page tables, some fraction of
-that physical memory, and also guarantees the offset is the correct calculation.
+that physical memory, for the sake of constructing the virtual-mapping, also the fractional ownership abstracting translation (i.e. ghost translation in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}), and guarantees the offset is the correct calculation.
 Subtly, the operation ensures the relevant table entry is readable, but the exact portion of ownership returned must be determined by inspecting the valid bit
 of the value in memory --- so full ownership is returned only for unused entries.
 This is a simple piece of code whose functionality is critical and whose correctness is highly non-trivial. No prior work engages with this problem.
 
-Concretely speaking, before Line 13 in Figure \ref{fig:calltopteinitialize}, to read the value referenced by physical address \textsf{entry}, first, we open our the addresss-space invariant ($\mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)$), and then obtain the virtual mapping out of the identity mapping $\Xi$ with the side condition (*)
+Concretely speaking, before Line 13 in Figure \ref{fig:calltopteinitialize}, to read the value referenced by physical address \textsf{entry}, first, we open our the addresss-space invariant ($\mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)$), and then obtain the virtual mapping out of the identity mapping $\Xi$ 
+\[ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \]
+via using the capability $\Xi \;!!\; \textsf{entry} = Some \textsf{ V}$ under the side condition (*)
 \begin{equation*}
  \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner \tag{*}
 \end{equation*}
-assuring that looking up identity mappings are safe. The subtle justification relies on the fact that the full ownership asserts the non-presence of the entry, accessing to which requires allocation a new physical page and having the presence bit set. Acquiring the identity mapping for \textsf{entry} needed before Line 7 in Figure \ref{fig:calltopteinitialize}, we need the knowledge $\textsf{entry} \in \Xi$ to peel-out the fractional token representing the ghost address translation from the offsetted virtual address (\textsf{entry+KERNBASE}) to the physical page address (\textsf{entry}) and physical pointsto relation from the physical address \textsf{entry} to an existentially quantified value (\textsf{entry\_val}) and the side condition (*) we explained above. In in Figure \ref{fig:lookingupidpampping}, we see that all the logical resources needed to construct a virtual-pte pointsto
-\[ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \]
-to execute Line 7 in \ref{fig:calltopteinitialize} that can either be mutated or not based on the side condition (*).
+assuring that looking up an identity mapping is safe under the subtle justification which equates the fact of full ownership to the non-presence of the entry, accessing to which requires allocation a new physical page and having the presence bit set: \textsf{qfrac = 1} is not known for the address \textsf{entry} before the line before Line 13 in Figure \ref{fig:calltopteinitialize} (which makes the entry value accessible not mutable), and can only be known when the entry presence is inspected at Line 19.
  \begin{figure*}
    \footnotesize
    \[
