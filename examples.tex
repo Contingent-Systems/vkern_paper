@@ -18,9 +18,9 @@ Recall from Section \ref{sec:logic} that virtual points-to assertions work just 
 %\end{comment}
 \subsection{Mapping a New Page}
 One of the key tasks of a page fault handler in a general-purpose OS kernel is
-to map new pages into an address space by writing into an existing page table.
-To do so, we first allocate a fresh page, then calculate the appropriate
-known-valid page table walks and update the appropriate L1 page table entry.
+to map new pages into an address space by writing into an existing page table (textsf{vaspace\_mappage(pte_t *pml4, void *va,uintptr_t pa, uint64_t perm )} in Figure \ref{fig:mapping_code}).
+To do so, with a given allocated a fresh page (\textsf{pa}), then calculate the appropriate
+known-valid page table walks (\textsf{pte\_walkpgdir} Line X in Figure \ref{fig:mapping_code})  and update the appropriate L1 page table entry (permissions and frame address Lines in Figure \ref{fig:mapping_code}).
 %\lstset{
 %  columns=fullflexible,
 %  numbers=left,
@@ -63,7 +63,13 @@ known-valid page table walks and update the appropriate L1 page table entry.
 
 \begin{figure}\footnotesize
   \begin{lstlisting}[mathescape]
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m)  \ast  \texttt{r14}\mapsto_{\textsf{r}} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{\textsf{r}} \_ \ast \ulcorner \texttt{aligned va} \land  \theta \; !!\; \vaddr = \texttt{None}\urcorner}_{\rtv}$
+;;complstatus_t vaspace_mappage(pte_t *pml4, void *va,uintptr_t pa, uint64_t perm ) {
+...
+;;setting up the stack      
+;;char *a; pte_t *pte;
+;;a = (char *)PGROUNDUP((uintptr_t)va);
+ $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m)  \ast  \texttt{r14}\mapsto_{\textsf{r}} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{\textsf{r}} \_ \ast \ulcorner \texttt{aligned va} \land  \theta \; !!\; \vaddr = \texttt{None}\urcorner}_{\rtv}$
+;;pte = walkpgdir_succ(pml4, a);
 call pte_walkpgdir ;; Returns the virtual address of the L1 entry in rax
 $\specline{\exists (\entryf ,\;\entrytr,\; \entrytw,\; \entryo,\;\textsf{pte\_addr },\paddr) \; \ldotp\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{\textsf{r}} \textsf{ pte\_addr} \; \ast }_{\rtv}$
 $\specline{ \ulcorner  \texttt{addr\_L1 }(\vaddr, \entryo) = \paddr \urcorner \ast \ulcorner \texttt{entry\_present } \entryf \land \texttt{entry\_present } \entrytr \land  \texttt{entry\_present } \entrytw \urcorner \; \ast}_{\rtv}$
