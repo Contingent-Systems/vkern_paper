@@ -352,7 +352,12 @@ assuring that looking the identity mapping for \textsf{entry} is safe under the 
 
  \subsubsection{Ensuring Presence of an Entry}
  After obtaining the identity mapping for \textsf{entry}, we are able to load the \textsf{entry\_val} into \textsf{rdi}, and check the presence bit via
- \[ \mathsf{and} \;0x1,rdi\] Line 17 in Figure \ref{fig:calltopteinitialize}.
+ \[ \begin{array}{l}
+   \mathsf{and } 0x1, \;rdi \\
+   \mathsf{mov } \mathsf{rdi}, \; \mathsf{rax} \\
+   \mathsf{cmp } 0x0, \;\mathsf{rax}
+ \end{array}
+ \] Line 17 in Figure \ref{fig:calltopteinitialize}.
  Accessing the presence bit and checking the value allow  us to exploit the fact in the side condition (*) in such a way that the condition ($\textsf{entry}\mapsto\textsf{present}$ determines whether we take the non-presence path (Lines 19-44 in Figure \ref{fig:calltopteinitialize}) with full ownership ($\textsf{qfrac} = 1$) to set the entry with proper values for the bitfields, e.g., frame showing freshly allocated page and presence bit.
  In case of absence, \textsf{pte\_initialize} is called for a physical-zeroed page (utilizing the page-allocator's \textsf{kalloc} -- currently the only axiom as it is not part of \textsf{pte} (virtual-memory-management) module) to be backing the physical frame address of the entry -- Specification Line 35 in Figure \ref{fig:calltopteinitialize}. Since we are using \textsf{pte\_initialize} for page-table address allocation, it also ensures us that newly allocated physicall address is in the identity mapping map $\Xi$ -- Line X in Figure \ref{fig:calltopteinitialize}.
 \begin{figure}\footnotesize
