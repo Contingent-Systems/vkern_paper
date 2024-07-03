@@ -34,7 +34,13 @@ known-valid page table walks (\textsf{pte\_walkpgdir} Line X in Figure \ref{fig:
 %  morecomment=[l]{;;},
 %  mathescape
 %}
+\newcommand{\sumwalkabsent}{
+  \ownGhost\gammaPred{\authfrag{\singletonMap{\texttt{entry+KERNBASE}}{(\textsf{qfrac}, \textsf{entry})}}}
+}
 
+
+\newcommand{\ventry}{\texttt{entry + KERNBASE}}
+\newcommand{\entry}{\texttt{entry}}
 \newcommand{\qfraczero}{\textsf{qfrac}}
 \newcommand{\true}{\textsf{true}}
 \tikzstyle{boxedassert_border} = [sharp corners,line width=0.2pt]
@@ -279,8 +285,6 @@ add    rcx,rax
 \end{figure}
 
 As we see in Figure \ref{fig:calltopteinitialize}, we have the physical address (\textsf{entry}) of the page table entry kept in the register $\texttt{r8}$, but not the virtual memory mapping to load the entry value referenced by the physical address \textsf{entry} (Line 13 in Figure \ref{fig:calltopteinitialize}). We need to construct this virtual mapping for the physical address \textsf{entry}.
-\newcommand{\ventry}[1]{\mathsf{#1}+\mathsf{KERNBASE}}
-\newcommand{\entry}[1]{\mathsf{#1}}
 \subsubsection{Identity Mappings}
 \label{subsec:identitymappings}
 Most kernels maintain an invariant on their page tables that the virtual address of any page used for a page table lives at a virtual address
@@ -309,7 +313,7 @@ with DMA devices.}
   \label{fig:peraspaceinvariant_with_p2v_extension}
 \end{figure*}
 
-Beyond a frame, the precondition before Line 13 requires the current address space invariant, and knowledge that \textsf{entry} is mapped to a random entry value ($\Xi \;!!\; \mathsf{entry} = Some V$ in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}). By owning this capability, we can also refer to the facts in the invariant that there exists an virtual address from a range set dedicated to page-table entries, as this physical-to-virtual conversion is only guaranteed for page table memory, and obtained by offsetting the physical address ($\textsf{va} = \textsf{pa} + \textsf{KERNBASE}$. 
+Beyond a frame, the precondition before Line 13 requires the current address space invariant, and knowledge that \textsf{entry} is mapped to a random entry value ($\Xi \;!!\; \mathsf{entry} = \mathsf{Some V}$ in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}). By owning this capability, we can also refer to the facts in the invariant that there exists an virtual address from a range set dedicated to page-table entries, as this physical-to-virtual conversion is only guaranteed for page table memory, and obtained by offsetting the physical address ($\textsf{va} = \textsf{pa} + \textsf{KERNBASE}$. 
 We see that to realize identity mappings, an additional ghost map for keeping identity mappings ($\Xi$) added to the per-address-space
 invariant per Figure \ref{fig:peraspaceinvariant_with_p2v_extension}. The extended invariant owns, for each memory location dedicated to page tables, some fraction of
 that physical memory, for the sake of constructing the virtual-mapping, also the fractional ownership abstracting translation (i.e. ghost translation in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}), and guarantees the offset is the correct calculation.
@@ -318,7 +322,7 @@ of the value in memory --- so full ownership is returned only for unused entries
 This is a simple piece of code whose functionality is critical and whose correctness is highly non-trivial. No prior work engages with this problem.
 
 Concretely speaking, when we focus on the specfication of Line 13 in Figure \ref{fig:calltopteinitialize} in Figure \ref{fig:lookingupidpampping}, to read the value referenced by physical address \textsf{entry}, as shown in the first specification Line in Figure \ref{fig:lookingupidpampping}, we open our the addresss-space invariant ($\mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)$), and then obtain the fractional ownership of the ghost translation and physical pointsto
-\[\sumwalkabs\ventry\qfrac\entry\ \ast \mathsf{entry}\mapsto_{\mathsf{p,qfrac}}\; \vale \]
+\[\sumwalkabsent \ast \mathsf{entry}\mapsto_{\mathsf{p,qfrac}}\; \vale \]
 via using the capability $\Xi \;!!\; \textsf{entry} = Some \textsf{ V}$ and left the invariant as in the state $\mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi\setminus\{\mathsf{entry}\},m)$ , and construct the virtual mapping with the resources peeled-out of the identity mapping $\Xi$ 
 \[ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \]
 under the side condition (*)
@@ -347,8 +351,9 @@ assuring that looking the identity mapping for \textsf{entry} is safe under the 
  \end{figure*}
 
  \subsubsection{Ensuring Presence of an Entry}
-After obtaining the identity mapping for \textsf{entry}, we are able to load the \textsf{entry\_val} into \textsf{rdi}, and check the presence bit via $and \;0x1,rdi$.
- Accessing the presence bit and checking the value (Line 19 in Figure \ref{fig:calltopteinitialize}) allow  us to exploit the fact in the side condition (*) in such a way that the condition ($\textsf{entry}\mapsto\textsf{present}$ determines whether we take the non-presence path (Lines 19-44 in Figure \ref{fig:calltopteinitialize}) with full ownership ($\textsf{qfrac} = 1$) to set the entry with proper values for the bitfields, e.g., frame showing freshly allocated page and presence bit.
+ After obtaining the identity mapping for \textsf{entry}, we are able to load the \textsf{entry\_val} into \textsf{rdi}, and check the presence bit via
+ \[ \mathsf{and} \;0x1,rdi\] Line 17 in Figure \ref{fig:calltopteinitialize}.
+ Accessing the presence bit and checking the value allow  us to exploit the fact in the side condition (*) in such a way that the condition ($\textsf{entry}\mapsto\textsf{present}$ determines whether we take the non-presence path (Lines 19-44 in Figure \ref{fig:calltopteinitialize}) with full ownership ($\textsf{qfrac} = 1$) to set the entry with proper values for the bitfields, e.g., frame showing freshly allocated page and presence bit.
  In case of absence, \textsf{pte\_initialize} is called for a physical-zeroed page (utilizing the page-allocator's \textsf{kalloc} -- currently the only axiom as it is not part of \textsf{pte} (virtual-memory-management) module) to be backing the physical frame address of the entry -- Specification Line 35 in Figure \ref{fig:calltopteinitialize}. Since we are using \textsf{pte\_initialize} for page-table address allocation, it also ensures us that newly allocated physicall address is in the identity mapping map $\Xi$ -- Line X in Figure \ref{fig:calltopteinitialize}.
 \begin{figure}\footnotesize
   \begin{lstlisting}[mathescape]
