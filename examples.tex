@@ -103,7 +103,7 @@ $\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\
 $\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \sqsubseteq $
   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace} (<[\vaddr:=\texttt{fpaddr}]> \theta,m) \ast \vaddr \mapsto_{\textsf{v}}\; \{\qfrac\} \textsf{wzero 64}}_{\rtv}$
 \end{lstlisting}
-  \caption{Specification and proof of distilled code for mapping a new page.}
+  \caption{Specification and proof of code for mapping a new page.}
 \label{fig:mapping_code}
 \end{figure}
 
@@ -112,16 +112,13 @@ mapped to a page ($\theta \; !!\; \vaddr = \texttt{None}$). Mapping a fresh
 phyiscal page to back the desired virtual page first requires ensuring
 the existence of a memory location for an appropriate L1 table entry.
 The code uses a helper function \lstinline|pte\_walkpgdir| (discussed again in Section \ref{sec:traversing}).
-\lstinline|pte\_walkpgdir|'s postcondition contains physical pointsto assertions for a partial page table walk reaching the
-L1 entry (l1e), ensuring higher levels of the page table exist. 
-The postcondition also includes a virtual \emph{PTE}
-pointsto ($\mapsto_{\textsf{vpte}}$) allows access to the memory of the L1 entry
-via virtual address \lstinline|pte_pointsto|.
+\textsf{pte\_walkpgdir}'s postcondition contains virtual \emph{PTE} pointsto assertions ($\mapsto_{\textsf{vpte}}$) \todo{colin, these are no more plain physical pointstos}  both for ensuring partial page table walk reaching the
+L1 entry (l1e) with the justification of higher levels of the page table exist, and for allowing access to the memory of the L1 entry via virtual address.
 A PTE points-to is defined just like the normal virtual points-to of Figure \ref{fig:virtualpointstosharing}, except the physical address (here, \textsf{pa}) is explicit in the assertion 
 rather than existentially quantified:
  \[
 \begin{array}{l}
-    \vaddr\mapsto_{\textsf{vpte}} \;\{\textsf{q}\} \; \paddr \; \vpage : \mathsf{vProp}~\Sigma \stackrel{\triangle}{=} 
+    \vaddr\mapsto_{\textsf{vpte,q}} \; \paddr \; \vpage : \mathsf{vProp}~\Sigma \stackrel{\triangle}{=} 
     \exists \delta\ldotp
 	(\lambda \mathit{cr3val}\ldotp
 	\sumapaces{\mathit{cr3val}}\delta) \ast 
