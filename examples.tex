@@ -60,7 +60,7 @@ known-valid page table walks (\textsf{pte\_walkpgdir} Line X in Figure \ref{fig:
 \newcommand{\sumapacesfull}[2]{
   \ownGhost\gammaPreds{\authfull{\singletonMap{#1}{#2}}}
 }
-
+\todo{ismail change the following spec base on the changes you have in the code}
 \begin{figure}\footnotesize
   \begin{lstlisting}[mathescape]
 ;;complstatus_t vaspace_mappage(pte_t *pml4, void *va,uintptr_t pa, uint64_t perm ) {
@@ -135,15 +135,15 @@ This is also guaranteed ($ \ulcorner
 % by the physical memory for the L1 entry that will be used to translate the virtual addresses
 % we are mapping, we save it to \textsf{r14} to be updated later in Line 9.
 
-Line 12 allocates a fresh page-aligned, zero-initialized page  (at \textsf{fpaddr}),
-returning a pre-filled PTE entry in \textsf{rax} ($+3$ sets the lower 2 bits).
+%In the precondition, we see Line 12 allocates a fresh page-aligned, zero-initialized page  (at \textsf{fpaddr}),
+%returning a pre-filled PTE entry in \textsf{rax} ($+3$ sets the lower 2 bits).
 
 The crucial step is actually updating the L1 entry,
 via the virtual address
 (\textsf{pte\_addr}) known to translate to the appropriate physical address, in our example the L1
 table entry address ($\textsf{addr\_L1}(\textsf{va, l1e})$), to hold the freshly
-allocated physical page address (\textsf{fpaddr}) in Line 18.
-After this write, we have (Specification Line 21)
+allocated physical page address (\textsf{fpaddr}) in Line X.
+After this write, we have (Specification Line Y)
 \[\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\; \textsf{fpaddr}  \qquad\qquad (\textsf{by the PTE variant of Rule}~\TirNameStyle{WriteToVirtMemFromReg})\]
 
 At this point in the proof,  $\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\; \textsf{fpaddr})$ 
@@ -154,11 +154,9 @@ physical pointsto
 fractional ownership on it appropriate for a single address's share of an L1 entry (q4).
 Since we know $\texttt{addr\_L1 }(\vaddr,
 \entryo) \mapsto_{\mathsf{p}} \{q4\} \;\textsf{fpaddr}$) from
-$\mapsto_{\textsf{vpte}}$, after the split of the PTE points-to, we can
-connect L4-L2 points-to assertions with 
- $\texttt{fpaddr} \mapsto_{a} (\texttt{wzero 64})$ to obtain the
-complete physical table-walk assertion (L4\_L1\_PointsTo($\vaddr$ l4e l3e l2e
-fpaddr)) in Line 25. 
+$\mapsto_{\textsf{vpte}}$, after the split of the PTE points-to, and, thanks to the post-condition of the page-table walk (Specification of \textsf{pte\_walkpgdir} in Figure \ref{}), we know the existence of L4-L2 mappings reaching to the L1 exist, so that we can add the last mapping $\texttt{fpaddr} \mapsto_{p} (\texttt{wzero 64})$ to obtain the complete table-walk.
+\todo{with the virtual-pte-pointsto assertions (L4\_L1\_PointsTo($\vaddr$ l4e l3e l2e
+fpaddr)) in Line 25}
 
 Finally, we can insert $\vaddr$ into the ghost page-table-walk summarization
 map ($\theta$) to change its state from unmapped ($\ulcorner \theta
@@ -205,7 +203,7 @@ yield physical addresses, not virtual.
 
 \subsubsection{Loading Page-Table Address Value}
 We call \textsf{get\_next\_table} to get the virtual address to the next level page-table. In Figure \ref{fig:calltopteinitialize}, we present the critical piece of \textsf{get\_next\_table}, and construct the specification of it 
-Within \textsf{get\_next\_table} first checks if the entry whose address is passed as a parameter ($\textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry}$). To be able to do so, it needs to load the entry value (a 64-bits word divided into bit-fields for corresponding fileds shown in Section {}) and check that \textit{presence} bit of the entry is set or not.
+Within \textsf{get\_next\_table}, first, we check if the entry whose address is passed as a parameter ($\textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry}$) is present or not. To be able to do so, it needs to load the entry value (a 64-bit word divided into bit-fields for corresponding fileds shown in Section {}) and check that \textit{presence} bit of the entry is set or not.
 %wshiftll (wshiftll (natToWord 64 entry) (WordImpl.concat (WordImpl.zero 56) (WordImpl.from_nat 8 12 ^& WordImpl.concat (WordImpl.zero 2) WO~1~1~1~1~1~1)) ^& constf)
 %(WordImpl.concat (WordImpl.zero 56) (natToWord 8 12 ^& WordImpl.concat (WordImpl.zero 2) WO~1~1~1~1~1~1))
 %
@@ -230,7 +228,7 @@ $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m
 $\specline{\mathsf{entry} \in \Xi \ast \sumapaces\rtv\delta  }_{\rtv}$
 mov    -0x8[rbp],rdi
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{\_}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry}  }_{\rtv}$
-$\specline{ \ulcorner \Xi !! \mathsf{entry} = \mathsf{Some V} \urcorner \ast \sumapaces\rtv\delta  }_{\rtv}$
+$\specline{ \ulcorner \Xi \;!!\; \mathsf{entry} = \mathsf{Some V} \urcorner \ast \sumapaces\rtv\delta  }_{\rtv}$
 mov     rdi, r8
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} }_{\rtv}$
 $\specline{ \sumapaces\rtv\delta  }_{\rtv}$
@@ -257,7 +255,7 @@ callq  70 <pte_initialize>
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \}\cup\{\mathsf{nextpaddr}\},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
 $\specline{\sumapaces\rtv\delta \ast \mathsf{nextpaddr} \in \Xi\setminus \{ \mathsf{entry} \} \cup \{ \mathsf{nextpaddr} \} }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
-$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \ulcorner \Xi\setminus \{ \mathsf{entry} \}\cup\{\mathsf{nextpaddr}\} !! \mathsf{entry} = \mathsf{Some Z} \urcorner \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
+$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \ulcorner \Xi\setminus \{ \mathsf{entry} \}\cup\{\mathsf{nextpaddr}\} \;!!\; \mathsf{entry} = \mathsf{Some Z} \urcorner \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
 ;;entry value updates
 ...
 ;;entry->present = 1;
@@ -265,7 +263,7 @@ $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \ulcorn
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \}\cup\{\mathsf{nextpaddr}\},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val'}  }_{\rtv}$
 $\specline{\sumapaces\rtv\delta \ast \mathsf{nextpaddr} \in \Xi\setminus \{ \mathsf{entry} \} \cup \{ \mathsf{nextpaddr} \} }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land (\textsf{entry\_present entry\_val'})  \urcorner }_{\rtv}$
-$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \ulcorner \Xi\setminus \{ \mathsf{entry} \}\cup\{\mathsf{nextpaddr}\} !! \mathsf{entry} = \mathsf{Some Z} \urcorner \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
+$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \ulcorner \Xi\setminus \{ \mathsf{entry} \}\cup\{\mathsf{nextpaddr}\} \;!!\; \mathsf{entry} = \mathsf{Some Z} \urcorner \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
 ;;}
 ...
 ;;uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr);
@@ -280,7 +278,7 @@ add    rcx,rax
 \label{fig:calltopteinitialize}
 \end{figure}
 
-As we see in Figure \ref{fig:calltopteinitialize}, we have the physical address (\textsf{entry}) of the page table entry kept in the register $\texttt{r8}$, but not the virtual memory mapping to load the entry value referenced by the physical address \textsf{entry} (Line 7 in Figure \ref{fig:calltopteinitialize}). We need to construct this virtual mapping for \textsf{entry}.
+As we see in Figure \ref{fig:calltopteinitialize}, we have the physical address (\textsf{entry}) of the page table entry kept in the register $\texttt{r8}$, but not the virtual memory mapping to load the entry value referenced by the physical address \textsf{entry} (Line 13 in Figure \ref{fig:calltopteinitialize}). We need to construct this virtual mapping for the physical address \textsf{entry}.
 \subsubsection{Identity Mappings}
 \label{subsec:identitymappings}
 Most kernels maintain an invariant on their page tables that the virtual address of any page used for a page table lives at a virtual address
@@ -293,8 +291,7 @@ with DMA devices.}
 \begin{array}{l}
   \mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)\stackrel{\triangle}{=}\\ \textsf{ASpace\_Lookup}_{\textsf{id}}(\ptablestore,\Xi,m) \ast 
   \bigast{(\vaddr, \textsf{paddr})\in \ptablestore}{\exists\;(\textsf{l4e, l3e, l2e, l1e, paddr})\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr\textsf{, l4e, l3e, l2e, l1e, paddr})} \\
-  \bigast{(\paddr) \in \Xi}{\exists\; (\textsf{qfrac, q, val,}\vaddr) \ldotp \ulcorner \vaddr = \paddr + \textsf{KERNBASE} \urcorner \ast \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner \\
-                           \qquad\qquad\qquad\qquad\qquad\qquad          \underbrace{\sumwalkabs\vaddr\qfrac\paddr }_\text{Ghost translation} \ast 
+  \bigast{(\paddr) \in \Xi}{\exists\; (\textsf{qfrac, q, val,}\vaddr) \ldotp \ulcorner \vaddr = \paddr + \textsf{KERNBASE} \urcorner \ast \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner \ast \underbrace{\sumwalkabs\vaddr\qfrac\paddr }_\text{Ghost translation} \ast 
 % \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad    
 \underbrace{\paddr \mapsto_{\mathsf{p}}\{\textsf{qfrac}\}\; \vale}_\text{Physical location}}\\
   \textsf{ where } \\
