@@ -18,7 +18,7 @@ Recall from Section \ref{sec:logic} that virtual points-to assertions work just 
 %\end{comment}
 \subsection{Mapping a New Page}
 One of the key tasks of a page fault handler in a general-purpose OS kernel is
-to map new pages into an address space by writing into an existing page table (textsf{vaspace\_mappage(pte_t *pml4, void *va,uintptr_t pa, uint64_t perm )} in Figure \ref{fig:mapping_code}).
+to map new pages into an address space by writing into an existing page table (\textsf{vaspace\_mappage(pte\_t *pml4, void *va,uintptr\_t pa, uint64\_t perm )} in Figure \ref{fig:mapping_code}).
 To do so, with a given allocated a fresh page (\textsf{pa}), then calculate the appropriate
 known-valid page table walks (\textsf{pte\_walkpgdir} Line X in Figure \ref{fig:mapping_code})  and update the appropriate L1 page table entry (permissions and frame address Lines in Figure \ref{fig:mapping_code}).
 %\lstset{
