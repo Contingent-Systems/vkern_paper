@@ -77,6 +77,48 @@ known-valid page table walks (\textsf{pte\_walkpgdir} Line X in Figure \ref{fig:
  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m)  \ast  \texttt{r14}\mapsto_{\textsf{r}} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{\textsf{r}} \_ \ast \ulcorner \texttt{aligned va} \land  \theta \; !!\; \vaddr = \texttt{None}\urcorner}_{\rtv}$
 ;;pte = walkpgdir_succ(pml4, a);
 call pte_walkpgdir ;; Returns the virtual address of the L1 entry in rax
+
+;;char *a; pte_t *pte;
+;;a = (char *)PGROUNDUP((uintptr_t)va);
+mov    -0x10[rbp],rcx
+add    0x1000,rcx
+sub    0x1,rcx
+and    0xfffffffffffff000,%rcx
+mov    rcx,-0x28[rbp]
+
+;;pte = walkpgdir_succ(pml4, a);
+mov    -0x8[rbp],rdi
+mov    -0x28[rbp],rsi
+mov    0x0,rax
+callq  291 <vaspace_mappage+0x41>	28d: R_X86_64_PLT32	walkpgdir_succ-0x4
+xor    r8,r8
+movslq eax,rcx
+mov    rcx,-0x30[rbp]
+
+;;pte->writable     = PTE_WRITEABLE_SET(perm);
+...
+pte->user_acc     = PTE_USER_ACC_SET(perm);
+...
+;;pte->writethrough = PTE_WRITETHRU_SET(perm);
+...
+;;pte->nocache      = PTE_NOCACHE_SET(perm);
+pte->pfn          = PTE_ADDR_TO_PFN(pa);
+mov    -0x18[rbp],rcx
+shr    0xc,rcx
+mov    -0x30[rbp],rdx
+mov    [rdx],rsi
+movabs 0xffffffffff,rdi
+and    rdi,rcx
+shl    0xc,rcx
+movabs 0xfff0000000000fff,rdi
+and    rdi,rsi
+or     rcx,rsi
+mov    rsi,[rdx]
+;;pte->nx           = PTE_NX_SET(perm);
+;;pte->present      = 1;
+;;clean up the stack and return
+...
+;;}
 $\specline{\exists (\entryf ,\;\entrytr,\; \entrytw,\; \entryo,\;\textsf{pte\_addr },\paddr) \; \ldotp\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{\textsf{r}} \textsf{ pte\_addr} \; \ast }_{\rtv}$
 $\specline{ \ulcorner  \texttt{addr\_L1 }(\vaddr, \entryo) = \paddr \urcorner \ast \ulcorner \texttt{entry\_present } \entryf \land \texttt{entry\_present } \entrytr \land  \texttt{entry\_present } \entrytw \urcorner \; \ast}_{\rtv}$
 $\specline{\nfpointsto{\mask\vaddr\maskfour\rtv}{\mask\vaddr\maskfouroff\rtv}\entryf\qone\naddr \; \ast \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast}_{\rtv}$ 
@@ -400,9 +442,9 @@ Since we are using \textsf{pte\_initialize} for page-table address allocation, w
 The first aspect is important for not invalidating the soundness: \textsf{pte\_initialize} extends the identity map with the freshly allocated \textsf{nextpaddr}, and must not reveal the ownership of the physical pointsto in the post-condition (Line 33 and 35 in Figure \ref{fig:calltopteinitialize}, Lines 22-23 in Figure \ref{fig:pteinitializespec}) because it would create unsound coexistence of the full-ownership of the physical pointsto resource (a hypothetical $\mathsf{nextpaddr} \mapsto_{\mathsf{p,1}} w0_64$) and fragmental (potentially full based on the side-condition *) physical pointsto resource that can be obtained from the identity map inside the extended invariant in Figure \ref{fig:peraspaceinvariant_with_p2v_extension} with the capability token $\ulcorner \Xi !! \textsf{nextpaddr} = \textsf{ Some Z} \urcorner$. Although, the first aspect -- not explicitly revealing the physical pointsto resource for the freshly allocated page-table address but providing access through the identity map inside the invariant with access-capability tokens -- recovers the soundness argument expalined, we still need the knowledge that the fresly allocated address references to a \textit{zeroed} page. The invariant preserves this information through the constraint on relating the type (\textsf{T}) of mapped data -- \textsf{T = Z} for zeroed or \textsf{T = V} for random page value -- to the value of existentially quantified value -- \textsf{val} -- in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}. So, for accessing the physical pointsto resource to the zeroed value referenced by \textsf{nextpaddr}, we need to have the fragmental ownership of the identity-map $\Xi !! \textsf{nextpaddr} = \textsf{ Some Z}$ which ensures and carries the \textit{being-zeroed} knowledge when we open and access the the existentially quantified value inside the invariant.
   \subsubsection{Kernels Utilizing \textsf{P2V}}
   \label{sec:p2v}
- Once we make sure that the frame of the page-table entry ($\textsf{entry}\mapsto\textsf{pfn}$)is backed with an allocated physical page, we must obtain the virtual address of the next level-page table (Line 46 in \ref{calltopteinitialize}). To do so, as for obtaining any virtual page-table address, we, again, need to open the invariant look up the \textit{identity mapping} for the physical address ($\textsf{entry}\mapsto \textsf{pfn}$). 
+ Once we make sure that the frame of the page-table entry ($\textsf{entry}\mapsto\textsf{pfn}$)is backed with an allocated physical page, we must obtain the virtual address of the next level-page table (Line 48 in \ref{calltopteinitialize}). To do so, as for obtaining any virtual page-table address, we, again, need to open the invariant look up the \textit{identity mapping} for the physical address ($\textsf{entry}\mapsto \textsf{pfn}$). 
 
-This actually constitutes a very critical piece of the full page table walk verification, and we have verified the critical step for a small x86-64 kernel, which is the physical-to-virtual conversion (often appearing as a macro \texttt{P2V} inside the macro \textsf{ PTE\_PFN\_TO\_ADDR} in C source code). In our small kernel (Line 46 in Figure \ref{calltopteinitialize}), as in larger kernels, \texttt{P2V} is actually just addition, but the correctness of this simple instruction is quite subtle and relies on identity mappings explained in the previous section (Section \ref{subsec:identitymappings}) as a part of understanding our address-space invariant in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}.
+This actually constitutes a very critical piece of the full page table walk verification, and we have verified the critical step for a small x86-64 kernel, which is the physical-to-virtual conversion (often appearing as a macro \texttt{P2V} inside the macro \textsf{ PTE\_PFN\_TO\_ADDR} in C source code). In our small kernel (Line 48 in Figure \ref{calltopteinitialize}), as in larger kernels, \texttt{P2V} is actually just addition, but the correctness of this simple instruction is quite subtle and relies on identity mappings explained in the previous section (Section \ref{subsec:identitymappings}) as a part of understanding our address-space invariant in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}.
 \begin{figure}\footnotesize
 \begin{lstlisting}[mathescape]
 ...
