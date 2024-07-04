@@ -1,5 +1,37 @@
 %$\assert{\ulcorner \mathsf{aligned maddr} \urcorner \ast \mathsf{r14} \mapsto_{\textsf{r}} \textsf{r14v} \ast \mathsf{r13} \mapsto_{\textsf{r}} \textsf{maddr} \ast \mathsf{rdi} \mapsto_{\textsf{r}} \textsf{rdiv} \ast \mathsf{rax} \mapsto_{\textsf{r}} \textsf{raxv}}$
 %$\assert{\ulcorner \ptablestore !! \textsf{maddr} = \textsf{None} \urcorner \ast \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \ast \textsf{Pf}} $
+\newcommand{\sumwalkabsent}{
+  \ownGhost\gammaPred{\authfrag{\singletonMap{\texttt{entry+KERNBASE}}{(\textsf{qfrac}, \textsf{entry})}}}
+}
+
+
+\newcommand{\ventry}{\texttt{entry + KERNBASE}}
+\newcommand{\entry}{\texttt{entry}}
+\newcommand{\qfraczero}{\textsf{qfrac}}
+\newcommand{\true}{\textsf{true}}
+\tikzstyle{boxedassert_border} = [sharp corners,line width=0.2pt]
+\NewDocumentCommand \boxedassertpv {O{} m o}{%
+	\tikz[baseline=(m.base)]{
+		%	  \node[rectangle, draw,inner sep=0.8pt,anchor=base,#1] (m) {${#2}\mathstrut$};
+		\node[rectangle,inner sep=1.5pt,outer sep=0.2pt,anchor=base] (m) {${\,#2\,}\mathstrut$};
+		\draw[#1,boxedassert_border] ($(m.south west)$) rectangle ($(m.north east)$);
+	}\IfNoValueF{#3}{^{\,#3}}%
+}
+\newcommand*{\knowInvpv}[2]{\boxedassertpv{#2}[#1]}
+\newcommand*{\ownGhostpv}[2]{\boxedassertpv[dash dot]{#2}[#1]}
+
+\newcommand{\sumpv}[3]{
+  \ownGhostpv\gammaPred{\authfrag{\singletonMap{#1}{(#2, #3)}}}
+}
+
+\newcommand{\pvmapping}[1]{\mathcal{A}\textsf{PVMappings}(#1)}
+
+
+\newcommand{\fpaddr}{\texttt{fpaddr}}
+\newcommand{\specline}[1]{{\color{blue}\left\{#1\right\}}}
+\newcommand{\sumapacesfull}[2]{
+  \ownGhost\gammaPreds{\authfull{\singletonMap{#1}{#2}}}
+}
 \section{Experiments}
 \label{sec:experiment}
 To both validate and demonstrate the value of the modal approach to reasoning about virtual memory management, we study several
@@ -200,19 +232,19 @@ $\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{\_} \ast \textsf{table\_add
 ;;pte_t *local = kalloc();
 callq  81 <pte_initialize+0x11>	7d: R_X86_64_PLT32	kalloc-0x4
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)   \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{table\_addr}  }_{\rtv}$
-$\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \ulcorner \Xi !! \mathsf{nextpaddr} = None \urcorner \ast \textsf{table\_addr} \mapsto_{\mathsf{v}} \mathsf{\_} \ast \sumapaces\rtv\delta }_{\rtv}$
+$\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \ulcorner \Xi \;!!\; \mathsf{nextpaddr} = \textsf{None} \urcorner \ast \textsf{table\_addr} \mapsto_{\mathsf{v}} \mathsf{\_} \ast \sumapaces\rtv\delta }_{\rtv}$
 $\sqsubseteq$
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\cup\{\mathsf{nextpaddr}\},m)   \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
-$\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \ulcorner \Xi !! \mathsf{nextpaddr} = Z \urcorner \ast \textsf{table\_addr} \mapsto_{\mathsf{v}} \mathsf{\_} \ast \sumapaces\rtv\delta }_{\rtv}$  
+$\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \ulcorner \Xi \;!!\; \mathsf{nextpaddr} = Z \urcorner \ast \textsf{table\_addr} \mapsto_{\mathsf{v}} \mathsf{\_} \ast \sumapaces\rtv\delta }_{\rtv}$  
 mov    rax,-0x10[rbp] 
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\cup\{\mathsf{nextpaddr}\},m)   \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{table\_addr}  }_{\rtv}$
-$\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \ulcorner \Xi !! \mathsf{nextpaddr} = Z \urcorner \ast \textsf{table\_addr} \mapsto_{\mathsf{v}} \mathsf{\_}\ast \sumapaces\rtv\delta }_{\rtv}$  
+$\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \ulcorner \Xi \;!!\; \mathsf{nextpaddr} = Z \urcorner \ast \textsf{table\_addr} \mapsto_{\mathsf{v}} \mathsf{\_}\ast \sumapaces\rtv\delta }_{\rtv}$  
 ;;*table = local;
 mov    -0x10[rbp],rax
 mov    -0x8[rbp],rdi
 mov    rax,[rdi]
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\cup\{\mathsf{nextpaddr}\},m)   \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{table\_addr}  }_{\rtv}$
-$\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \ulcorner \Xi !! \mathsf{nextpaddr} = Z \urcorner \ast \textsf{table\_addr} \mapsto_{\mathsf{v}} \mathsf{\mathsf{nextpaddr}} \ast \sumapaces\rtv\delta }_{\rtv}$  
+$\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \ulcorner \Xi \;!!\; \mathsf{nextpaddr} = Z \urcorner \ast \textsf{table\_addr} \mapsto_{\mathsf{v}} \mathsf{\mathsf{nextpaddr}} \ast \sumapaces\rtv\delta }_{\rtv}$  
 ;;return;
 ;;..
 ;;clean up the stack
@@ -341,8 +373,8 @@ $\specline{P_3 \ast \texttt{pdp} \mapsto_{\textsf{vpte,qfracn}} \textsf{pdppaddr
 \subsection{Mapping a New Page}
 One of the key tasks of a page fault handler in a general-purpose OS kernel is
 to map new pages into an address space by writing into an existing page table via a call
-\[\textsf{vaspace\_mappage(pte\_t *pml4, void *va,uintptr\_t pa, uint64\_t perm )}\] in Figure \ref{fig:mapping_code}).
-To do so, with a given allocated a fresh page (\textsf{pa}), then calculate the appropriate
+\[\textsf{vaspace\_mappage(pte\_t *pml4, void *va,uintptr\_t fpaddr, uint64\_t perm )}\] in Figure \ref{fig:mapping_code}).
+To do so, with a given allocated a fresh page (\textsf{fpaddr}), then calculate the appropriate
 known-valid page table walks (\textsf{pte\_walkpgdir} Line X in Figure \ref{fig:mapping_code})  and update the appropriate L1 page table entry (permissions and frame address Lines in Figure \ref{fig:mapping_code}).
 %\lstset{
 %  columns=fullflexible,
@@ -357,74 +389,49 @@ known-valid page table walks (\textsf{pte\_walkpgdir} Line X in Figure \ref{fig:
 %  morecomment=[l]{;;},
 %  mathescape
 %}
-\newcommand{\sumwalkabsent}{
-  \ownGhost\gammaPred{\authfrag{\singletonMap{\texttt{entry+KERNBASE}}{(\textsf{qfrac}, \textsf{entry})}}}
-}
-
-
-\newcommand{\ventry}{\texttt{entry + KERNBASE}}
-\newcommand{\entry}{\texttt{entry}}
-\newcommand{\qfraczero}{\textsf{qfrac}}
-\newcommand{\true}{\textsf{true}}
-\tikzstyle{boxedassert_border} = [sharp corners,line width=0.2pt]
-\NewDocumentCommand \boxedassertpv {O{} m o}{%
-	\tikz[baseline=(m.base)]{
-		%	  \node[rectangle, draw,inner sep=0.8pt,anchor=base,#1] (m) {${#2}\mathstrut$};
-		\node[rectangle,inner sep=1.5pt,outer sep=0.2pt,anchor=base] (m) {${\,#2\,}\mathstrut$};
-		\draw[#1,boxedassert_border] ($(m.south west)$) rectangle ($(m.north east)$);
-	}\IfNoValueF{#3}{^{\,#3}}%
-}
-\newcommand*{\knowInvpv}[2]{\boxedassertpv{#2}[#1]}
-\newcommand*{\ownGhostpv}[2]{\boxedassertpv[dash dot]{#2}[#1]}
-
-\newcommand{\sumpv}[3]{
-  \ownGhostpv\gammaPred{\authfrag{\singletonMap{#1}{(#2, #3)}}}
-}
-
-\newcommand{\pvmapping}[1]{\mathcal{A}\textsf{PVMappings}(#1)}
-
-
-\newcommand{\fpaddr}{\texttt{fpaddr}}
-\newcommand{\specline}[1]{{\color{blue}\left\{#1\right\}}}
-\newcommand{\sumapacesfull}[2]{
-  \ownGhost\gammaPreds{\authfull{\singletonMap{#1}{#2}}}
-}
 \todo{ismail change the following spec base on the changes you have in the code}
 \begin{figure}\footnotesize
   \begin{lstlisting}[mathescape]
-;;complstatus_t vaspace_mappage(pte_t *pml4, void *va,uintptr_t pa, uint64_t perm ) {
+;;complstatus_t vaspace_mappage(pte_t *pml4, void *va,uintptr_t fpaddr, uint64_t perm ) {
 ...
 ;;setting up the stack      
 ;;char *a; pte_t *pte;
 ;;a = (char *)PGROUNDUP((uintptr_t)va);
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m)  \ast \texttt{rdi}\mapsto_{r} \textsf{plm4} \ast \texttt{rsi}\mapsto_{r} \textsf{va} \ast  \texttt{rdx}\mapsto_{r} \textsf{pa} \ast \texttt{rcx}\mapsto_{r} \textsf{perm} \ast \texttt{rax}\mapsto_{\textsf{r}} \_ \ast \ulcorner \texttt{aligned va} \land  \theta \; !!\; \vaddr = \texttt{None}\urcorner\ast }_{\rtv}$
-$\specline{\texttt{rbp-8}\mapsto_{v} \textsf{plm4} \ast \texttt{rbp-16}\mapsto_{v} \textsf{va}  \ast \texttt{rbp-24}\mapsto_{v} \textsf{pa} \ast \texttt{rbp-32}\mapsto_{v} \textsf{perm} \ast \textsf{r8} \mapsto_{\textsf{r}} \textsf{\_}}_{\rtv}$
 ;;char *a; pte_t *pte;
 ;;a = (char *)PGROUNDUP((uintptr_t)va);
 ...
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{rdi}\mapsto_{\textsf{r}} \vaddr  \;\ast}_{\rtv}$
-$\specline{\texttt{pte\_addr} \mapsto_{\texttt{vpte}} \paddr\; (\texttt{wzero 64})  \ast \ulcorner \texttt{entry\_present } \entryf \land \texttt{entry\_present } \entrytr \land  \texttt{entry\_present } \entrytw \urcorner}_{\rtv}$
-$\specline{\exists \texttt{ fpaddr} \ldotp \ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{\textsf{r}} \texttt{fpaddr+3} \ast \texttt{fpaddr} \mapsto_{\textsf{p}} (\texttt{wzero 64}) \ast \ulcorner \texttt{entry\_present (fpaddr+3)}\urcorner}_{\rtv}$      
 ;;pte = walkpgdir_succ(pml4, a);
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m)  \ast \texttt{rdi}\mapsto_{r} \textsf{plm4} \ast \texttt{rsi}\mapsto_{r} \textsf{va} \ast  \texttt{rdx}\mapsto_{r} \textsf{pa} \ast \texttt{rcx}\mapsto_{r} \textsf{perm} \ast \texttt{rax}\mapsto_{\textsf{r}} \textsf{pte\_addr} \ast }_{\rtv}$
+$\specline{\ulcorner \texttt{aligned va} \land  \theta \; !!\; \vaddr = \texttt{None}\urcorner\ast \textsf{vl4} \mapsto_{\textsf{vpte,qfrac}} \textsf{l4e l4} \ast \textsf{vl3} \mapsto_{\textsf{vpte,qfrac}} \textsf{l3e l3} \ast \textsf{vl2} \mapsto_{\textsf{vpte,qfrac}} \textsf{l2e pa}  \ast }_{\rtv}$
+$\specline{\textsf{pte\_addr} \mapsto_{\textsf{vpte,qfrac}} \textsf{pa} \textsf{pte\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \lnot (\textsf{entry\_present pte\_val}) \urcorner}_{\rtv}$     
+$\specline{\texttt{rbp-8}\mapsto_{v} \textsf{plm4} \ast \texttt{rbp-16}\mapsto_{v} \textsf{va}  \ast \texttt{rbp-24}\mapsto_{v} \textsf{pa} \ast \texttt{rbp-32}\mapsto_{v} \textsf{perm} \ast \textsf{r8} \mapsto_{\textsf{r}} \textsf{\_}}_{\rtv}$      
 mov    -0x8[rbp],rdi
 mov    -0x28[rbp],rsi
 mov    0x0,rax
 callq  291 <vaspace_mappage+0x41>	28d: R_X86_64_PLT32	walkpgdir_succ-0x4
+;;if(pte->present != 0) {
+...        
 mov    0x0,r8
 mov    rax,rcx
 mov    rcx,-0x30[rbp]
 ;;pte->writable     = PTE_WRITEABLE_SET(perm);
 ...
-pte->user_acc     = PTE_USER_ACC_SET(perm);
+;;pte->user_acc     = PTE_USER_ACC_SET(perm);
 ...
 ;;pte->writethrough = PTE_WRITETHRU_SET(perm);
 ...
 ;;pte->nocache      = PTE_NOCACHE_SET(perm);
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m)  \ast \texttt{rdi}\mapsto_{r} \textsf{plm4} \ast \texttt{rsi}\mapsto_{r} \textsf{va} \ast  \texttt{rdx}\mapsto_{r} \textsf{pa} \ast \texttt{rcx}\mapsto_{r} \textsf{perm} \ast \texttt{rax}\mapsto_{\textsf{r}} \textsf{pte\_addr} \ast \ulcorner \texttt{aligned va} \land  \theta \; !!\; \vaddr = \texttt{None}\urcorner\ast }_{\rtv}$
+$\specline{\textsf{pte\_addr} \mapsto_{\textsf{vpte,qfrac}} \textsf{pa} \textsf{pte\_val} \ast \ulcorner \lnot \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present pte\_val}) \urcorner}$     
+$\specline{\texttt{rbp-8}\mapsto_{v} \textsf{plm4} \ast \texttt{rbp-16}\mapsto_{v} \textsf{va}  \ast \texttt{rbp-24}\mapsto_{v} \textsf{pa} \ast \texttt{rbp-32}\mapsto_{v} \textsf{perm} \ast \textsf{r8} \mapsto_{\textsf{r}} \textsf{\_}}_{\rtv}$      
 pte->pfn          = PTE_ADDR_TO_PFN(pa);
 mov    -0x18[rbp],rcx
 shr    0xc,rcx
 mov    -0x30[rbp],rdx
 mov    [rdx],rsi
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m)  \ast \texttt{rdi}\mapsto_{r} \textsf{plm4} \ast \texttt{rsi}\mapsto_{r} \textsf{va} \ast  \texttt{rdx}\mapsto_{r} \textsf{pa} \ast \texttt{rcx}\mapsto_{r} \textsf{perm} \ast \texttt{rax}\mapsto_{\textsf{r}} \textsf{pte\_addr} \ast \ulcorner \texttt{aligned va} \land  \theta \; !!\; \vaddr = \texttt{None}\urcorner\ast }_{\rtv}$
+$\specline{\textsf{pte\_addr} \mapsto_{\textsf{vpte,qfrac}} \textsf{pa} (\textsf{pa}>>12) \ast \ulcorner \lnot \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present pte\_val}) \urcorner}$     
+$\specline{\texttt{rbp-8}\mapsto_{v} \textsf{plm4} \ast \texttt{rbp-16}\mapsto_{v} \textsf{va}  \ast \texttt{rbp-24}\mapsto_{v} \textsf{pa} \ast \texttt{rbp-32}\mapsto_{v} \textsf{perm} \ast \textsf{r8} \mapsto_{\textsf{r}} \textsf{\_}}_{\rtv}$      
 movabs 0xffffffffff,rdi
 and    rdi,rcx
 shl    0xc,rcx
@@ -432,22 +439,7 @@ movabs 0xfff0000000000fff,rdi
 and    rdi,rsi
 or     rcx,rsi
 mov    rsi,[rdx]
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{\textsf{r}} \vaddr \;\ast \nfpointsto{\mask\vaddr\maskfour\rtv}{\mask\vaddr\maskfouroff\rtv}\entryf\qone\naddr \ast}_{\rtv}$ 
-$\specline{  \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\masktwo\entrytr}{\mask\vaddr\masktwooff\entrytr}\paddr\qthree\entryo \;\ast}_{\rtv}$
-$\specline{\texttt{pte\_addr} \mapsto_{\texttt{vpte}} \paddr \;(\texttt{fpaddr+3}) \; \ast \ulcorner \texttt{entry\_present } \entryf \land \texttt{entry\_present } \entrytr \land  \texttt{entry\_present } \entrytw \urcorner }_{\rtv}$
-$\specline{\ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{\textsf{r}} \texttt{fpaddr+3} \ast \texttt{fpaddr} \mapsto_{\textsf{p}} (\texttt{wzero 64}) \ast \ulcorner \texttt{entry\_present fpaddr+3}\urcorner}_{\rtv}$
-$\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \sqsubseteq $
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{\textsf{r}} \vaddr \ast }_{\rtv}$
-$\specline{\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\entryf,\entrytr,\entrytw,\fpaddr+3) \ast \ulcorner \theta \;!!\;\vaddr = \texttt{None}\urcorner \; \ast}_{\rtv}$
-$\specline{\ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{\textsf{r}} \texttt{fpaddr+3} \ast \texttt{fpaddr} \mapsto_{\textsf{p}} (\texttt{wzero 64}) }_{\rtv}$
-$\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \sqsubseteq $
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace} (<[\vaddr:=\texttt{fpaddr}]> \theta,m) \ast}_{\rtv}$
-$\specline{\ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{fpaddr} \mapsto_{\textsf{p}} \textsf{ wzero 64} \ast \sumapaces\rtv\delta  \ast\sumwalkabs\vaddr\qfrac\fpaddr}_{\rtv}$
-$\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \sqsubseteq $
-  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace} (<[\vaddr:=\texttt{fpaddr}]> \theta,m) \ast \vaddr \mapsto_{\textsf{vpte}}\; \{\qfrac\} \;\fpaddr \textsf{ wzero 64}}_{\rtv}$
-$\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \sqsubseteq $
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace} (<[\vaddr:=\texttt{fpaddr}]> \theta,m) \ast \vaddr \mapsto_{\textsf{v}}\; \{\qfrac\} \textsf{wzero 64}}_{\rtv}$
-;;pte->nx           = PTE_NX_SET(perm);
+;;}
 ;;pte->present      = 1;
 ;;clean up the stack and return
 ...
@@ -502,6 +494,8 @@ contains  full ownerhsip of the L1 table entry physical pointsto $\paddr
 physical pointsto
 ($\textsf{fpaddr}\mapsto_{\textsf{p}} \;\textsf{wzero 64}$) to obtain
 fractional ownership on it appropriate for a single address's share of an L1 entry (q4).
+\todo{ismail comment out the rest of this subsection and fix according to the new map-a-page}
+\begin{comment}
 Since we know $\texttt{addr\_L1 }(\vaddr,
 \entryo) \mapsto_{\mathsf{p}} \{q4\} \;\textsf{fpaddr}$) from
 $\mapsto_{\textsf{vpte}}$, after the split of the PTE points-to, and, thanks to the post-condition of the page-table walk (Specification of \textsf{pte\_walkpgdir} in Figure \ref{}), we know the existence of L4-L2 mappings reaching to the L1 exist, so that we can add the last mapping $\texttt{fpaddr} \mapsto_{p} (\texttt{wzero 64})$ to obtain the complete table-walk.
@@ -517,6 +511,7 @@ precondition) to mapped (Line 29) using Iris' ghost-map update
 page-table-walk insertions, $\sumapaces\rtv\delta$ from unfolding the
 definition of $\mapsto_{\textsf{vpte}}$, and $\fpaddr
 \mapsto_{\textsf{p}} \textsf{wzero 64}$.
+\end{comment}
 Finally, by existentially quantifying away \textsf{fpaddr},
 we can shift the PTE points-to into a normal virtual points-to.
 
@@ -622,8 +617,8 @@ Kernels that map kernel memory into all address spaces would need to ensure and 
 proof of an elimination rule for specific modally-constrained points-to assertions.
 % Following Spectre and Meltdown, this kernel design became less prevalent because speculative execution of accesses to kernel addresses could leak information even if the access did eventually cause a fault (the user/kernel mode permission check was done after fetching data from memory). Thus many modern kernels have reverted to the older kernel design where the kernel inhabits its own unique address space, and user processes have only enough extra material mapped in their address spaces to switch into the kernel (CPUs do not speculate past updates to \texttt{cr3}).
 
-
-\begin{comment}    
+\begin{comment}
+\[  
 $\specline{\exists (\entryf ,\;\entrytr,\; \entrytw,\; \entryo,\;\textsf{pte\_addr },\paddr) \; \ldotp\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{\textsf{r}} \textsf{ pte\_addr} \; \ast }_{\rtv}$
 $\specline{ \ulcorner  \texttt{addr\_L1 }(\vaddr, \entryo) = \paddr \urcorner \ast \ulcorner \texttt{entry\_present } \entryf \land \texttt{entry\_present } \entrytr \land  \texttt{entry\_present } \entrytw \urcorner \; \ast}_{\rtv}$
 $\specline{\nfpointsto{\mask\vaddr\maskfour\rtv}{\mask\vaddr\maskfouroff\rtv}\entryf\qone\naddr \; \ast \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast}_{\rtv}$ 
