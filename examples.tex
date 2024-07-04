@@ -313,7 +313,7 @@ with DMA devices.}
   \label{fig:peraspaceinvariant_with_p2v_extension}
 \end{figure*}
 
-Beyond a frame, the precondition before Line 13 requires the current address space invariant, and knowledge that \textsf{entry} is mapped to a random entry value ($\Xi \;!!\; \mathsf{entry} = \mathsf{Some V}$ in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}). By owning this capability, we can also refer to the facts in the invariant that there exists an virtual address from a range set dedicated to page-table entries, as this physical-to-virtual conversion is only guaranteed for page table memory, and obtained by offsetting the physical address ($\textsf{va} = \textsf{pa} + \textsf{KERNBASE}$. 
+Beyond a frame, the precondition before Line 13 requires the current address space invariant, and knowledge that \textsf{entry} is mapped to a random entry value ($\Xi \;!!\; \mathsf{entry} = \textsf{Some V}$ in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}). By owning this capability, we can also refer to the facts in the invariant that there exists an virtual address from a range set dedicated to page-table entries, as this physical-to-virtual conversion is only guaranteed for page table memory, and obtained by offsetting the physical address ($\textsf{va} = \textsf{pa} + \textsf{KERNBASE}$. 
 We see that to realize identity mappings, an additional ghost map for keeping identity mappings ($\Xi$) added to the per-address-space
 invariant per Figure \ref{fig:peraspaceinvariant_with_p2v_extension}. The extended invariant owns, for each memory location dedicated to page tables, some fraction of
 that physical memory, for the sake of constructing the virtual-mapping, also the fractional ownership abstracting translation (i.e. ghost translation in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}), and guarantees the offset is the correct calculation.
@@ -323,7 +323,7 @@ This is a simple piece of code whose functionality is critical and whose correct
 
 Concretely speaking, when we focus on the specfication of Line 13 in Figure \ref{fig:calltopteinitialize} in Figure \ref{fig:lookingupidpampping}, to read the value referenced by physical address \textsf{entry}, as shown in the first specification Line in Figure \ref{fig:lookingupidpampping}, we open our the addresss-space invariant ($\mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)$), and then obtain the fractional ownership of the ghost translation and physical pointsto
 \[\sumwalkabsent \ast \mathsf{entry}\mapsto_{\mathsf{p,qfrac}}\; \vale \]
-via using the capability $\Xi \;!!\; \textsf{entry} = Some \textsf{ V}$ and left the invariant as in the state $\mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi\setminus\{\mathsf{entry}\},m)$ , and construct the virtual mapping with the resources peeled-out of the identity mapping $\Xi$ 
+via using the capability $\Xi \;!!\; \textsf{entry} = \textsf{Some V}$ and left the invariant as in the state $\mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi\setminus\{\mathsf{entry}\},m)$ , and construct the virtual mapping with the resources peeled-out of the identity mapping $\Xi$ 
 \[ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \]
 under the side condition (*)
 \begin{equation*}
@@ -351,14 +351,15 @@ assuring that looking the identity mapping for \textsf{entry} is safe under the 
  \end{figure*}
 
  \subsubsection{Ensuring Presence of an Entry}
- After obtaining the identity mapping for \textsf{entry}, we are able to load the \textsf{entry\_val} into \textsf{rdi}, and check the presence bit via
+ After obtaining the identity mapping for \textsf{entry}, we are able to load the \textsf{entry\_val} into \textsf{rdi}, and check the presence bit through
  \[ \begin{array}{l}
-   \mathsf{and } 0x1, \;rdi \\
-   \mathsf{mov } \mathsf{rdi}, \; \mathsf{rax} \\
-   \mathsf{cmp } 0x0, \;\mathsf{rax}
+   \mathsf{and }\; 0x1, \;rdi \\
+   \mathsf{mov } \;\mathsf{rdi}, \; \mathsf{rax} \\
+   \mathsf{cmp } \; 0x0, \;\mathsf{rax}
  \end{array}
- \] Line 17 in Figure \ref{fig:calltopteinitialize}.
- Accessing the presence bit and checking the value allow  us to exploit the fact in the side condition (*) in such a way that the condition ($\textsf{entry}\mapsto\textsf{present}$ determines whether we take the non-presence path (Lines 19-44 in Figure \ref{fig:calltopteinitialize}) with full ownership ($\textsf{qfrac} = 1$) to set the entry with proper values for the bitfields, e.g., frame showing freshly allocated page and presence bit.
+ \] Lines (17-20) in Figure \ref{fig:calltopteinitialize}.
+ Accessing the presence bit and checking the value allow  us to exploit the fact in the side condition (*) in such a way that we either take the allocation path in the non-presence case (Lines 19-44 in Figure \ref{fig:calltopteinitialize}) with the knowledge of full ownership ($\textsf{qfrac} = 1$) to set the entry with proper values for the bitfields, most imporantly frame referencing freshly allocated page and presence bit, or, take non-allocation path and jump to Line 45 with fractional permission for looking up the entry values.
+
  In case of absence, \textsf{pte\_initialize} is called for a physical-zeroed page (utilizing the page-allocator's \textsf{kalloc} -- currently the only axiom as it is not part of \textsf{pte} (virtual-memory-management) module) to be backing the physical frame address of the entry -- Specification Line 35 in Figure \ref{fig:calltopteinitialize}. Since we are using \textsf{pte\_initialize} for page-table address allocation, it also ensures us that newly allocated physicall address is in the identity mapping map $\Xi$ -- Line X in Figure \ref{fig:calltopteinitialize}.
 \begin{figure}\footnotesize
   \begin{lstlisting}[mathescape]
