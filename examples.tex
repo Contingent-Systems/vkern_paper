@@ -117,18 +117,18 @@ $\specline{ \sumapaces\rtv\delta }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
 ;;pte_initialize(&next);
 callq  70 <pte_initialize>
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \}\cup\{\mathsf{nextpaddr}\},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
-$\specline{\sumapaces\rtv\delta \ast \mathsf{nextpaddr} \in \Xi\setminus \{ \mathsf{entry} \} \cup \{ \mathsf{nextpaddr} \} }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
+$\specline{\sumapaces\rtv\delta \ast \mathsf{nextpaddr} \in \Xi\setminus \{ \mathsf{entry} \} \} }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
-$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \ulcorner \Xi\setminus \{ \mathsf{entry} \}\cup\{\mathsf{nextpaddr}\} \;!!\; \mathsf{entry} = \mathsf{Some Z} \urcorner \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
+$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast  \mathsf{nextpaddr} \mapsto_{\textsf{p}} \textsf{w0\_64} \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
 ;;entry value updates
 ...
 ;;entry->present = 1;
 ;;entry->pfn = next
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \}\cup\{\mathsf{nextpaddr}\},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val'}  }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val'}  }_{\rtv}$
 $\specline{\sumapaces\rtv\delta \ast \mathsf{nextpaddr} \in \Xi\setminus \{ \mathsf{entry} \} \cup \{ \mathsf{nextpaddr} \} }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land (\textsf{entry\_present entry\_val'})  \urcorner }_{\rtv}$
-$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \ulcorner \Xi\setminus \{ \mathsf{entry} \}\cup\{\mathsf{nextpaddr}\} \;!!\; \mathsf{entry} = \mathsf{Some Z} \urcorner \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
+$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast  \mathsf{nextpaddr} \mapsto_{\textsf{p}} \textsf{w0\_64} \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
 ;;}
 ...
 ;;uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr);
@@ -150,6 +150,7 @@ Most kernels maintain an invariant on their page tables that the virtual address
 whose value is a constant offset from the physical address a practice sometimes referred to as \emph{identity mapping} (even though the physical-to-virtual translation
 is typically not literally the identity function, but adding a constant offset).\footnote{Some kernels do this for all physical memory on the machine, simplifying interaction
 with DMA devices.}
+\todo{ismail: CHnage the text!  it is not as simple as relating paddrs existence type, more concrete relation on pfn and fresly allocated addr }
 \begin{figure*}
 \footnotesize
 \[
@@ -157,7 +158,7 @@ with DMA devices.}
   \mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)\stackrel{\triangle}{=}\\ \textsf{ASpace\_Lookup}_{\textsf{id}}(\ptablestore,\Xi,m) \ast 
   \bigast{(\vaddr, \textsf{paddr})\in \ptablestore}{\exists\;(\textsf{l4e, l3e, l2e, l1e, paddr})\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr\textsf{, l4e, l3e, l2e, l1e, paddr})} \\
   \bigast{(\paddr,\mathsf{T}) \in \Xi}{\exists\; (\textsf{qfrac, q, val,}\vaddr) \ldotp \ulcorner \vaddr = \paddr + \textsf{KERNBASE} \urcorner \ast \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner \ast
-    \ulcorner \mathsf{T} = \mathsf{Z} \leftrightarrow \mathsf{val} = \mathsf{w0\_64}\urcorner \; \ast\\
+   \exists \textsf{freshaddr, entry} \textsf{entry\_pfn} entry freshaddr = paddr \ast freshaddr \mapsto_{\textsf{p}} \textsf{w0\_64}  \leftrightarrow \mathsf{val} = \mathsf{w0\_64}\urcorner \; \ast\\
    \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad   \underbrace{\sumwalkabs\vaddr\qfrac\paddr }_\text{Ghost translation} \ast 
 % \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad    
 \underbrace{\paddr \mapsto_{\mathsf{p}}\{\textsf{qfrac}\}\; \vale}_\text{Physical location}}\\
@@ -223,7 +224,7 @@ assuring that looking the identity mapping for \textsf{entry} is safe under the 
 \begin{figure}\footnotesize
   \begin{lstlisting}[mathescape]
 
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)   \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{table\_addr}  }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)   \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{table\_addr}  }_{\rtv}$
 $\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{\_} \ast \textsf{table\_addr} \mapsto_{\mathsf{v}} \mathsf{\_}\ast\sumapaces\rtv\delta }_{\rtv}$
 ;;void pte_initialize(pte_t **table) {
 ...
@@ -231,20 +232,17 @@ $\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{\_} \ast \textsf{table\_add
 ;;allocate a full zeroed page for 512 8-byte entries 
 ;;pte_t *local = kalloc();
 callq  81 <pte_initialize+0x11>	7d: R_X86_64_PLT32	kalloc-0x4
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)   \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{table\_addr}  }_{\rtv}$
-$\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \ulcorner \Xi \;!!\; \mathsf{nextpaddr} = \textsf{None} \urcorner \ast \textsf{table\_addr} \mapsto_{\mathsf{v}} \mathsf{\_} \ast \sumapaces\rtv\delta }_{\rtv}$
-$\sqsubseteq$
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\cup\{\mathsf{nextpaddr}\},m)   \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
-$\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \ulcorner \Xi \;!!\; \mathsf{nextpaddr} = Z \urcorner \ast \textsf{table\_addr} \mapsto_{\mathsf{v}} \mathsf{\_} \ast \sumapaces\rtv\delta }_{\rtv}$  
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)   \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{table\_addr}  }_{\rtv}$
+$\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \textsf{table\_addr} \mapsto_{\mathsf{v}} \mathsf{\_} \ast \textsf{nextpaddr} \mapsto_{\textsf{p}} \textsf{w0\_64}\ast\sumapaces\rtv\delta }_{\rtv}$
 mov    rax,-0x10[rbp] 
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\cup\{\mathsf{nextpaddr}\},m)   \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{table\_addr}  }_{\rtv}$
-$\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \ulcorner \Xi \;!!\; \mathsf{nextpaddr} = Z \urcorner \ast \textsf{table\_addr} \mapsto_{\mathsf{v}} \mathsf{\_}\ast \sumapaces\rtv\delta }_{\rtv}$  
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)   \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{table\_addr}  }_{\rtv}$
+$\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \ulcorner \Xi \;!!\; \mathsf{nextpaddr} = Z \urcorner \ast \textsf{table\_addr} \mapsto_{\mathsf{v}} \mathsf{\_} \ast \textsf{nextpaddr} \mapsto_{\textsf{p}} \textsf{w0\_64} \ast \sumapaces\rtv\delta }_{\rtv}$  
 ;;*table = local;
 mov    -0x10[rbp],rax
 mov    -0x8[rbp],rdi
 mov    rax,[rdi]
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\cup\{\mathsf{nextpaddr}\},m)   \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{table\_addr}  }_{\rtv}$
-$\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \ulcorner \Xi \;!!\; \mathsf{nextpaddr} = Z \urcorner \ast \textsf{table\_addr} \mapsto_{\mathsf{v}} \mathsf{\mathsf{nextpaddr}} \ast \sumapaces\rtv\delta }_{\rtv}$  
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)   \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{table\_addr}  }_{\rtv}$
+$\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr}  \ast \textsf{table\_addr} \mapsto_{\mathsf{v}} \mathsf{\mathsf{nextpaddr}} \ast \textsf{nextpaddr} \mapsto_{\textsf{p}} \textsf{w0\_64} \ast \sumapaces\rtv\delta }_{\rtv}$  
 ;;return;
 ;;..
 ;;clean up the stack
@@ -253,7 +251,7 @@ $\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \ulcorner \
 \caption{Allocating a physical page }
 \label{pteinitializespec}
 \end{figure}
-
+\todo{ISMAIL: Change the following paragraphs and LInes 33 35  in \ref{fig:calltopteinitialize}, because wpdp2V is where we only know the relation between entry->pfn nextpaddr , consequently zeroed. Not here }
 Since we are using \textsf{pte\_initialize} for page-table address allocation, we must relate this newly allocated physical address to the identity mapping map $\Xi$ -- Specification Lines 33 and 35 in Figure \ref{fig:calltopteinitialize}. There are two important aspects on relating a freshly allocated page-table physical address to the identity-mapping which we focus in more detail separately in the specification of \textsf{pte\_initialize} in Figure \ref{fig:pteinitializespec}. First, one might have expected to see a physical pointsto for the fresly page-table address  ($\mathsf{nextpaddr} \mapsto_{\mathsf{p}} \mathsf{w64\_0}$) after the call to \textsf{pte\_initialize} but we do not have this physical pointsto resource. Second, we see the identity mapping for \textsf{nextpaddr}, first not appearing in the identity map (Specification Line 11 in Figure \ref{fig:pteinitializespec}), then as inserted into the identity-map with a value \textsf{Z} ($\Xi \cup \{\mathsf{nextpaddr}\}$) together with the fragmental capability  -- $\ulcorner \Xi \; !!\; \textsf{nextpaddr} = \textsf{ Some Z} \urcorner$ -- at Lines 13 and 14 in Figure \ref{fig:pteinitializespec} . The value type \textsf{Z}, unlike the value type \textsf{V} denoting the random value in Line 8 in Figure \ref{fig:calltopteinitialize}, denotes \textsf{zeroed} value.
 
 The first aspect is important for not invalidating the soundness: \textsf{pte\_initialize} extends the identity map with the freshly allocated \textsf{nextpaddr}, and must not reveal the ownership of the physical pointsto in the post-condition (Line 33 and 35 in Figure \ref{fig:calltopteinitialize}, Lines 22-23 in Figure \ref{fig:pteinitializespec}) because it would create unsound coexistence of the full-ownership of the physical pointsto resource (a hypothetical $\mathsf{nextpaddr} \mapsto_{\mathsf{p,1}} w0_64$) and fragmental (potentially full based on the side-condition *) physical pointsto resource that can be obtained from the identity map inside the extended invariant in Figure \ref{fig:peraspaceinvariant_with_p2v_extension} with the capability token $\ulcorner \Xi \;!!;\ \textsf{nextpaddr} = \textsf{ Some Z} \urcorner$. Although, the first aspect -- not explicitly revealing the physical pointsto resource for the freshly allocated page-table address but providing access through the identity map inside the invariant with access-capability tokens -- recovers the soundness argument expalined, we still need the knowledge that the fresly allocated address references to a \textit{zeroed} page. The invariant preserves this information through the constraint on relating the type (\textsf{T}) of mapped data -- \textsf{T = Z} for zeroed or \textsf{T = V} for random page value -- to the value of existentially quantified value -- \textsf{val} -- in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}. So, for accessing the physical pointsto resource to the zeroed value referenced by \textsf{nextpaddr}, we need to have the fragmental ownership of the identity-map $\Xi \; !! \; \textsf{nextpaddr} = \textsf{ Some Z}$ which ensures and carries the \textit{being-zeroed} knowledge when we open and access the the existentially quantified value inside the invariant.
