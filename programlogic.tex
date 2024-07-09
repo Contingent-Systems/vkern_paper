@@ -111,7 +111,7 @@ From this we can derive a more concise physical points-to when the split is unim
   (l4M52 maddr cr3val) $\sim$ (l4off maddr cr3val) $\mapsto_{a}$ {q1}  l4e  $\ast$
   (l3M52 maddr l4e) $\sim$ (l3off maddr l4e)  $\mapsto_{a}$ {q2}  l3e $\ast$ 
   (l2M52 maddr l3e) $\sim$ (l2off maddr l3e) $\mapsto_{a}$ {q3}  l2e $\ast$
-  (l1M52 maddr l2e) $\sim$ (l1off maddr l2e) $\mapsto_{a}$ {q4}  l1e.
+  (l1M52 maddr l2e) $\sim$ (l1off maddr l2e) $\mapsto_{a}$ {q4}  l1e $\ast$ $\ulcorner$ addr_L1(va,l1e) = paddr $\urcorner$.
 \end{lstlisting}
 \vspace{-1em}
 \caption{A Strong Virtual Points-to Relation}
@@ -134,9 +134,6 @@ to index each level, finding the existentially quantified entries in each level,
 ending with the L1 entry, whose physical page base is added to the page offset of \textsf{va} to obtain the physical address
  --- and there (\lstinline|addr_L1(va,l1e)|) in physical memory, is the value.
 Most of the definition lives directly in \textsf{vProp}, using the separation logic structure lifted from Iris's \textsf{iProp}.
-\todo[inline]{Colin notes: the \lstinline|addr_L1| mentioned in the paragraph above doesn't appear in Figure 2. paddr isn't mentioned
-in the definition of \lstinline|L4_L1_PointsTo| in the figure. Shouldn't there be a pure \lstinline|addr_L1(va,l1e)=paddr| in there?
-}
 
 \lstinline|L4_L1_PointsTo| works by
 chaining together the entries for each level, using the sequence of table offsets from the address being translated to index
@@ -256,7 +253,7 @@ Our solution removes some restrictions in this definition by further abstracting
   \mathsf{GhostMap}(\gamma,\theta[\mathsf{pa}\mapsto\mathsf{va'}]) \ast \ghostmaptoken{\gamma}{\mathsf{pa}}{\mathsf{va}'} 
   }
   \and
-  \inferrule{ }{\mathsf{GhostMap}(\gamma,\theta) \ast \ghostmaptoken{\gamma}{\mathsf{pa}}{\mathsf{va}} \wand \ulcorner \theta(\mathsf{pa})=\mathsf{Some}(\matsf{va}) \urcorner }
+  \inferrule{ }{\mathsf{GhostMap}(\gamma,\theta) \ast \ghostmaptoken{\gamma}{\mathsf{pa}}{\mathsf{va}} \wand \ulcorner \theta(\mathsf{pa})=\mathsf{Some}(\mathsf{va}) \urcorner }
   \end{mathpar}
   
   % Updating the virtual-to-physical (ghost) mapping for a virtual address $va$
@@ -268,6 +265,7 @@ Our solution removes some restrictions in this definition by further abstracting
   translation.
   Consistency follows from replacing the page table walk with ownership of the ghost map token for the relevant ghost map
   entry, preventing the overall translation from being changed separately from the virtual points-to.
+  \looseness=-1
 
   %Thus the specification of \emph{which} physical addresses support translation is separated from the virtual points-to.
   % But these physical resources, which specify \emph{which} physical locations
@@ -305,13 +303,14 @@ changes in the virtual-to-physical translations become possible.
 \begin{array}{l}
   \mathcal{I}\textsf{ASpace}(\ptablestore,m)\stackrel{\triangle}{=} \textsf{ASpace\_Lookup}(\ptablestore,m) \ast \\
  \qquad\qquad\qquad \bigast{(\vaddr, \textsf{paddr})\in \ptablestore}{\exists\;(\textsf{l4e l3e l2e, l1e, paddr})\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr\textsf{, l4e, l3e, l2e, l1e, paddr})} \\
-  \textsf{ where } \\
+  \textsf{ where } 
    \textsf{ASpace\_Lookup} (\ptablestore,m) \stackrel{\triangle}{=} \lambda\textsf{ cr3val} \ldotp \; \exists \gammaPred \; \ldotp \ulcorner m \; !!\; \textsf{cr3val} = \textsf{Some } \gammaPred \urcorner \ast
     %\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}
     \ptableabswalk{\delta,\theta}
   
 \end{array}
 \]
+\vspace{-1em}
 \caption{Global Address-Space Invariant with a fixed global map of address-space names $m$}
   \label{fig:peraspaceinvariant}
   \end{figure*}
@@ -398,15 +397,27 @@ and doing so requires a way to talk about other address spaces, and means to swi
 % In Figure \ref{fig:addrswitch}, we see two different address-spaces rooted at R0 and R1 in the pre/post condition. To be put into words, while switching an address-space by executing \lstinline|mov_ctl|) updating the  \lstinline|cr3|, it is expected to mention resources of two different address-spaces in the specification. In the precondition,  \lstinline|cr3| is loaded with R0 and all the virtual-pointsto assertions $a_0 \mapsto_{\textsf{v}}p_0$ and $a_1 \mapsto_{\textsf{v}}p_1$ are in the current-view of the memory and valid in the ambient logic \textsf{vProp}. The other address-space with the root address R1 has its own resources ($b_0 \mapsto_{\textsf{v}}p_3$ and $b_1 \mapsto_{\textsf{v}}p_4$) which are invalid under the current address space rooted at R0. This pattern of specification requires resources being mentioned under the \textit{world} they are valid, i.e. a modal-framing within the specification. Once the current address-space becomes the one with root address R1, i.e.  \lstinline|cr3| is loaded with R1, the context-resources $b_0 \mapsto_{\textsf{v}}p_3$ and $b_1 \mapsto_{\textsf{v}}p_4$ are loaded into the current-view of the memory, and all the other resources that are valid under R0 are introduced into the modal context rooted at R0
 \begin{figure}
 \footnotesize
-\[\begin{array}{c}
-    [r](\mathsf{P}) \;: \mathsf{vProp} \; \Sigma \; \stackrel{\triangle}{=} \; \lambda \_,\; \mathsf{P}~\mathsf{r} \vspace{0.5em}\qquad
-    \textsf{Fact P} \stackrel{\triangle}{=} \;\forall \; ,r \; r' \ldotp  \textsf{P r} \dashv\vdash \textsf{P r'}\\
-    \inferrule{}{(\textsf{P} \vdash \textsf{Q}) \vdash  ([r](\textsf{P}) \vdash  [r](\textsf{Q}))}\qquad
-    \inferrule{}{[r](\textsf{P} \ast \textsf{Q}) \dashv\vdash ([r](\textsf{P}) \ast [r](\textsf{Q})}\vspace{0.5em}\qquad
-    \inferrule{}{[r](\textsf{P}\land \textsf{Q}) \dashv\vdash [r](\textsf{P})\land [r](\textsf{Q})}\\
-    \inferrule{}{[r](\textsf{P}\lor \textsf{Q}) \dashv\vdash [r](\textsf{P})\lor [r](\textsf{Q})}\qquad
-    \inferrule{}{\textsf{Fact P} \vdash  [r](\textsf{P}) \dashv\vdash (\textsf{P})} %(\textsf{vProp }\Sigma))\\
-\end{array}\]
+\begin{mathpar}
+    \mbox{$[r](\mathsf{P}) \;: \mathsf{vProp} \; \Sigma \; \stackrel{\triangle}{=} \; \lambda \_,\; \mathsf{P}~\mathsf{r} \vspace{0.5em}$}
+    \and
+    \mbox{$\textsf{Fact P} \stackrel{\triangle}{=} \;\forall \; ,r \; r' \ldotp  \textsf{P r} \dashv\vdash \textsf{P r'}$}
+    \and
+    \inferrule*{ }{\textsf{Fact}\;[r](\textsf{P}) }
+    \and
+    \inferrule*{ }{\textsf{Fact}\;(\textsf{r}\;\mapsto_{\textsf{r}}\{q\}\;\textsf{rv})}
+    \and
+    \inferrule{ }{\textsf{Fact}\;(\textsf{w} \mapsto_{\textsf{p}} \{q\} \textsf{ v} )}
+    \and
+    \inferrule{ }{(\textsf{P} \vdash \textsf{Q}) \vdash  ([r](\textsf{P}) \vdash  [r](\textsf{Q}))}
+    \and
+    \inferrule{ }{[r](\textsf{P} \ast \textsf{Q}) \dashv\vdash ([r](\textsf{P}) \ast [r](\textsf{Q})}\vspace{0.5em}
+    \and
+    \inferrule{ }{[r](\textsf{P}\land \textsf{Q}) \dashv\vdash [r](\textsf{P})\land [r](\textsf{Q})}
+    \and
+    \inferrule{ }{[r](\textsf{P}\lor \textsf{Q}) \dashv\vdash [r](\textsf{P})\lor [r](\textsf{Q})}
+    \and
+    \inferrule{ }{\textsf{Fact P} \vdash  [r](\textsf{P}) \dashv\vdash (\textsf{P})} %(\textsf{vProp }\Sigma))\\
+\end{mathpar}
 \vspace{-1em}
   \caption{Other-space Modality and Its Laws}
   \label{fig:modaldef}
@@ -416,8 +427,11 @@ Figure \ref{fig:modaldef} gives the definition of our modal operator for asserti
 the \emph{other-space} modality. The definition itself is not
 particularly surprising --- as our modal assertions are semantically predicates on a page table root (physical)
 address, the assertion $[r](P)$ is a modal assertion which ignores the (implicit) current page table root,
-and evaluates the truth of $P$ as if $r$ were the page table root. This simple definition is 
-what we need in order for assertions in one address space to talk about assertions in another.
+and evaluates the truth of $P$ as if $r$ were the page table root. 
+The novelty here is not in the details of the definition, but in recognizing that this is the right way to deal with
+multiple address spaces, and working out how to support interaction of multiple address spaces (discussed in the next section).
+% This simple definition is 
+% what we need in order for assertions in one address space to talk about assertions in another.
 \looseness=-1
 
 % The inspiration for this assertion comes from hybrid logic~\cite{blackburn1995hybrid,areces2001hybrid,goranko1996hierarchies,gargov1993modal},
@@ -428,7 +442,7 @@ what we need in order for assertions in one address space to talk about assertio
 % supporting page table structure. However, rather than explicitly building a Kripke model for our
 % assertions, we inherit them by lifting the model of our ambient logic, Iris.
 
-We can prove that this modality follows certain useful laws: that its truth is independent of the address
+We can prove that this modality follows certain basic laws: that its truth is independent of the address
 space in which it is considered,  it distributes over various logical connectives, and it follows the rule of
 consequence.
 We call \textsf{vProp} assertions whose truth is independent of the current address space
@@ -465,11 +479,15 @@ We call \textsf{vProp} assertions whose truth is independent of the current addr
 %   \end{enumerate}
 % \end{remark}
 
-\subsection{The Impact of Changing Address Spaces on Modal Assertions}
+\subsection{Subtleties of Changing Address Spaces Using Modalities}
 % \subsection{Considering Hoare Doubles in the Context of Switching Address-Space}
 % \subsubsection{Issues with Using Hoare Triples in Address-Space Specification}
 \label{sec:issues}
-An important subtlety arises with supporting \lstinline|mov|s into \lstinline|cr3|. Consider the hypothetical rule
+Operating systems on x86-64 change address spaces by updating \lstinline|cr3|.
+Conceptually, we expect a proof rule for such an update to take move resources in and out of modalities for
+the old and new address spaces. This suggests a rule like the following, which captures the intuition of the
+address space change, but is subtly unsound under common assumptions.
+% An important subtlety arises with supporting \lstinline|mov|s into \lstinline|cr3|. Consider the hypothetical rule
 \begin{mathpar}
 \inferrule*[left=Broken]{ }{
   \{P \ast \textsf{cr3}\mapsto_{r} \;r_1 \ast r \mapsto_{r} \;r_2 \ast [r_2](Q)\}
@@ -477,10 +495,13 @@ An important subtlety arises with supporting \lstinline|mov|s into \lstinline|cr
   \{[r_1](P) \ast \textsf{cr3} \mapsto_{r} r_2 \ast r \mapsto_{r} r_2 \ast Q\}
 }
 \end{mathpar}
-which is slightly simplified (by dropping per-address-space resources) for clarity in making the following point.
-This rule captures the intuitive change of address space in a Hoare triple.
-This interacts quite poorly with the traditional frame
-rule and the modal flavor of virtual points-to assertions.
+This rule takes all assertions not under a modality ($P$), and moves them under a modality for the old address space
+(which is where they were valid), while pulling assertions for the new, target address space out of a corresponding modality.
+(For clarity, we also omit the address space invariants, which must also be present.)
+% which is slightly simplified (by dropping per-address-space resources) for clarity in making the following point.
+% This rule captures the intuitive change of address space in a Hoare triple.
+Unfortunately, as stated, this interacts quite poorly with the traditional frame
+rule.
 If we abbreviate the pre- and post-conditions above as \textsf{Pre} and \textsf{Post}:
 \begin{mathpar}
   \inferrule*[right=Frame]{
@@ -497,15 +518,17 @@ If we abbreviate the pre- and post-conditions above as \textsf{Pre} and \textsf{
 \end{mathpar}
 Notice that both the precondition and postcondition assert that $a\mapsto_\mathsf{v} x$ in the current address space, but we have no basis for concluding that address translation is preserved by the change of address space. So this derivation clearly leads to an unsound conclusion. 
 The essential problem is that the frame rule is motivated by local reasoning about local updates, but
-a switch of address space is a \emph{global} change, since it may invalidate information about virtual addresses.
+a switch of address space is a \emph{global} change that may invalidate information about virtual addresses.
 Thus framing around \lstinline|cr3| updates is unsound, which has important impacts on our formal development.
 
 Switching to Hoare doubles resolves this problem because an under-appreciated subtlety of Hoare doubles 
 is that typically \emph{there is no primitive frame rule}. 
 Instead each verification essentially includes a local frame that it passes to the next instructions
-(think continuation-passing style), giving each overall rule a \emph{global} (rather than local) precondition. For most rules this is not that important, but it does permit rules that have global effects on their preconditions.
+(think continuation-passing style), giving each overall rule a \emph{global} (rather than local) precondition.
+For most rules this is not that important, but it does permit rules that have global effects on their preconditions.
 
-This is then how we justify our actual rule for \lstinline|cr3| updates, which is \emph{almost}
+% This is then how we justify our actual rule for \lstinline|cr3| updates, which is \emph{almost}
+This leads to our actual rule for \lstinline|cr3| updates, which is \emph{almost}
 \begin{mathpar}
 \inferrule*[left=ChangeAddressSpace]{
   \{[r_1](P) \ast cr3 \mapsto_{r} r_2 \ast r \mapsto_{r} r_2 \ast Q\}\;\overline{is}
@@ -515,7 +538,9 @@ This is then how we justify our actual rule for \lstinline|cr3| updates, which i
   %\lstinline|mov %cr3, r| 
 }
 \end{mathpar}
-Because the precondition on this rule is global, we avoid issues with framing. A more typical frame rule can be recovered from Hoare doubles in the typical way~\cite{Chlipala2013Bedrock} A more typical frame rule can be recovered from Hoare doubles in the typical way~\cite{Chlipala2013Bedrock}
+(Again, the actual rule in Section \ref{sec:selected_rules} includes the address space invariants.)
+Because the precondition on this rule is global, we avoid issues with framing. 
+A more typical frame rule can be recovered from Hoare doubles in the typical way~\cite{Chlipala2013Bedrock} 
 with the added restriction that \lstinline|cr3| is restored to its pre-framing value before un-framing (in this case, the framed-out assertion is effectively
 stashed under an other-space assertion for the initial address space, and pulled out as part of restoring).
 
@@ -618,7 +643,7 @@ most unique to our development.
  %   \textsf{add}~\textsf{r}_d,~[\textsf{imm}];\;\overline{is}
  % }
  % \\
-\inferrule[WriteToRegFromVirtMem]{
+\inferrule[\footnotesize WriteToRegFromVirtMem]{
   \left\{ \begin{array}{l}
     P \ast \mathcal{I}\textsf{ASpace}\ast \mathcal{I}\textsf{ASpace} \ast \textsf{rip} \mapsto_{\textsf{r}} {\textsf{iv} + \textsf{MovLen}(\textsf{r}_d,[\textsf{r}_a])} \ast \arcr
     r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v}
@@ -628,7 +653,7 @@ most unique to our development.
   \textsf{mov}~\textsf{r}_d,~[\textsf{r}_a];\;\overline{is}
 }
 \\
-\inferrule[WriteToVirtMemFromReg]{
+\inferrule[\footnotesize WriteToVirtMemFromReg]{
   \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} + \textsf{MovLen}(\textsf{r}_d,[\textsf{r}_a])  \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v} \}_{\textsf{rtv}}\;\overline{ is}  
 }{
   \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}   \ast r_a \mapsto_{r}\{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{rvs} \}_{\textsf{rtv}}
@@ -642,7 +667,7 @@ most unique to our development.
 %  \textsf{mov}~\textsf{cr3},~r_s;\;\overline{is}
   %\lstinline|mov %cr3, r| 
 %}\\
-\inferrule[WriteToRegCtlFromRegModal]{
+\inferrule[\footnotesize WriteToRegCtlFromRegModal]{
   \{[\textsf{rtv}](P \ast \mathcal{I}\textsf{ASpace})\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv + 4} \ast \mathcal{I}\textsf{ASpace} \ast R\ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}  \}_{\textsf{rvs}} \;\overline{is}
 }{
   \{P \ast \mathcal{I}\textsf{ASpace} \ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} \ast [\textsf{rvs}](R \ast\mathcal{I}\textsf{ASpace})\ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}   \}_{\textsf{rtv}} \;
@@ -663,6 +688,7 @@ most unique to our development.
 \end{figure}
 
 
+\paragraph{Accessing Virtual Addresses}
 Figure \ref{fig:wpdamd} includes two  rules for accessing memory at an address stored in a register $r_a$. 
 Ultimately, any memory access needs to ensure the relevant address translation would succeed,
 which can be ensured by what we informally call the page-table-walk points-to collection
@@ -674,13 +700,13 @@ However, because we split the physical resources for the page table walk from th
 virtual points-to itself (in order to permit the physical page tables to be freely modified
 as long as they preserve virtual-to-physical translations), the rule requires $\mathcal{I}\textsf{ASpace}$
 for the current address space to be carried through.
-While doing the proof of soundness for these rules,
-the token ($\sumwalkabs\vaddr\qfrac\paddr$) from the virtual points-to
-is used to extract to extract page-table-traversal points-to collection
-for the relevant address from that resource,
-and then those  physical points-to assertions describing the page table walk
-(from $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$) are used to prove
-the operational semantics succeed and have the desired effect.
+The soundness proofs for these rules extract
+% the token ($\sumwalkabs\vaddr\qfrac\paddr$) from the virtual points-to
+the token ($\fracghostmaptoken{\delta}{\vaddr}{\paddr}{\qfrac}$) from the virtual points-to,
+use that to extract the physical page-table-traversal points-to collection describing
+the page table walk for the relevant address ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$)
+from the invariant ($\mathcal{I}\mathsf{ASpace}$), prove that the page table walk succeeds and
+memory or registers are updated appropriately, before re-packing the invariant and virtual points-to resources.
 
 \paragraph{Updating \lstinline|cr3|} 
 Unlike other rules, \TirNameStyle{WriteToRegCtlFromRegModal} updates the root address of the 
@@ -696,6 +722,12 @@ the corresponding modality.
 \subsection{Soundness}
 Our rules from Figure \ref{fig:wpdamd} are proven sound in Iris against an assembly-level hardware model
 implementing a fragment of x86-64 including 64-bit address translation with 4-level page tables.
-
-At the moment our proofs do rely on 13 small axioms of properties which should be provable, but
-are challenging to discharge due to some representation choices in our model.\footnote{See \lstinline|srx/x64/machine/current_axioms.v|}
+\todo[inline]{
+Our rules for control transfers (\lstinline|jmp|, \lstinline|call|, and \lstinline|ret|) are currently
+axiomatized (with completely standard specifications~\cite{ni2007contexts,Chlipala2013Bedrock}) because Iris's built-in machinery does not provide
+convenient ways to discard the current continuation. We are working to adapt existing machinery~\cite{de2023type} to prove their soundness.
+Our soundness proofs for all other instructions (including the instructions above, arithmetic, other heap-accessing operations, push, and pop)
+are axiom-free.
+}
+% At the moment our proofs do rely on 13 small axioms of properties which should be provable, but
+% are challenging to discharge due to some representation choices in our model.\footnote{See \lstinline|srx/x64/machine/current_axioms.v|}
