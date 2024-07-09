@@ -68,7 +68,7 @@ essentially working with separation logic assertions indexed by a choice of page
 This is the (\textsc{Coq}) type of assertions in our logic.
 Most constructs in Iris's base logic are defined with respect to any BI-algebra (of \textsc{Coq} type \lstinline|bi|), so automatically
 carry over to our derived logic.
-However, be must still build up from existing Iris primitives to provide new primitives that depend on the address space --- primarily the notion
+However, we must still build up from existing Iris primitives to provide new primitives that depend on the address space --- primarily the notion
 of virtual points-to.
 
 % \begin{figure}[t]
@@ -128,12 +128,15 @@ partial ownership of the physical memory involved in the page table walk that wo
 its backing physical location --- with locations existentially quantified since a virtual points-to should not assert
 \emph{which} locations are accessed in a page table walk.
 Figure \ref{fig:strongvirtualpointsto} gives such a definition.
-It asserts the existence of for page table entries, one at each translation level, and via \lstinline|L4_L1_PointsTo|
+It asserts the existence of four page table entries, one at each translation level, and via \lstinline|L4_L1_PointsTo|
 asserts from the current \lstinline|cr3| value, taking the offsets from \textsf{va} (as in Figure \ref{fig:pagetables})
 to index each level, finding the existentially quantified entries in each level, 
 ending with the L1 entry, whose physical page base is added to the page offset of \textsf{va} to obtain the physical address
  --- and there (\lstinline|addr_L1(va,l1e)|) in physical memory, is the value.
 Most of the definition lives directly in \textsf{vProp}, using the separation logic structure lifted from Iris's \textsf{iProp}.
+\todo[inline]{Colin notes: the \lstinline|addr_L1| mentioned in the paragraph above doesn't appear in Figure 2. paddr isn't mentioned
+in the definition of \lstinline|L4_L1_PointsTo| in the figure. Shouldn't there be a pure \lstinline|addr_L1(va,l1e)=paddr| in there?
+}
 
 \lstinline|L4_L1_PointsTo| works by
 chaining together the entries for each level, using the sequence of table offsets from the address being translated to index
@@ -229,7 +232,7 @@ Our solution removes some restrictions in this definition by further abstracting
   In practice the decisions about which virtual addresses are valid rest not with code posessing a virtual address, but with
   the virtual memory manager --- and its invariants.
 
-  We take separate the physical page-table-walk  
+  We separate the physical page-table-walk  
   from the virtual pointsto relation, replacing it with ghost state that merely guarantees the address translation would succeed.
   Iris includes a construction which permits tracking a ghost map 
   from virtual addresses to the physical addresses they translate to, and has for each key in the map (i.e.,
