@@ -135,7 +135,8 @@
 
 \newcommand{\wtt}[2]{#1 : #2} % well-typed term
 
-\newcommand{\nequiv}[1]{\ensuremath{\mathrel{\stackrel{#1}{=}}}}
+% already defined in another import:
+%\newcommand{\nequiv}[1]{\ensuremath{\mathrel{\stackrel{#1}{=}}}}
 \newcommand{\nincl}[1]{\ensuremath{\mathrel{\stackrel{#1}{\subseteq}}}}
 \newcommand{\notnequiv}[1]{\ensuremath{\mathrel{\stackrel{#1}{\neq}}}}
 \newcommand{\nequivset}[2]{\ensuremath{\mathrel{\stackrel{#1}{=}_{#2}}}}
@@ -423,7 +424,8 @@
 \newcommand{\expr}{e}
 \newcommand{\val}{v}
 \newcommand{\valB}{w}
-\newcommand{\state}{\sigma}
+% already defined in another import, not used this way in paper
+%\newcommand{\state}{\sigma}
 \newcommand{\step}[1][]{\xrightarrow{{#1}}_{\textlog{t}}}
 \newcommand{\hstep}[1][]{\xrightarrow{{#1}}_{\textlog{h}}}
 \newcommand{\tpstep}[1][]{\xrightarrow{{#1}}_{\textlog{tp}}}
