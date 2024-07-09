@@ -19,6 +19,8 @@ jobs:
           root_file: paper.tex
           args: -pdf -shell-escape -latexoption=-file-line-error -latexoption=-interaction=nonstopmode
           extra_system_packages: python3-pygments
+      - name: Stat PDF
+        run: ls -l paper.pdf
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d-%H-%M-%S')"
@@ -26,7 +28,7 @@ jobs:
         uses: svenstaro/upload-release-action@2.2.1
         with:
           file: paper.pdf
-          tag: ${{ steps.date.outputs.date }}
+          tag: ${{ github.ref }}
           release_name: Latest
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           overwrite: true
