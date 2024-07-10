@@ -113,24 +113,24 @@ $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry 
 ;;pte_initialize(&next);
 callq  70 <pte_initialize>
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
-$\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \textsf{entry\_val}_{\textsf{pfn}} \mapsto_{\textsf{id}} \textsf{\_} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val}_{\textsf{pfn}})  \urcorner  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \textsf{entry}_{\textsf{pfn}} \mapsto_{\textsf{id}} \textsf{\_} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val}_{\textsf{pfn}})  \urcorner  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
-$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry\_val}_{\textsf{pfn}}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
-$\specline{ \forall_{i\in \textsf{0 ... 511} } \ldotp  \textsf{entry\_val }_{\textsf{pfn}} + \textsf{i * 8} \mapsto_{\textsf{id}} \textsf{\_} \ast  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val }_{\textsf{pfn}} + \textsf{i * 8})  }$
+$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry}_{\textsf{pfn}}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
+$\specline{ \forall_{i\in \textsf{0 ... 511} } \ldotp  \textsf{entry }_{\textsf{pfn}} + \textsf{i * 8} \mapsto_{\textsf{id}} \textsf{\_} \ast  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val }_{\textsf{pfn}} + \textsf{i * 8})  }$
 ;;entry value updates
 ...
 ;;entry->pfn = next
 ;;entry->present = 1;
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
-$\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \textsf{entry\_val}_{\textsf{pfn}} \mapsto_{\textsf{id}} \textsf{\_} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \lnot(\textsf{entry\_present entry\_val}_{\textsf{pfn}})  \urcorner  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
-$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
-$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry\_val}_{\textsf{pfn}}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
-$\specline{ \forall_{i\in \textsf{0 ... 511} } \ldotp  \textsf{entry\_val }_{\textsf{pfn}} + \textsf{i * 8} \mapsto_{\textsf{id}} \textsf{\_} \ast  \textsf{qfrac} = 1 \leftrightarrow \lnot(\textsf{entry\_present entry\_val }_{\textsf{pfn}} + \textsf{i * 8})  }$
+$\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \textsf{entry}_{\textsf{pfn}} \mapsto_{\textsf{id}} \textsf{\_} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \lnot(\textsf{entry\_present entry\_val}_{\textsf{pfn}})  \urcorner  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
+$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry}_{\textsf{pfn}}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
+$\specline{ \forall_{i\in \textsf{0 ... 511} } \ldotp  \textsf{entry }_{\textsf{pfn}} + \textsf{i * 8} \mapsto_{\textsf{id}} \textsf{\_} \ast  \textsf{qfrac} = 1 \leftrightarrow \lnot(\textsf{entry\_present entry\_val }_{\textsf{pfn}} + \textsf{i * 8})  }$
 $\sqsubseteq$
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \} \cup \{\textsf{entry\_val}_{\textsf{pfn}}) \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \} \cup \{\textsf{entry}_{\textsf{pfn}}) \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
 $\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
-$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
-$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry\_val}_{\textsf{pfn}}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{entry\_val}_{\textsf{pfn}}  }_{\rtv}$
+$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
+$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry}_{\textsf{pfn}}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{entry}_{\textsf{pfn}}  }_{\rtv}$
 ;;}
 ...
 ;;uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr);
@@ -144,7 +144,8 @@ add    rcx,rax
 \caption{Ensuring \textsf{entry} points to a valid next table, allocating if necessary.}
 \label{fig:calltopteinitialize}
 \end{figure}
-Looking at the update from Specfication Lines 3 to 15 in Figure \ref{walkpgdir}, we see that the removal of \textsf{entry} from the map $\Xi$ in the invariant to construct the \textsf{pte-ptsto} (Specfication Line 15 in Figure \ref{walkpgdir}) needed for executing the load instruction (Line 15 in Figure \ref{fig:calltopteinitialize}) to obtain the value of a page entry whose physical address (\textsf{entry}) kept in the register $\texttt{r8}$. This magical abstraction -- represented as $\Xi$ in the invariant definition -- provides us to construct this \textsf{pte-ptsto} out of an physical address is called \textit{identity-mappings}.
+
+The most crucial aspect of page-table entry access relies on the subtle interplay between updating the shared page tables, and the not violating the memory mappings. Concretely speaking, accessing to the entry -- whose address is kept in the register $\texttt{r8}$ -- in Line 15 in Figure \ref{fig:calltopteinitialize} requires a memory mapping that is logically provided through the update from Specfication Lines 3 to 15 in Figure \ref{walkpgdir} on the client side by the removal of \textsf{entry} from the map $\Xi$ in the invariant to construct the \textsf{vpte-ptsto} (Specfication Line 15 in Figure \ref{walkpgdir}). This magical abstraction -- represented as $\Xi$ in the invariant definition -- provides us to construct this \textsf{pte-ptsto} out of an physical address is called \textit{identity-mappings}.
 \subsubsection{Identity Mappings}
 \label{subsec:identitymappings}
 Most kernels maintain an invariant on their page tables that the virtual address of any page used for a page table lives at a virtual address
@@ -153,7 +154,6 @@ is typically not literally the identity function, but adding a constant offset).
 with DMA devices.}
 \begin{figure*}
 \footnotesize
-\todo[inline]{Ismail, look at this figure, something went weird (was already like this, I didn't add this)}
 \[
 \begin{array}{l}
   \mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)\stackrel{\triangle}{=}\\ \textsf{ASpace\_Lookup}_{\textsf{id}}(\ptablestore,\Xi,m) \ast 
@@ -176,8 +176,7 @@ Beyond a frame, the precondition before Line 15 requires the current address spa
 of the value in memory --- so full ownership is returned only for unused entries.
 This is a simple piece of code whose functionality is critical and whose correctness is highly non-trivial. No prior work engages with this problem.
 
-Concretely speaking, when we focus on the specfication of Line 15 in Figure \ref{fig:calltopteinitialize} in Figure \ref{fig:lookingupidpampping}, to read the value referenced by physical address \textsf{entry}, we need the guarantee
-under the side condition (*)
+Concretely speaking, going back to Line 15 in Figure \ref{fig:calltopteinitialize}, to read the value referenced by physical address \textsf{entry} while preserving the soundness of memory mappings, our extended invariant introduces the side condition (*)
 \begin{equation*}
  \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner \tag{*}
 \end{equation*}
@@ -211,7 +210,7 @@ assuring that looking the identity mapping for \textsf{entry} is safe under the 
  \] Lines (19-22) in Figure \ref{fig:calltopteinitialize}.
  Accessing the presence bit and checking the value allow  us to exploit the fact in the side condition (*) in such a way that we either take the allocation path in the non-presence case (Lines 19-44 in Figure \ref{fig:calltopteinitialize}) with the knowledge of full ownership ($\textsf{qfrac} = 1$) to set the entry with proper values for the bitfields, most imporantly frame referencing freshly allocated page and presence bit, or, take non-allocation path and jump to Line 45 with fractional permission for looking up the entry values.
 
- In case of absence, \textsf{pte\_initialize} is called (Line 33 in Figure \ref{fig:calltopteinitialize}) for a physical-zeroed page (utilizing the page-allocator's \textsf{kalloc} -- currently the only axiomatized call in the the proof of \textsf{pte\_initialize} (Line 9 in Figure \ref{pteinitializespec}, it is not part of \textsf{pte} (virtual-memory-management) module). 
+ In case of absence, \textsf{pte\_initialize} is called (Line 33 in Figure \ref{fig:calltopteinitialize}) for a physical page (utilizing the page-allocator's \textsf{kalloc} -- currently the only axiomatized call in the the proof of \textsf{pte\_initialize} (Line 9 in Figure \ref{pteinitializespec}, it is not part of \textsf{pte} (virtual-memory-management) module). 
 \begin{figure}\footnotesize
   \begin{lstlisting}[mathescape]
 
@@ -237,35 +236,28 @@ $\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \textsf{tab
 \caption{Allocating a physical page }
 \label{pteinitializespec}
 \end{figure}
-Since we are using \textsf{pte\_initialize} for page-table address allocation, we must relate this newly allocated physical address to the identity mapping map $\Xi$ -- Specification Lines 34 and 38 in Figure \ref{fig:calltopteinitialize}. There are two important aspects on relating a freshly allocated page-table physical address to the identity-mapping which we focus in more detail separately in the specification of \textsf{pte\_initialize} in Figure \ref{fig:pteinitializespec}. First, one might have expected to see a physical pointsto for the fresly page-table address  ($\mathsf{nextpaddr} \mapsto_{\mathsf{p}} \mathsf{w64\_0}$) after the call to \textsf{pte\_initialize} but we do not have this physical pointsto resource. Second, we see the identity mapping for the entry frame ($\textsf{entry\_val}_{\textsf{pfn}}$), and all the knowledge on the existence of the identity mappings for both the frame and the page entries indexed from the frame (Line 38 in Figure \ref{fig:calltopteinitialize}) identity mappings exists, which are not part of the invariant yet, which could occur once the presence bit of the entry is set (Line 42 in Figure \ref{fig:calltopteinitialize}). Presence bit guard in the extended invariant shown in Figure \ref{fig:peraspaceinvariant_with_p2v_extension} \todo{we need to say something about the improtance of being present and bein inside the invariant.} allows us to preserve the \textit{soundness} of the table-traversal it eliminates all the entries (and tables) that are being under mutation for any other access other than mutation itself.
-%%%%deprecated 
-\begin{comment}
-once the presence bit of the entry for which the invariant  the entry}first not appearing in the identity map (Specification Line 11 in Figure \ref{fig:pteinitializespec}), then as inserted into the identity-map with a value \textsf{Z} ($\Xi \cup \{\mathsf{nextpaddr}\}$) together with the fragmental capability  -- $\ulcorner \Xi \; !!\; \textsf{nextpaddr} = \textsf{ Some Z} \urcorner$ -- at Lines 13 and 14 in Figure \ref{fig:pteinitializespec} . The value type \textsf{Z}, unlike the value type \textsf{V} denoting the random value in Line 8 in Figure \ref{fig:calltopteinitialize}, denotes \textsf{zeroed} value.
-
-    The first aspect is important for not invalidating the soundness: \textsf{pte\_initialize} extends the identity map with the freshly allocated \textsf{nextpaddr}, and must not reveal the ownership of the physical pointsto in the post-condition (Line 33 and 35 in Figure \ref{fig:calltopteinitialize}, Lines 22-23 in Figure \ref{fig:pteinitializespec}) because it would create unsound coexistence of the full-ownership of the physical pointsto resource (a hypothetical $\mathsf{nextpaddr} \mapsto_{\mathsf{p,1}} w0_64$) and fragmental (potentially full based on the side-condition *) physical pointsto resource that can be obtained from the identity map inside the extended invariant in Figure \ref{fig:peraspaceinvariant_with_p2v_extension} with the capability token $\ulcorner \Xi \;!!;\ \textsf{nextpaddr} = \textsf{ Some Z} \urcorner$. Although, the first aspect -- not explicitly revealing the physical pointsto resource for the freshly allocated page-table address but providing access through the identity map inside the invariant with access-capability tokens -- recovers the soundness argument expalined, we still need the knowledge that the fresly allocated address references to a \textit{zeroed} page. The invariant preserves this information through the constraint on relating the type (\textsf{T}) of mapped data -- \textsf{T = Z} for zeroed or \textsf{T = V} for random page value -- to the value of existentially quantified value -- \textsf{val} -- in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}. So, for accessing the physical pointsto resource to the zeroed value referenced by \textsf{nextpaddr}, we need to have the fragmental ownership of the identity-map $\Xi \; !! \; \textsf{nextpaddr} = \textsf{ Some Z}$ which ensures and carries the \textit{being-zeroed} knowledge when we open and access the the existentially quantified value inside the invariant.
-\end{comment}
-%%%%%%%%%%
+Since we are using \textsf{pte\_initialize} for page-table address allocation, we must relate this newly allocated physical address to the identity mapping map $\Xi$ -- Specification Lines 34 and 38 in Figure \ref{fig:calltopteinitialize}. Focusing on the specification of \textsf{pte\_initialize} separately in Figure \ref{fig:pteinitializespec}, we right immediately realize that instead of seeing see a physical pointsto for the fresly page-table address (e.g. $\mathsf{nextpaddr} \mapsto_{\mathsf{p}} \mathsf{w64\_0}$) deliberately in the post-conditoin in Lines 15-16, we observe a full-ownership token representing the knowledge that a frame and all the entries indexed from this frame are freshly allocated with full-ownership to be a part of the identity map, $\Xi$. The soundness argument of this specification relies on the fact that these freshly allocated resources is part of an entry construction that has not been completed yet: the presence bit is set (Line 42 in Figure \ref{fig:calltopteinitialize}) after these freshly allocated resources are incorporated to the entry construction (Line 41 in Figure \ref{fig:calltopteinitialize}). In other words, the side condition, (*), acknowledges any access to the entry with these resources as \textit{invalid}, as the entry is revealed to shared-accesses when the presence bit is set. 
   \subsubsection{Kernels Utilizing \textsf{P2V}}
   \label{sec:p2v}
- Once we make sure that the frame of the page-table entry ($\textsf{entry}\mapsto\textsf{pfn}$)is backed with an allocated physical page, we must obtain the virtual address of the next level-page table (Line 48 in \ref{calltopteinitialize}). To do so, as for obtaining any virtual page-table address, we, again, need to open the invariant look up the \textit{identity mapping} for the physical address ($\textsf{entry}\mapsto \textsf{pfn}$). 
+ Once we reach to the certain knowledge of having an entry with a frame referencing to an allocated resource resides inside the identity mappings which can already be known (not taking the allocation path in (Lines 21-53 in Figure \ref{fig:calltopteinitialize}) or by ensuring the allocated frame is made present to shared accesses, then put into identity mappings -- logical update from Specification Lines 43-47 to 49-52 putting $\textsf{entry}_{\textsf{pfn}}$ into $\Xi$ in Figure \ref{fig:calltopteinitialize}), no matther how it is constructed, we can utilize this knowledge to convert this frame address into an virtual address of the next page table through, again, identity mappings -- Line 57 in Figure \ref{fig:calltopteinitialize} specified in Figure \ref{fig:p2v}.
 
-This actually constitutes a very critical piece of the full page table walk verification, and we have verified the critical step for a small x86-64 kernel, which is the physical-to-virtual conversion (often appearing as a macro \texttt{P2V} inside the macro \textsf{ PTE\_PFN\_TO\_ADDR} in C source code). In our small kernel (Line 48 in Figure \ref{calltopteinitialize}), as in larger kernels, \texttt{P2V} is actually just addition, but the correctness of this simple instruction is quite subtle and relies on identity mappings explained in the previous section (Section \ref{subsec:identitymappings}) as a part of understanding our address-space invariant in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}.
+This actually constitutes a very critical piece of the full page table walk verification, and we have verified the critical step for a small x86-64 kernel, which is the physical-to-virtual conversion (often appearing as a macro \texttt{P2V} inside the macro \textsf{ PTE\_PFN\_TO\_ADDR} in C source code). In our small kernel (Line 57 in Figure \ref{calltopteinitialize}), as in larger kernels, \texttt{P2V} is actually just addition, but the correctness of this simple instruction is quite subtle and relies on identity mappings explained in the previous section (Section \ref{subsec:identitymappings}) as a part of understanding our address-space invariant in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}.
 \begin{figure}\footnotesize
 \begin{lstlisting}[mathescape]
 ...
 ;;uintptr_t next_virt_addr = (uintptr_t) P2V(next<<12);
  movabs 0x0,rcx	                187: R_X86_64_64	KERN_BASE
  add    rcx,rax
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \} \cup \{\textsf{entry\_val}_{\textsf{pfn}}) \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \} \cup \{\textsf{entry}_{\textsf{pfn}}) \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
 $\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
-$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
-$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry\_val}_{\textsf{pfn}}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{entry\_val}_{\textsf{pfn}}  }_{\rtv}$
+$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val}  \urcorner }_{\rtv}$
+$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry}_{\textsf{pfn}}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{entry}_{\textsf{pfn}} \ast \textsf{entry}_{\textsf{pfn}} \mapsto_{\textsf{id}} \textsf{\_}  }_{\rtv}$
 $\subseteq$
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
 $\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
-$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
-$\specline{  \textsf{entry\_val + KERNBASE}_{\textsf{pfn}}  \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val}  \textsf{entry\_val}_{\textsf{pfn}}} \ast R_{\textsf{children}}$
-$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry\_val}_{\textsf{pfn}}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{entry\_val}_{\textsf{pfn}} \ast \textsf{entry\_val}_{\textsf{pfn}} \mapsto_{\textsf{id}} \textsf{\_}}_{\rtv}$
+$\specline{ \textsf{entry}_{\textsf{pfn}}\textsf{+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val}  }_{\rtv}$
+$\specline{  \textsf{entry}_{\textsf{pfn}} \textsf{+KERNBASE}  \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entrypnf\_val}  \textsf{entry}_{\textsf{pfn}}} \ast R_{\textsf{children}}$
+$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry}_{\textsf{pfn}}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{entry}_{\textsf{pfn}} \ast \textsf{entry}_{\textsf{pfn}} \mapsto_{\textsf{id}} \textsf{\_}}_{\rtv}$
 ...
 ;;next = (pte_t *) next_virt_addr;
 ;;clean up the stack and return next
@@ -274,7 +266,7 @@ $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry\_val}_{\textsf{pf
 \caption{Converting a physical address of a PTE to a virtual address (w/o instruction pointer or flag updates). Abreviating the other relevant resources (including the lower entries) peeled-out of the invariant as $\textsf{R}_{\textsf{children}}$ }
 \label{fig:p2v}
 \end{figure}
-As shown in Figure \ref{fig:p2v}, \lstinline|rcx| holds the offset value \textsf{KERNBASE} which gives us the virtual address (\textsf{nextpaddr+KERNBASE}) to look-up in the identity map ($\Xi\setminus\{entry\}$) of the kernel invariant. Assuming the path for \textsf{pte\_initialize} is taken, we are assured that the freshly allocated physical address of the next page table (i.e. \textsf{nextpaddr}) is in the identity map ($\Xi$) -- from the post-condition of \textsf{pte\_initialize} in Figure \ref{fig:calltopteinitialize}, so that we can obtain the virtual pte-pointsto for the physical address \textsf{nextpaddr} from the (Line 13 in Figure \ref{fig:p2v}).
+As shown in Figure \ref{fig:p2v}, \lstinline|rcx| holds the offset value \textsf{KERNBASE} which gives us the value of the virtual address ($\textsf{entry}_{\textsf{pfn}}$ \textsf{+KERNBASE}) in the identity map ($\Xi\setminus\{entry\}\cup \{\textsf{entry}_{\textsf{pfn}}) \}$) of the kernel invariant: the logical update in Specification  Lines 5-10 to 10-14 for obtaining virtual-pointsto resource for the frame ($\textsf{entry}_{\textsf{pfn}}$) by removing it from the ghost map ($\Xi\setminus\{entry\}\cup \{\textsf{entry}_{\textsf{pfn}}) \}$) in Line 5 and compute the identity mapping for this physical frame address in Line 13 in Figure \ref{fig:p2v}).
 \subsubsection{Walking Page-Table Tree: Calling \textsf{pte\_get\_nexttable} for Each Level}
 \label{wlkpgdir}
 Realizing page-table directory walk amounts to calling \textsf{pte\_get\_next\_table} for each level as shown in Figure \ref{walkpgdir}. Since there is not much interesting piece additional to the specification we discuss for \textsf{pte\_get\_next\_table} in Section \ref{}, in Figure \ref{}, we present the expected specification after the calls made for each level entry. At each specification Line (X,..) in Figure \ref{}, we see the accumulation of virtual-pte pointsto resources returned from \textsf{pte\_get\_next\_tabel} for each level (L4-L1), and finally return L1 level entry that is needed by \textsf{walkpgdir} at Line X in Figure \ref{}. 
@@ -293,7 +285,7 @@ shl    0x3,rdi
 add    rdi,rsi
 mov    rsi,-0x18[rbp]
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry}\},m)  }_{\rtv}$
-$\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$    
 ;;pte_t *pdp = pte_get_next_table_succ(pml4_entry);
 mov    -0x18[rbp],rdi
@@ -301,9 +293,9 @@ mov    -0x18[rbp],rdi
 callq  c0 <pte_get_next_table_succ>
 ;;save the physical next table address in rax
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry}\},m)  }_{\rtv}$
-$\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$
-$\specline{ \textsf{entry}_{\textsf{pfn}} \mapsto_{\textsf{v,qf}} \textsf{pdp\_val} \ast \textsf{rax} \mapsto_{\textsf{r}} \textsf{entry\_val}_{\textsf{pfn}}}_{\rtv}$    
+$\specline{ \textsf{entry}_{\textsf{pfn}} \mapsto_{\textsf{v,qf}} \textsf{pdp\_val} \ast \textsf{rax} \mapsto_{\textsf{r}} \textsf{entry}_{\textsf{pfn}}}_{\rtv}$    
 ;;pte_t *pdp_entry = &pdp[PDPEX(va)];
 ;;pte_t *pd = pte_get_next_table_succ(pdp_entry);
 ...
