@@ -428,11 +428,8 @@ mov    0x0,r8
 mov    rax,rcx
 mov    rcx,-0x30[rbp]
 ;;pte->writable     = PTE_WRITEABLE_SET(perm);
-...
 ;;pte->user_acc     = PTE_USER_ACC_SET(perm);
-...
 ;;pte->writethrough = PTE_WRITETHRU_SET(perm);
-...
 ;;pte->nocache      = PTE_NOCACHE_SET(perm);
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m)  \ast \texttt{rdi}\mapsto_{r} \textsf{plm4} \ast \texttt{rsi}\mapsto_{r} \textsf{va} \ast  \texttt{rdx}\mapsto_{r} \textsf{pa} \ast \texttt{rcx}\mapsto_{r} \textsf{perm} \ast \texttt{rax}\mapsto_{\textsf{r}} \textsf{pte\_addr} \ast \ulcorner \texttt{aligned va} \land  \theta \; !!\; \vaddr = \texttt{None}\urcorner\ast }_{\rtv}$
 $\specline{\textsf{pte\_addr} \mapsto_{\textsf{vpte,qfrac}} \textsf{pa} \textsf{pte\_val} \ast \ulcorner \lnot \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present pte\_val}) \urcorner}$     
