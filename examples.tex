@@ -50,16 +50,6 @@ Recall from Section \ref{sec:logic} that virtual points-to assertions work just 
 %Let's call this v2.
 %}
 %\end{comment}
-\subsection{Unmapping a Page}
-\todo[inline]{this must move, must come after mapping}
-The reverse operation, unmapping a designated page that is currently mapped,
-would essentially be the reverse of
-the reasoning around line 22 above: given the virtual points-to assertions for all 512
-machine words of memory that the L1 entry would map,
-and information about the physical location, 
-full permission on the L1 entry could be obtained, allowing the construction of a
-full virtual PTE pointer for it, setting to 0, and reclaiming the now-unmapped physical memory.
-
 \subsection{Traversing Live Page Tables}
 \label{sec:traversing}
 The mapping operation of Figure \ref{fig:mapping_code} assumes an operation \lstinline|pte\_walkpgdir| which must traverse the page tables
@@ -537,7 +527,15 @@ This is the first proof we know of for mapping a virtual memory page that does n
 % By incorporating verification of the
 % \lstinline|ensure_L1| function (see Section \ref{sec:traversing}), our verification also directly handles several subtle aspects which
 % were axiomatized in prior work.
-
+\subsection{Unmapping a Page}
+\todo[inline]{this must move, must come after mapping}
+The reverse operation, unmapping a designated page that is currently mapped,
+would essentially be the reverse of
+the reasoning around line 22 above: given the virtual points-to assertions for all 512
+machine words of memory that the L1 entry would map,
+and information about the physical location, 
+full permission on the L1 entry could be obtained, allowing the construction of a
+full virtual PTE pointer for it, setting to 0, and reclaiming the now-unmapped physical memory.
 \subsection{Change of Address Space}
 A critical piece of \emph{trusted} code in current verified OS kernels is the assembly code to change the current address space; current verified OS kernels currently 
 lack effective ways to specify and reason about this low-level operation, for reasons outlined in Section \ref{sec:relwork}.
