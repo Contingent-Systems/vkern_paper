@@ -174,7 +174,7 @@ with DMA devices.}
 \caption{Global Address-Space Invariant in Figure \ref{fig:peraspaceinvariant} extended with a ghost map bookkeeping identity mappings }
   \label{fig:peraspaceinvariant_with_p2v_extension}
 \end{figure*}
-\textsf{pte\_walkpgdir}, as a client, holds the knowledge that there exists an identity mapping for the physical entry address (\textsf{entry}) in the root page table ($\textsf{L}_{4}$):  $\mathsf{entry} \mapsto_{\textsf{id}} \textsf{\_}$ in Specification Line 3 is a partially owned token for accessing and looking up the resources in the identity map $\Xi$ to construct the \ref\textit{virtual-to-physical} pointsto relation $\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry \entry\_val}$ with the virtual address (\textsf{entry+KERNBASE}) obtained by offsetting the physical address (\textsf{entry}). With this knowledge on the root-page-table-entry, we start traversing the page-table tree which requires locating the address of the next table shown in Figure \ref{fig:calltoptepteinitialize}. 
+\textsf{pte\_walkpgdir}, as a client, holds the knowledge that there exists an identity mapping for the physical entry address (\textsf{entry}) in the root page table ($\textsf{L}_{4}$):  $\mathsf{entry} \mapsto_{\textsf{id}} \textsf{\_}$ in Specification Line 3 is a partially owned token for accessing and looking up the resources in the identity map $\Xi$ to construct the \ref\textit{virtual-to-physical} pointsto relation $\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry \entry\_val}$ with the virtual address (\textsf{entry+KERNBASE}) obtained by offsetting the physical address (\textsf{entry}). With this knowledge on the root-page-table-entry, we can start traversing the page-table tree which requires locating the address of the next table -- a call to \textsf{pte\_get\_next\_table} shown in Figure \ref{fig:calltoptepteinitialize}. 
 Beyond a frame, the precondition before Line 15 requires the current address space invariant, and knowledge that \textsf{entry} is mapped to a random entry value, subtly, the operation also, at least, requires that the relevant table entry is readable, but the exact portion of ownership returned must be determined by inspecting the valid bit
 of the value in memory --- so full ownership is returned only for unused entries.
 This is a simple piece of code whose functionality is critical and whose correctness is highly non-trivial. No prior work engages with this problem.
@@ -211,10 +211,10 @@ assuring that looking the identity mapping for \textsf{entry} is safe under the 
    \mathsf{mov } \;\mathsf{rdi}, \; \mathsf{rax} \\
    \mathsf{cmp } \; 0x0, \;\mathsf{rax}
  \end{array}
- \] Lines (17-20) in Figure \ref{fig:calltopteinitialize}.
+ \] Lines (19-22) in Figure \ref{fig:calltopteinitialize}.
  Accessing the presence bit and checking the value allow  us to exploit the fact in the side condition (*) in such a way that we either take the allocation path in the non-presence case (Lines 19-44 in Figure \ref{fig:calltopteinitialize}) with the knowledge of full ownership ($\textsf{qfrac} = 1$) to set the entry with proper values for the bitfields, most imporantly frame referencing freshly allocated page and presence bit, or, take non-allocation path and jump to Line 45 with fractional permission for looking up the entry values.
 
- In case of absence, \textsf{pte\_initialize} is called (Line 31 in Figure \ref{fig:calltopteinitialize}) for a physical-zeroed page (utilizing the page-allocator's \textsf{kalloc} -- currently the only axiomatized call in the the proof of \textsf{pte\_initialize} (Line 9 in Figure \ref{pteinitializespec}, it is not part of \textsf{pte} (virtual-memory-management) module). 
+ In case of absence, \textsf{pte\_initialize} is called (Line 33 in Figure \ref{fig:calltopteinitialize}) for a physical-zeroed page (utilizing the page-allocator's \textsf{kalloc} -- currently the only axiomatized call in the the proof of \textsf{pte\_initialize} (Line 9 in Figure \ref{pteinitializespec}, it is not part of \textsf{pte} (virtual-memory-management) module). 
 \begin{figure}\footnotesize
   \begin{lstlisting}[mathescape]
 
