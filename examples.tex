@@ -269,7 +269,7 @@ $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry}_{\textsf{pfn}}  
 As shown in Figure \ref{fig:p2v}, \lstinline|rcx| holds the offset value \textsf{KERNBASE} which gives us the value of the virtual address ($\textsf{entry}_{\textsf{pfn}}$ \textsf{+KERNBASE}) in the identity map ($\Xi\setminus\{entry\}\cup \{\textsf{entry}_{\textsf{pfn}}) \}$) of the kernel invariant: the logical update in Specification  Lines 5-10 to 10-14 for obtaining virtual-pointsto resource for the frame ($\textsf{entry}_{\textsf{pfn}}$) by removing it from the ghost map ($\Xi\setminus\{entry\}\cup \{\textsf{entry}_{\textsf{pfn}}) \}$) in Line 5 and compute the identity mapping for this physical frame address in Line 13 in Figure \ref{fig:p2v}).
 \subsubsection{Walking Page-Table Tree: Calling \textsf{pte\_get\_nexttable} for Each Level}
 \label{wlkpgdir}
-Realizing page-table directory walk amounts to calling \textsf{pte\_get\_next\_table} for each level as shown in Figure \ref{walkpgdir}. Since there is not much interesting piece additional to the specification we discuss for \textsf{pte\_get\_next\_table} in Section \ref{}, in Figure \ref{}, we present the expected specification after the calls made for each level entry. At each specification Line (X,..) in Figure \ref{}, we see the accumulation of virtual-pte pointsto resources returned from \textsf{pte\_get\_next\_tabel} for each level (L4-L1), and finally return L1 level entry that is needed by \textsf{walkpgdir} at Line X in Figure \ref{}. 
+Realizing page-table directory walk amounts to calling \textsf{pte\_get\_next\_table} for each level as shown in Figure \ref{walkpgdir}. The special part of the specficication for a page table walk can be considered as accumulation of memory mappings for the page-table entries visited and frame addresses for page-tables. For example, Line 23-24 in Figure \ref{walkpgdir} shows the virtual-pointsto for a L3 page table and the virtual-page-table-entry-pointsto for an L4 entry. In the final post-condition, we expect the accumulation of these resources from each level -- $\textsf{R}_{\textsf{walk\_succ}}$ -- which allows us to construct the path to the L1 entry in the tree to insert a new page.  
 \begin{figure}\footnotesize
 \begin{lstlisting}[mathescape]
 ;;pte_t *walkpgdir_succ(pte_t *pml4, const void *va) {
@@ -292,7 +292,7 @@ mov    -0x18[rbp],rdi
 ...
 callq  c0 <pte_get_next_table_succ>
 ;;save the physical next table address in rax
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry}\},m)  }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry},\textsf{entry}_{\textsf{pfn}}\},m)  }_{\rtv}$
 $\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$
 $\specline{ \textsf{entry}_{\textsf{pfn}} \mapsto_{\textsf{v,qf}} \textsf{pdp\_val} \ast \textsf{rax} \mapsto_{\textsf{r}} \textsf{entry}_{\textsf{pfn}}}_{\rtv}$    
