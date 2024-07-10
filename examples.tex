@@ -130,12 +130,17 @@ $\specline{ \forall_{i\in \textsf{0 ... 511} } \ldotp  \textsf{entry\_val }_{\te
 ;;entry value updates
 ...
 ;;entry->pfn = next
+;;entry->present = 1;
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
-$\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \textsf{entry\_val}_{\textsf{pfn}} \mapsto_{\textsf{id}} \textsf{\_} \ast \ulcorner  \textsf{qfrac} < 1 \land (\textsf{entry\_present entry\_val}_{\textsf{pfn}})  \urcorner  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \textsf{entry\_val}_{\textsf{pfn}} \mapsto_{\textsf{id}} \textsf{\_} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \lnot(\textsf{entry\_present entry\_val}_{\textsf{pfn}})  \urcorner  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
 $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry\_val}_{\textsf{pfn}}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
-$\specline{ \forall_{i\in \textsf{0 ... 511} } \ldotp  \textsf{entry\_val }_{\textsf{pfn}} + \textsf{i * 8} \mapsto_{\textsf{id}} \textsf{\_} \ast  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val }_{\textsf{pfn}} + \textsf{i * 8})  }$
-;;entry->present = 1;
+$\specline{ \forall_{i\in \textsf{0 ... 511} } \ldotp  \textsf{entry\_val }_{\textsf{pfn}} + \textsf{i * 8} \mapsto_{\textsf{id}} \textsf{\_} \ast  \textsf{qfrac} = 1 \leftrightarrow \lnot(\textsf{entry\_present entry\_val }_{\textsf{pfn}} + \textsf{i * 8})  }$
+\subseteq
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \} \cup \{\textsf{entry\_val}_{\textsf{pfn}}) \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
+$\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
+$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry\_val}_{\textsf{pfn}}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{entry\_val}_{\textsf{pfn}}  }_{\rtv}$
 ;;}
 ...
 ;;uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr);
@@ -248,9 +253,8 @@ mov    -0x8[rbp],rdi
 mov    rax,[rdi]
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)   \ast \texttt{rbp-16} \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{table\_addr}  }_{\rtv}$
 $\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \textsf{table\_addr} \mapsto_{\mathsf{v}} \mathsf{\mathsf{nextpaddr}} \ast \textsf{nextpaddr} \mapsto_{\textsf{id}} \textsf{\_}\ast \forall_{i\in\textsf{0..511}} \textsf{nextpaddr + i * 8} \mapsto_{\textsf{id}} \textsf{\_} \ast\ghostmaptoken{\delta{}s}{\rtv}{\delta} }_{\rtv}$
-;;return;
-;;..
 ;;clean up the stack
+..
 \end{lstlisting}
 \vspace{-1em}
 \caption{Allocating a physical page }
@@ -269,23 +273,24 @@ This actually constitutes a very critical piece of the full page table walk veri
 \begin{lstlisting}[mathescape]
 ...
 ;;uintptr_t next_virt_addr = (uintptr_t) P2V(next<<12);
-movabs 0x0,rcx	                187: R_X86_64_64	KERN_BASE
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \}\cup\{\mathsf{nextpaddr}\},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val'}  }_{\rtv}$
-$\specline{\ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \mathsf{nextpaddr} \in \Xi\setminus \{ \mathsf{entry} \} \cup \{ \mathsf{nextpaddr} \} }_{\rtv}$
-$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land (\textsf{entry\_present entry\_val'})  \urcorner }_{\rtv}$
-$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \ulcorner \Xi\setminus \{ \mathsf{entry} \}\cup\{\mathsf{nextpaddr}\} !! \mathsf{entry} = \mathsf{Some Z} \urcorner \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
-add    rcx,rax
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} ,\mathsf{nextpaddr} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val'}  }_{\rtv}$
-$\specline{ \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
-$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val\_present} \ast \ulcorner  \textsf{qfrac} = 1 \land (\textsf{entry\_present entry\_val'}) \urcorner }_{\rtv}$
-$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{nextpaddr}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
-$\specline{ \texttt{nextpaddr+KERNBASE} \mapsto_{\textsf{vpte,qfracn}} \textsf{nextpaddr w64\_zero} }_{\rtv}$
+ movabs 0x0,rcx	                187: R_X86_64_64	KERN_BASE
+ add    rcx,rax
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \} \cup \{\textsf{entry\_val}_{\textsf{pfn}}) \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
+$\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
+$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry\_val}_{\textsf{pfn}}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{entry\_val}_{\textsf{pfn}}  }_{\rtv}$
+\subseteq
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
+$\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
+$\specline{  \textsf{entry\_val + KERNBASE}_{\textsf{pfn}}  \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val}  \textsf{entry\_val}_{\textsf{pfn}}} \ast R_{\textsf{children}}$
+$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry\_val}_{\textsf{pfn}}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{entry\_val}_{\textsf{pfn}}  }_{\rtv}$
 ...
 ;;next = (pte_t *) next_virt_addr;
 ;;clean up the stack and return next
 \end{lstlisting}
 \vspace{-1em}
-\caption{Converting a physical address of a PTE to a virtual address (w/o instruction pointer or flag updates).}
+\caption{Converting a physical address of a PTE to a virtual address (w/o instruction pointer or flag updates). Abreviating the other relevant resources (including the lower entries) peeled-out of the invariant as $\textsf{R}_{\textsf{children}}$ }
 \label{fig:p2v}
 \end{figure}
 As shown in Figure \ref{fig:p2v}, \lstinline|rcx| holds the offset value \textsf{KERNBASE} which gives us the virtual address (\textsf{nextpaddr+KERNBASE}) to look-up in the identity map ($\Xi\setminus\{entry\}$) of the kernel invariant. Assuming the path for \textsf{pte\_initialize} is taken, we are assured that the freshly allocated physical address of the next page table (i.e. \textsf{nextpaddr}) is in the identity map ($\Xi$) -- from the post-condition of \textsf{pte\_initialize} in Figure \ref{fig:calltopteinitialize}, so that we can obtain the virtual pte-pointsto for the physical address \textsf{nextpaddr} from the (Line 13 in Figure \ref{fig:p2v}).
