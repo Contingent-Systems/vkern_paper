@@ -52,7 +52,7 @@ Recall from Section \ref{sec:logic} that virtual points-to assertions work just 
 %\end{comment}
 \subsection{Traversing Live Page Tables}
 \label{sec:traversing}
-The mapping operation of Figure \ref{fig:mapping_code} assumes an operation \lstinline|pte\_walkpgdir| which must traverse the page tables
+The mapping operation of Figure \ref{fig:mapping_code} assumes an operation \textsf{pte\_walkpgdir} which must traverse the page tables
 in order to locate the address of the L1 entry to update --- possibly allocating pages at levels 3 and 2 in the process.
 Traversing the page tables is itself challenging functionality to verify: loading the current table root from \lstinline|cr3| is straightforward
 (a \lstinline|mov| instruction), however this produces the physical address of \lstinline|cr3|, not the virtual address the kernel code would use to access that memory.
@@ -60,8 +60,8 @@ This problem repeats at each level of the page table: assuming the code has \emp
 yield physical addresses, not virtual.
 
 \subsubsection{Loading Page-Table Address Value}
-We call \textsf{get\_next\_table} to get the virtual address to the next level page-table. In Figure \ref{fig:calltopteinitialize}, we present the critical piece of \textsf{get\_next\_table}, and construct the specification of it 
-Within \textsf{get\_next\_table}, first, we check if the entry whose address is passed as a parameter ($\textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry}$) is present or not. To be able to do so, it needs to load the entry value (a 64-bit word divided into bit-fields for corresponding fileds shown in Section {}) and check that \textit{presence} bit of the entry is set or not.
+We call \textsf{get\_next\_table} to get the virtual address to the next level page-table. In Figure \ref{fig:calltopteinitialize}, we present the most critical piece of \textsf{get\_next\_table}, and construct the specification for it. 
+Within \textsf{get\_next\_table}, first, we check if the entry whose address is passed as a parameter ($\textsf{entry}$) is present or not (Line 21 in Figure \ref{fig:callptetoinitialize}). To be able to do so, it needs to load the entry value (a 64-bit word divided into bit-fields for corresponding fileds shown in Section {}), and then,check if \textit{presence} bit of the entry is set or not. We see in Specification Line 6 that \textsf{entry} has \textsf{pte-pointsto} that is constructed on the client of \textfsf{pte\_get\_next\_table} -- e.g.\textsf{pte\_walkpgdir} in Figure \ref{walkpgdir}.
 %wshiftll (wshiftll (natToWord 64 entry) (WordImpl.concat (WordImpl.zero 56) (WordImpl.from_nat 8 12 ^& WordImpl.concat (WordImpl.zero 2) WO~1~1~1~1~1~1)) ^& constf)
 %(WordImpl.concat (WordImpl.zero 56) (natToWord 8 12 ^& WordImpl.concat (WordImpl.zero 2) WO~1~1~1~1~1~1))
 %
@@ -126,7 +126,7 @@ $\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \textsf{entry\
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
 $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry\_val}_{\textsf{pfn}}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
 $\specline{ \forall_{i\in \textsf{0 ... 511} } \ldotp  \textsf{entry\_val }_{\textsf{pfn}} + \textsf{i * 8} \mapsto_{\textsf{id}} \textsf{\_} \ast  \textsf{qfrac} = 1 \leftrightarrow \lnot(\textsf{entry\_present entry\_val }_{\textsf{pfn}} + \textsf{i * 8})  }$
-$\subseteq$
+$\sqsubseteq$
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \} \cup \{\textsf{entry\_val}_{\textsf{pfn}}) \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
 $\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
@@ -144,15 +144,13 @@ add    rcx,rax
 \caption{Ensuring \textsf{entry} points to a valid next table, allocating if necessary.}
 \label{fig:calltopteinitialize}
 \end{figure}
-
-As we see in Figure \ref{fig:calltopteinitialize}, we have the physical address (\textsf{entry}) of the page table entry kept in the register $\texttt{r8}$, but not the virtual memory mapping to load the entry value referenced by the physical address \textsf{entry} (Line 13 in Figure \ref{fig:calltopteinitialize}). We need to construct this virtual mapping for the physical address \textsf{entry}.
+Looking at the update from Specfication Lines 5-10 to 10-14 in Figure \ref{walkpgdir}, we see that the removal of \textsf{entry} from the map $\Xi$ in the invariant to construct the \texstsf{pte-ptsto} (Specfication Line 13 in Figure \ref{walkpgdir}) needed for executing the load instruction (Line 15 in Figure \ref{fig:calltopteinitialize}) to obtain the value of a page entry whose physical address (\textsf{entry}) kept in the register $\texttt{r8}$. This magical abstraction -- represented as $\Xi$ in the invariant definition -- provides us to construct this \textsf{pte-ptsto} out of an physical address is called \textit{identity-mappings}.
 \subsubsection{Identity Mappings}
 \label{subsec:identitymappings}
 Most kernels maintain an invariant on their page tables that the virtual address of any page used for a page table lives at a virtual address
 whose value is a constant offset from the physical address a practice sometimes referred to as \emph{identity mapping} (even though the physical-to-virtual translation
 is typically not literally the identity function, but adding a constant offset).\footnote{Some kernels do this for all physical memory on the machine, simplifying interaction
 with DMA devices.}
-\todo{ismail: CHnage the text!  it is not as simple as relating paddrs existence type, more concrete relation on pfn and fresly allocated addr }
 \begin{figure*}
 \footnotesize
 \todo[inline]{Ismail, look at this figure, something went weird (was already like this, I didn't add this)}
@@ -176,8 +174,8 @@ with DMA devices.}
 \caption{Global Address-Space Invariant in Figure \ref{fig:peraspaceinvariant} extended with a ghost map bookkeeping identity mappings }
   \label{fig:peraspaceinvariant_with_p2v_extension}
 \end{figure*}
-
-Beyond a frame, the precondition before Line 13 requires the current address space invariant, and knowledge that \textsf{entry} is mapped to a random entry value ($\Xi \;!!\; \mathsf{entry} = \textsf{Some V}$ in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}). By owning this capability, we can also refer to the facts in the invariant that there exists an virtual address from a range set dedicated to page-table entries, as this physical-to-virtual conversion is only guaranteed for page table memory, and obtained by offsetting the physical address ($\textsf{va} = \textsf{pa} + \textsf{KERNBASE}$. 
+\textsf{pte\_walkpgdir}, as a client, holds the knowledge that there exists an identity mapping for the physical entry address (\textsf{entry}) in the root page table ($\textsf{L}_{4}$):  $\mathsf{entry} \mapsto_{\textsf{id}} \textsf{\_}$ in Specification Line 3 is a partially owned token for accessing and looking up the resources in the identity map $\Xi$ to construct the \ref\textit{virtual-to-physical} pointsto relation $\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry \entry\_val}$ with the virtual address (\textsf{entry+KERNBASE}) obtained by offsetting the physical address (\textsf{entry}). With this knowledge on the root-page-table-entry, we start traversing the page-table tree which requires locating the address of the next table shown in Figure \ref{fig:calltoptepteinitialize}. 
+Beyond a frame, the precondition before Line 13 requires the current address space invariant, and knowledge that \textsf{entry} is mapped to a random entry value in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}). By owning this capability, we can also refer to the facts in the invariant that there exists an virtual address from a range set dedicated to page-table entries, as this physical-to-virtual conversion is only guaranteed for page table memory, and obtained by offsetting the physical address ($\textsf{va} = \textsf{pa} + \textsf{KERNBASE}$. 
 We see that to realize identity mappings, an additional ghost map for keeping identity mappings ($\Xi$) added to the per-address-space
 invariant per Figure \ref{fig:peraspaceinvariant_with_p2v_extension}. The extended invariant owns, for each memory location dedicated to page tables, some fraction of
 that physical memory, for the sake of constructing the virtual-mapping, also the fractional ownership abstracting translation (i.e. ghost translation in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}), and guarantees the offset is the correct calculation.
