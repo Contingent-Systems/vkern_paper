@@ -126,7 +126,7 @@ $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\s
 $\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \textsf{entry\_val}_{\textsf{pfn}} \mapsto_{\textsf{id}} \textsf{\_} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val}_{\textsf{pfn}})  \urcorner  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
 $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry\_val}_{\textsf{pfn}}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
-$\specline{ \forall_{i\in \textssf{0 ... 511} } \ldotp  \textsf{entry\_val }_{\textsf{pfn}} + \texstf{i * 8} \mapsto_{\textsf{id}} \textsf{\_} \ast  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val }_{\textsf{pfn}} + \texstf{i * 8})  }$
+$\specline{ \forall_{i\in \textsf{0 ... 511} } \ldotp  \textsf{entry\_val }_{\textsf{pfn}} + \textsf{i * 8} \mapsto_{\textsf{id}} \textsf{\_} \ast  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val }_{\textsf{pfn}} + \textsf{i * 8})  }$
 ;;entry value updates
 ...
 ;;entry->pfn = next
@@ -134,7 +134,7 @@ $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\s
 $\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \textsf{entry\_val}_{\textsf{pfn}} \mapsto_{\textsf{id}} \textsf{\_} \ast \ulcorner  \textsf{qfrac} < 1 \land (\textsf{entry\_present entry\_val}_{\textsf{pfn}})  \urcorner  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
 $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry\_val}_{\textsf{pfn}}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
-$\specline{ \forall_{i\in \textssf{0 ... 511} } \ldotp  \textsf{entry\_val }_{\textsf{pfn}} + \texstf{i * 8} \mapsto_{\textsf{id}} \textsf{\_} \ast  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val }_{\textsf{pfn}} + \texstf{i * 8})  }$
+$\specline{ \forall_{i\in \textsf{0 ... 511} } \ldotp  \textsf{entry\_val }_{\textsf{pfn}} + \textsf{i * 8} \mapsto_{\textsf{id}} \textsf{\_} \ast  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val }_{\textsf{pfn}} + \textsf{i * 8})  }$
 ;;entry->present = 1;
 ;;}
 ...
