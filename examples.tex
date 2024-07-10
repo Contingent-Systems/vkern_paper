@@ -322,7 +322,7 @@ callq  c0 <pte_get_next_table_succ>
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry}\},m)  }_{\rtv}$
 $\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$
-$\specline{ \textsf{entry}_{\textsf{pfn}} \mapsto_{\textsf{v,qf}} \texts{pdp\_val} \ast \textsf{rax} \mapsto_{\textsf{r}} \textsf{entry\_val}_{\textsf{pfn}}}_{\rtv}$    
+$\specline{ \textsf{entry}_{\textsf{pfn}} \mapsto_{\textsf{v,qf}} \textsf{pdp\_val} \ast \textsf{rax} \mapsto_{\textsf{r}} \textsf{entry\_val}_{\textsf{pfn}}}_{\rtv}$    
 ;;pte_t *pdp_entry = &pdp[PDPEX(va)];
 ;;pte_t *pd = pte_get_next_table_succ(pdp_entry);
 ...
