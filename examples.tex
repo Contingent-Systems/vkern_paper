@@ -113,6 +113,8 @@ we see that \textsf{vpte-ptsto} for the entry being accessed (\textsf{entry}) is
 %          (WordImpl.concat (WordImpl.zero 56) (WordImpl.from_nat 8 12 ^& WordImpl.concat (WordImpl.zero 2) WO~1~1~1~1~1~1)) ^& constf)
 %       (WordImpl.concat (WordImpl.zero 56) (natToWord 8 12 ^& WordImpl.concat (WordImpl.zero 2) WO~1~1~1~1~1~1)) 
 \begin{figure}%\footnotesize
+\todo[inline]{TODO: resolve entry+KERNBASE question from chat, add information about rax holding \lstinline|entry_val & 0x1| and the conditional
+outcome that that is 0 in the then branch}
   \begin{lstlisting}[mathescape, basicstyle=\footnotesize,escapeinside={(*}{*)}]
 ;;pte_t *pte_get_next_table_succ(pte_t *entry) {
 ;; setting up the stack
@@ -127,7 +129,7 @@ mov     rdi, r8
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} }_{\rtv}$
 $\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$
-mov    [r8],rdi
+mov    [r8],rdi (*\label{line:read_entry_contents}*)
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}   }_{\rtv}$
 $\specline{  \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
@@ -151,7 +153,7 @@ $\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \textsf{entry}
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
 $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry}_{\textsf{pfn}}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
 $\specline{ \forall_{i\in \textsf{0 ... 511} } \ldotp  \textsf{entry }_{\textsf{pfn}} + \textsf{i * 8} \mapsto_{\textsf{id}} \textsf{\_} \ast  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val }_{\textsf{pfn}} + \textsf{i * 8})  }$
-... ;;entry value updates: entry->pfn = next; entry->present = 1;
+... ;;entry value updates: entry->pfn = next; entry->present = 1; (*\label{line:install_new_entry}*)
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
 $\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \textsf{entry}_{\textsf{pfn}} \mapsto_{\textsf{id}} \textsf{\_} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \lnot(\textsf{entry\_present entry\_val}_{\textsf{pfn}})  \urcorner  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
@@ -187,10 +189,27 @@ This magical abstraction -- represented as $\Xi$ in the invariant definition -- 
 
 \subsubsection{Identity Mappings}
 \label{subsec:identitymappings}
+It is typical for kernels to need to convert between physical and virtual addresses, in both directions.
+Traversing the page tables in software is the simplest way to convert a virtual address to a physical address; this is the context we are working up to.
+However, implementing this virtual-to-physical (V2P) translation ironically requires physical-to-virtual (P2V) translation,
+because the addresses stored in page table entries are physical, but memory accesses issued by the OS code use virtual addresses.
+There is no universal way to convert physical addresses to virtual --- doing so relies on the kernel maintaining careful invariants or
+additional data structures to enable P2V translation.
+
+In practice, VMM operations are performance-critical for many workloads, so most kernels opt for using invariants to make P2V conversion very fast,
+rather than maintaining yet another data structure.
 Most kernels maintain an invariant on their page tables that the virtual address of any page used for a page table lives at a virtual address
-whose value is a constant offset from the physical address a practice sometimes referred to as \emph{identity mapping} (even though the physical-to-virtual translation
-is typically not literally the identity function, but adding a constant offset).\footnote{Some kernels do this for all physical memory on the machine, simplifying interaction
+whose value is \emph{a constant offset from the physical address} --- a practice sometimes referred to as \emph{identity mapping} 
+(even though the physical-to-virtual translation
+is typically not literally the identity function, but adding a non-zero constant offset).\footnote{Some kernels do this for all physical memory on the machine, simplifying interaction
 with DMA devices.}
+
+For this reason we extend the per-address-space invariant as in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}, to also track which
+addresses we can perform a P2V conversion on by a adding a constant offset.
+$\Xi$ is another ghost map, from physical addresses to the unit type (so, effectively a ghost set). 
+\emph{Only} physical addresses in $\Xi$ can undergo P2V conversion. We describe proof of such a conversion in Section \ref{sec:p2v},
+but describe the invariant here because installing a new level 3/2/1 table requires maintaining that invariant.
+
 \begin{figure*}
 \footnotesize
 \[
@@ -210,6 +229,36 @@ with DMA devices.}
 \caption{Global Address-Space Invariant in Figure \ref{fig:peraspaceinvariant} extended with a ghost map bookkeeping identity mappings }
   \label{fig:peraspaceinvariant_with_p2v_extension}
 \end{figure*}
+
+For each $\paddr\in\Xi$, the invariant tracks a virtual points-to justifying that virtual address $\paddr+\textsf{KERNBASE}$ maps to physical address $\paddr$
+(the ``Ghost translation'' in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}),
+fractional ownership of the physical memory for that page table entry,
+and 
+\todo[inline,color=red]{
+  Another Figure 8 issue: last line provide membership in the id map / $\Xi$ not for pa plus whatever, but for \emph{the table base in val} plus whatever,
+  also only when the entry is present. I know we whiteboarded this way and sketched it in Zulip this way, and I'm pretty sure I saw something when
+  working on issue 19, but need to check w/ Ismail.
+}
+The fractional ownership of the entry's physical memory is subtle. Recall that $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ retains some physical
+ownership of each page table entry that is traversed (proportional to how many virtual addresses share the entry).
+So in general the invariant cannot keep full permission to the memory in this part of the invariant, or it would overlap the page table walk for virtual points-to
+assertions. But in the case where the entry is invalid, we may need to write to it (e.g., to install a reference to a next-level table, as we do in Figure \ref{fig:calltopteinitialize}),
+which requires full permission. Fortunately, the entry can only be in use if its valid bit is set; if the valid bit is not set we know
+that no virtual points-to assertions in $\delta$/$\theta$ have any partial ownership.
+Thus we use the invariant portion annotated as ``Entry validity'' in Figure \ref{fig:peraspaceinvariant_with_p2v_extension} to capture this:
+if the entry is invalid the invariant holds full ownership of the entry, so it can be updated; while if the entry is valid,
+the invariant owns only a constant non-zero fragment sufficient to read the entry, but not modify it (which would invalidate some virtual points-to assertions).
+
+Thus the fractional ownership of the physical location is enough for Line \ref{line:read_entry_contents} to access the entry, though in \lstinline|get_next_table|
+the caller has pulled that piece of information out of the invariant and passed it for the entry at hand (which is why this appears explicitly in assertions).
+Line \ref{line:check_entry_present_jump}'s conditional then determines in the fall-through case that the bit is not set, which resolves $\textsf{qfrac} = 1$,
+and permits the new entry to be installed (in ellided code around Line \ref{line:install_new_entry})
+
+This seemingly-simple piece of code has a highly non-trivial correctness argument, which depends critically on detailed invariants on how access to page table
+entries is shared between parts of the kernel. No prior work has engaged with this problem.
+
+\todo[inline,color=blue]{Colin revision frontier: need to resolve entry+KERNBASE issue to finish pulling this into prose above}
+
 \textsf{pte\_walkpgdir}, as a client, holds the knowledge that there exists an identity mapping for the physical entry address (\textsf{entry}) in the root page table ($\textsf{L}_{4}$):  $\mathsf{entry} \mapsto_{\textsf{id}} \textsf{\_}$ in Specification Line 3 is a partially owned token for accessing and looking up the resources in the identity map, $\Xi$, to construct the \textit{virtual-to-physical} pointsto relation $\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry \entry\_val}$ with the virtual address (\textsf{entry+KERNBASE}) obtained by offsetting the physical address (\textsf{entry}). With this knowledge on the root-page-table-entry, we can start traversing the page-table tree which requires locating the address of the next table -- a call to \textsf{pte\_get\_next\_table} shown in Figure \ref{fig:calltoptepteinitialize}. 
 Beyond a frame, the precondition before Line 15 requires the current address space invariant, and knowledge that \textsf{entry} is mapped to a random entry value, subtly, the operation also, at least, requires that the relevant table entry is readable, but the exact portion of ownership returned must be determined by inspecting the valid bit
 of the value in memory --- so full ownership is returned only for unused entries.
@@ -252,7 +301,7 @@ Lines \ref{line:mask_present}--\ref{line:check_entry_present} in Figure \ref{fig
 
  In case of absence, \textsf{pte\_initialize} is called (Line 33 in Figure \ref{fig:calltopteinitialize}) for a physical page (utilizing the page-allocator's \textsf{kalloc} -- currently the only axiomatized call in the the proof of \textsf{pte\_initialize} (Line 9 in Figure \ref{pteinitializespec}, it is not part of \textsf{pte} (virtual-memory-management) module). 
 \begin{figure}\footnotesize
-  \begin{lstlisting}[mathescape]
+  \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
 
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)   \ast \texttt{rbp-16} \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{table\_addr}  }_{\rtv}$
 $\specline{\texttt{rax} \mapsto_{\textsf{r}} \textsf{\_} \ast \textsf{table\_addr} \mapsto_{\mathsf{v}} \mathsf{\_}\ast\ghostmaptoken{\delta{}s}{\rtv}{\delta} }_{\rtv}$
@@ -284,7 +333,7 @@ Since we are using \textsf{pte\_initialize} for page-table address allocation, w
 
 This actually constitutes a very critical piece of the full page table walk verification, and we have verified the critical step for a small x86-64 kernel, which is the physical-to-virtual conversion (often appearing as a macro \texttt{P2V} inside the macro \textsf{ PTE\_PFN\_TO\_ADDR} in C source code). In our small kernel (Line 57 in Figure \ref{calltopteinitialize}), as in larger kernels, \texttt{P2V} is actually just addition, but the correctness of this simple instruction is quite subtle and relies on identity mappings explained in the previous section (Section \ref{subsec:identitymappings}) as a part of understanding our address-space invariant in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}.
 \begin{figure}\footnotesize
-\begin{lstlisting}[mathescape],escapeinside={(*}{*)}
+\begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
 ... ;; Continued from Figure (*\ref{fig:calltopteinitialize}*)
 ;;uintptr_t next_virt_addr = (uintptr_t) P2V(next<<12);
  movabs 0x0,rcx	                187: R_X86_64_64	KERN_BASE
@@ -312,7 +361,7 @@ As shown in Figure \ref{fig:p2v}, \lstinline|rcx| holds the offset value \textsf
 \label{wlkpgdir}
 Realizing page-table directory walk amounts to calling \textsf{pte\_get\_next\_table} for each level as shown in Figure \ref{walkpgdir}. The special part of the specficication for a page table walk can be considered as accumulation of memory mappings for the page-table entries visited and frame addresses for page-tables. For example, Line 23-24 in Figure \ref{walkpgdir} shows the virtual-pointsto for a L3 page table and the virtual-page-table-entry-pointsto for an L4 entry. In the final post-condition, we expect the accumulation of these resources from each level -- $\textsf{R}_{\textsf{walk\_succ}}$ -- which allows us to construct the path to the L1 entry in the tree to insert a new page.  
 \begin{figure}\footnotesize
-\begin{lstlisting}[mathescape]
+\begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
 ;;pte_t *walkpgdir_succ(pte_t *pml4, const void *va) {
  ...
  $\specline{\textsf{P} \ast \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}}_{\rtv}$
@@ -418,7 +467,7 @@ known-valid page table walks (\textsf{pte\_walkpgdir} Line X in Figure \ref{fig:
 %}
 \todo{ismail change the following spec base on the changes you have in the code}
 \begin{figure}\footnotesize
-  \begin{lstlisting}[mathescape]
+  \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
 ;;complstatus_t vaspace_mappage(pte_t *pml4, void *va,uintptr_t fpaddr, uint64_t perm ) {
 ...
 ;;setting up the stack      
@@ -564,7 +613,7 @@ full virtual PTE pointer for it, setting to 0, and reclaiming the now-unmapped p
 A critical piece of \emph{trusted} code in current verified OS kernels is the assembly code to change the current address space; current verified OS kernels currently 
 lack effective ways to specify and reason about this low-level operation, for reasons outlined in Section \ref{sec:relwork}.
 \begin{figure}\footnotesize
-\begin{lstlisting}[mathescape]
+\begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
 ;; Assume the save-space is in rdi, load-space in rsi. First, save the yielding context
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\Xi,m) \ast [\rtv'](\mathcal{I}\texttt{ASpace}(\theta',\Xi',m') \ast \texttt{Pother}) \ast \texttt{rsi}\mapsto_{\textsf{r}} new \ast \texttt{rdi}\mapsto_{\textsf{r}} old \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} }_{\rtv}$
 $\specline{\texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} \ast \texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
