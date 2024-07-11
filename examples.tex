@@ -37,8 +37,18 @@
 To both validate and demonstrate the value of the modal approach to reasoning about virtual memory management, we study several
 distillations of real concerns of virtual memory managers.
 Recall from Section \ref{sec:logic} that virtual points-to assertions work just like regular points-to assertions, by design.
-
-\todo[inline]{need new text explaining both mapping and the page table walk}
+In this section we work through two critical and challenging aspects of virtual memory management.
+First, in several stages, we work up to mapping a new page in the current address space.
+This requires a number of challenging substeps: dynamically traversing a page table to find
+the appropriate L1 entry to update; inserting additional levels of the page table if necessary (updating
+the VMM invariants along the way);
+converting the physical addresses found in intermediate entries into the corresponding virtual addresses
+that can be used for access;
+installing the new mapping;
+and collecting sufficient resources to form a virtual points-to assertion.
+Of these, only the second-to-last step (installing the correct mapping into the
+current address space) has previously been formally verified with respect to a machine model with address translation.
+Second, we formally verify a switch into a new address space as part of a task switch.\todo{Colin will double-check the TLB work's details before claiming this is the first}
 
 %\begin{comment}
 %\todo[inline]{Identity mappings are difficult, and our current approach won't quite work. Consider trying to have a virtual pointsto for an actual page table entry (i.e., that one could use to update a page table mapping), while also having a virtual pointsto for an address that entry mapped. With the current (let's call it v1) solution, we can't actually have both of those simultaneously!  That's because the PTE pointsto will assert full ownership of the physical memory cell holding the PTE as its data value, while the virtual pointsto for the data mapped by that entry will \emph{also} assert (fractional) ownership of all entries a page table walk would traverse.
@@ -53,15 +63,25 @@ Recall from Section \ref{sec:logic} that virtual points-to assertions work just 
 \subsection{Traversing Live Page Tables}
 \label{sec:traversing}
 The mapping operation of Figure \ref{fig:mapping_code} assumes an operation \textsf{pte\_walkpgdir} which must traverse the page tables
-in order to locate the address of the L1 entry to update --- possibly allocating pages at levels 3 and 2 in the process.
+in order to locate the address of the L1 entry to update --- possibly allocating tables at levels 3, 2, and 1 in the process.
 Traversing the page tables is itself challenging functionality to verify: loading the current table root from \lstinline|cr3| is straightforward
 (a \lstinline|mov| instruction), however this produces the physical address of \lstinline|cr3|, not the virtual address the kernel code would use to access that memory.
 This problem repeats at each level of the page table: assuming the code has \emph{somehow} read the appropriate L4 (or L3, or L2) entry, those entries again
 yield physical addresses, not virtual.
 
 \subsubsection{Loading Page-Table Address Value}
-We call \textsf{get\_next\_table} to get the virtual address to the next level page-table. In Figure \ref{fig:calltopteinitialize}, we present the most critical piece of \textsf{get\_next\_table}, and construct the specification for it. 
-Within \textsf{get\_next\_table}, first, we check if the entry whose address is passed as a parameter ($\textsf{entry}$) is present or not (Line 21 in Figure \ref{fig:callptetoinitialize}). To be able to do so, it needs to load the entry value (a 64-bit word divided into bit-fields for corresponding fileds shown in Section {}), and then,check if \textit{presence} bit of the entry is set or not. In the very first precondition on the client side -- e.g.\textsf{pte\_walkpgdir} in Figure \ref{walkpgdir} -- , we see that \textsf{vpte-ptsto} for the entry being accessed (\textsf{entry}) is constructed -- in Specification Line 6 that \textsf{entry}. Intuitively speaking, we start traversal from a certain entry address at the current level for which we know ($\textsf{entry} \mapsto_{\textsf{id}} \textsf{\_}$ in Line 3 in Figure \ref{walkpgdir}) that there is a memory mapping ($\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val}$  Line 15 in Figure \ref{walkpgdir}) that can be used to explore deeper in the page-tree.
+We call \textsf{get\_next\_table}\todo{Ismail, this name differs from the figure. Intentional?} to get 
+the virtual address to the next level page-table.
+This section describes the verification of this function, with
+Figure \ref{fig:calltopteinitialize} presenting the most critical piece for discussion.
+Within \textsf{get\_next\_table}, first, we check if the entry whose address is passed as a 
+parameter ($\textsf{entry}$) is present or not (Line 21 in Figure \ref{fig:calltopteinitialize}).
+To be able to do so, it needs to load the entry value (a 64-bit word divided into bit-fields for
+the physical address of the next table, and control bits like the valid bit, as discussed in 
+Section \ref{sec:backgroundonmachinemodel}).
+Next the code checks whether or not the \textit{present} bit of the entry is set.
+\todo[inline,color=blue]{Colin revision frontier}
+In the very first precondition on the client side -- e.g.\textsf{pte\_walkpgdir} in Figure \ref{walkpgdir} -- , we see that \textsf{vpte-ptsto} for the entry being accessed (\textsf{entry}) is constructed -- in Specification Line 6 that \textsf{entry}. Intuitively speaking, we start traversal from a certain entry address at the current level for which we know ($\textsf{entry} \mapsto_{\textsf{id}} \textsf{\_}$ in Line 3 in Figure \ref{walkpgdir}) that there is a memory mapping ($\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val}$  Line 15 in Figure \ref{walkpgdir}) that can be used to explore deeper in the page-tree.
 %wshiftll (wshiftll (natToWord 64 entry) (WordImpl.concat (WordImpl.zero 56) (WordImpl.from_nat 8 12 ^& WordImpl.concat (WordImpl.zero 2) WO~1~1~1~1~1~1)) ^& constf)
 %(WordImpl.concat (WordImpl.zero 56) (natToWord 8 12 ^& WordImpl.concat (WordImpl.zero 2) WO~1~1~1~1~1~1))
 %
