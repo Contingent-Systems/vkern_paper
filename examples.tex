@@ -212,12 +212,13 @@ but describe the invariant here because installing a new level 3/2/1 table requi
 
 \begin{figure*}
 \footnotesize
+\todo[inline]{C wants to add authoritative ownership of the ghost map of $\Xi$ so talking about the tokens makes sense}
 \[
 \begin{array}{l}
   \mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)\stackrel{\triangle}{=}\\ \textsf{ASpace\_Lookup}_{\textsf{id}}(\ptablestore,\Xi,m) \ast 
   \bigast{(\vaddr, \textsf{paddr})\in \ptablestore}{\exists\;(\textsf{l4e, l3e, l2e, l1e, paddr})\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr\textsf{, l4e, l3e, l2e, l1e, paddr})} \\
   \bigast{(\paddr,\mathsf{T}) \in \Xi}{\exists\; (\textsf{qfrac, q, val,}\vaddr) \ldotp \ulcorner \vaddr = \paddr + \textsf{KERNBASE} \urcorner \ast  \underbrace{\fracghostmaptoken{\delta}{\vaddr}{\paddr}{\qfrac} }_\text{Ghost translation} \ast \underbrace{\paddr \mapsto_{\mathsf{p}}\{\textsf{qfrac}\}\; \vale}_\text{Physical location}}\\
-   \forall_{\textsf{i}\in\textsf{0..511}} \ldotp \paddr + \textsf{i * 8} \mapsto_{\textsf{id,qfacc}} \textsf{mvalidc} \ast  \underbrace{ \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner}_\text{Entry validity}\ast \\
+   \underbrace{ \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner}_\text{Entry validity}\ast (\ulcorner\textsf{entry\_present}(val)\urcorner \wand \forall_{\textsf{i}\in\textsf{0..511}} \ldotp ((\paddr + \textsf{i * 8}) \mapsto_{\textsf{id,qfacc}} \_)) \\
   \textsf{ where } \\
    \textsf{ASpace\_Lookup}_{\textsf{id}}(\ptablestore,\Xi,m) \stackrel{\triangle}{=} \lambda\textsf{ cr3val} \ldotp \; \exists \gammaPred \; \ldotp \ulcorner m \; !!\; \textsf{cr3val} = \textsf{Some } \gammaPred \urcorner \ast
    % \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \ast  \ownGhostpv\gammaPred{\authfull{\pvmapping\Xi}}
@@ -250,7 +251,9 @@ if the entry is invalid the invariant holds full ownership of the entry, so it c
 the invariant owns only a constant non-zero fragment sufficient to read the entry, but not modify it (which would invalidate some virtual points-to assertions).
 
 Thus the fractional ownership of the physical location is enough for Line \ref{line:read_entry_contents} to access the entry, though in \lstinline|get_next_table|
-the caller has pulled that piece of information out of the invariant and passed it for the entry at hand (which is why this appears explicitly in assertions).
+the caller has pulled that piece of information out of the invariant and passed it for the entry at hand, which is why this appears explicitly in assertions,
+and the argument to the invariant is $\Xi\setminus\{\mathsf{entry}\}$\todo{update pending entry+KB} (indexing by the set $\Xi$ allows us to borrow the physical resources
+for a specific page table entry out of the invariant, and later put them back).
 Line \ref{line:check_entry_present_jump}'s conditional then determines in the fall-through case that the bit is not set, which resolves $\textsf{qfrac} = 1$,
 and permits the new entry to be installed (in ellided code around Line \ref{line:install_new_entry})
 
