@@ -113,11 +113,10 @@ we see that \textsf{vpte-ptsto} for the entry being accessed (\textsf{entry}) is
 %          (WordImpl.concat (WordImpl.zero 56) (WordImpl.from_nat 8 12 ^& WordImpl.concat (WordImpl.zero 2) WO~1~1~1~1~1~1)) ^& constf)
 %       (WordImpl.concat (WordImpl.zero 56) (natToWord 8 12 ^& WordImpl.concat (WordImpl.zero 2) WO~1~1~1~1~1~1)) 
 \begin{figure}%\footnotesize
-\todo[inline]{TODO: resolve entry+KERNBASE question from chat, add information about rax holding \lstinline|entry_val & 0x1| and the conditional
-outcome that that is 0 in the then branch}
+\todo[inline]{TODO: resolve entry+KERNBASE question from chat, update all rdi points-tos after line \ref{line:pass_addrof_next}}
   \begin{lstlisting}[mathescape, basicstyle=\footnotesize,escapeinside={(*}{*)}]
 ;;pte_t *pte_get_next_table_succ(pte_t *entry) {
-;; setting up the stack
+... ;; setting up the stack
 ;; pte_t *next;
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry}\},m)  \ast \texttt{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{\_}  \ast \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$ (*\label{line:get_next_vpte_precondition}*)
@@ -137,15 +136,15 @@ and    0x1,rdia (* \label{line:mask_present} *)
 mov    rdi,rax
 ;;  if (!entry->present) {
 cmp    0x0,rax (* \label{line:check_entry_present} *)
-jne    161 <pte_get_next_table_succ+0xa1> (* \label{line:check_entry_present_jump} *) ; Jump if the present bit is not zero
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val} }_{\rtv}$
-$\specline{  \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
-$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
+jne    161 <pte_get_next_table_succ+0xa1> (* \label{line:check_entry_present_jump} *) ;; Jump if the present bit is not zero
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val \& 0x1} }_{\rtv}$
+$\specline{  \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  \ast \texttt{rax}  \mapsto_{\textsf{r}} \textsf{entry\_val \& 0x1} \ast \ulcorner\textsf{entry\_val \& 0x1}=\textsf{0x0}\urcorner}_{\rtv}$
+$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow  \lnot(\textsf{entry\_val \& 0x1}=\textsf{0x1})  \urcorner }_{\rtv}$ (*\label{line:before_concluding_qfrac1}*)
 mov    rbp,rdi
-sub    0x10, rdi
+sub    0x10, rdi ;; Store the value of rbp minus 16 bytes (address of (*\textsf{next}*)) into rdi (*\label{line:pass_addrof_next}*)
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
 $\specline{  \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta} }_{\rtv}$
-$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
+$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$ (*\label{line:after_concluding_qfrac1}*)
 ;;pte_initialize(&next);
 callq  70 <pte_initialize> (* \label{line:call_to_pte_initialize} *)
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
@@ -254,8 +253,9 @@ Thus the fractional ownership of the physical location is enough for Line \ref{l
 the caller has pulled that piece of information out of the invariant and passed it for the entry at hand, which is why this appears explicitly in assertions,
 and the argument to the invariant is $\Xi\setminus\{\mathsf{entry}\}$\todo{update pending entry+KB} (indexing by the set $\Xi$ allows us to borrow the physical resources
 for a specific page table entry out of the invariant, and later put them back).
-Line \ref{line:check_entry_present_jump}'s conditional then determines in the fall-through case that the bit is not set, which resolves $\textsf{qfrac} = 1$,
-and permits the new entry to be installed (in ellided code around Line \ref{line:install_new_entry})
+Line \ref{line:check_entry_present_jump}'s conditional then determines in the fall-through case that the bit is not set, which 
+together with other facts entails $\textsf{qfrac} = 1$ at Line \ref{line:after_concluding_qfrac1},
+and permits storing a new entry (in ellided code around Line \ref{line:install_new_entry})
 
 This seemingly-simple piece of code has a highly non-trivial correctness argument, which depends critically on detailed invariants on how access to page table
 entries is shared between parts of the kernel. No prior work has engaged with this problem.
@@ -291,7 +291,13 @@ assuring that looking the identity mapping for \textsf{entry} is safe under the 
   \label{fig:lookingupidpampping}
  \end{figure*}
 \end{comment}
+
+
  \subsubsection{Ensuring Presence of an Entry}
+\todo[inline]{some of this content is now earlier, rename to ``installing a new entry'' and just talk about the invariant update from installing the newly-allocated
+entry. include explanation of the resources returned from initialization call.
+Carefully check speck and then explain code of pte initialize, which currently has not prose (though this is a candidate for appendix in an oopsla submission)
+}
  After obtaining the identity mapping for \textsf{entry}, we are able to load the \textsf{entry\_val} into \textsf{rdi}, and check the presence bit through
  % \[ \begin{array}{l}
  %   \mathsf{and }\; 0x1, \;rdi \\
