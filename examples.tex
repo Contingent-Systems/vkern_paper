@@ -140,7 +140,7 @@ jne    161 <pte_get_next_table_succ+0xa1> (* \label{line:check_entry_present_jum
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val \& 0x1} }_{\rtv}$
 $\specline{  \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  \ast \texttt{rax}  \mapsto_{\textsf{r}} \textsf{entry\_val \& 0x1} \ast \ulcorner\textsf{entry\_val \& 0x1}=\textsf{0x0}\urcorner}_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow  \lnot(\textsf{entry\_val \& 0x1}=\textsf{0x1})  \urcorner }_{\rtv}$ (*\label{line:before_concluding_qfrac1}*)
-mov    rbp,rdi
+mov    rbp,rdi (*\label{line:alloc_path_start}*)
 sub    0x10, rdi ;; Store the value of rbp minus 16 bytes (address of (*\textsf{next}*)) into rdi (*\label{line:pass_addrof_next}*)
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
 $\specline{  \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta} }_{\rtv}$
@@ -151,18 +151,18 @@ $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\s
 $\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \textsf{entry}_{\textsf{pfn}} \mapsto_{\textsf{id}} \textsf{\_} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val}_{\textsf{pfn}})  \urcorner  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
 $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry}_{\textsf{pfn}}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
-$\specline{ \forall_{i\in \textsf{0 ... 511} } \ldotp  \textsf{entry }_{\textsf{pfn}} + \textsf{i * 8} \mapsto_{\textsf{id}} \textsf{\_} \ast  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val }_{\textsf{pfn}} + \textsf{i * 8})  }$
+$\specline{ \forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\mathsf{entry\_page}\;\textsf{entry}) + \textsf{i * 8})}{\textsf{\_}} \ast  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val }_{\textsf{pfn}} + \textsf{i * 8})  }$
 ... ;;entry value updates: entry->pfn = next; entry->present = 1; (*\label{line:install_new_entry}*)
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
 $\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \textsf{entry}_{\textsf{pfn}} \mapsto_{\textsf{id}} \textsf{\_} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \lnot(\textsf{entry\_present entry\_val}_{\textsf{pfn}})  \urcorner  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
 $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry}_{\textsf{pfn}}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr}  }_{\rtv}$
-$\specline{ \forall_{i\in \textsf{0 ... 511} } \ldotp  \textsf{entry }_{\textsf{pfn}} + \textsf{i * 8} \mapsto_{\textsf{id}} \textsf{\_} \ast  \textsf{qfrac} = 1 \leftrightarrow \lnot(\textsf{entry\_present entry\_val }_{\textsf{pfn}} + \textsf{i * 8})  }$
+$\specline{ \forall_{i\in \textsf{0 ... 511} } \ldotp \ghostmaptoken{\textsf{id}}{((\mathsf{entry\_page}\;\textsf{entry}) + \textsf{i * 8})}{\textsf{\_}} \ast  \textsf{qfrac} = 1 \leftrightarrow \lnot(\textsf{entry\_present entry\_val }_{\textsf{pfn}} + \textsf{i * 8})  }$
 $\sqsubseteq$
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \} \cup \{\textsf{entry}_{\textsf{pfn}}) \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  }_{\rtv}$
 $\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \mathsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
-$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry}_{\textsf{pfn}}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{entry}_{\textsf{pfn}}  }_{\rtv}$
+$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{entry}_{\textsf{pfn}}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{entry}_{\textsf{pfn}}  }_{\rtv}$ (*\label{line:alloc_path_end}*)
 ;;}
 ... ;; Continued in Figure (*\ref{fig:p2v}*)
 \end{lstlisting}
@@ -211,13 +211,13 @@ but describe the invariant here because installing a new level 3/2/1 table requi
 
 \begin{figure*}
 \footnotesize
-\todo[inline]{C wants to add authoritative ownership of the ghost map of $\Xi$ so talking about the tokens makes sense}
 \[
 \begin{array}{l}
-  \mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)\stackrel{\triangle}{=}\\ \textsf{ASpace\_Lookup}_{\textsf{id}}(\ptablestore,\Xi,m) \ast 
-  \bigast{(\vaddr, \textsf{paddr})\in \ptablestore}{\exists\;(\textsf{l4e, l3e, l2e, l1e, paddr})\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr\textsf{, l4e, l3e, l2e, l1e, paddr})} \\
-  \bigast{(\paddr,\mathsf{T}) \in \Xi}{\exists\; (\textsf{qfrac, q, val,}\vaddr) \ldotp \ulcorner \vaddr = \paddr + \textsf{KERNBASE} \urcorner \ast  \underbrace{\fracghostmaptoken{\delta}{\vaddr}{\paddr}{\qfrac} }_\text{Ghost translation} \ast \underbrace{\paddr \mapsto_{\mathsf{p}}\{\textsf{qfrac}\}\; \vale}_\text{Physical location}}\\
-   \underbrace{ \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner}_\text{Entry validity}\ast (\ulcorner\textsf{entry\_present}(val)\urcorner \wand \forall_{\textsf{i}\in\textsf{0..511}} \ldotp ((\paddr + \textsf{i * 8}) \mapsto_{\textsf{id,qfacc}} \_)) \\
+  \mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)\stackrel{\triangle}{=} \textsf{ASpace\_Lookup}_{\textsf{id}}(\ptablestore,\Xi,m) \ast \mathsf{GhostMap}(\mathsf{id},\Xi)\ast\\
+  \left(\bigast{(\vaddr, \textsf{paddr})\in \ptablestore}{\exists\;(\textsf{l4e, l3e, l2e, l1e, paddr})\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr\textsf{, l4e, l3e, l2e, l1e, paddr})}\right)\ast \\
+  \bigast{(\paddr,\mathsf{T}) \in \Xi}{\exists\; (\textsf{qfrac, q, val,}\vaddr) \ldotp \ulcorner \vaddr = \paddr + \textsf{KERNBASE} \urcorner \ast  \underbrace{\fracghostmaptoken{\delta}{\vaddr}{\paddr}{\qfrac} }_\text{Ghost translation} \ast \underbrace{\paddr \mapsto_{\mathsf{p}}\{\textsf{qfrac}\}\; \vale}_\text{Physical location}} \ast\\
+   \qquad\underbrace{ \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner}_\text{Entry validity}\ast 
+    \underbrace{\left(\ulcorner\textsf{entry\_present}(\vale)\urcorner \wand \forall_{\textsf{i}\in\textsf{0..511}} \ldotp \ghostmaptoken{\textsf{id}}{((\mathsf{entry\_page}\;\vale) + \textsf{i * 8})}{\_}\right)}_{\text{Indexing into next level of tables}} \\
   \textsf{ where } \\
    \textsf{ASpace\_Lookup}_{\textsf{id}}(\ptablestore,\Xi,m) \stackrel{\triangle}{=} \lambda\textsf{ cr3val} \ldotp \; \exists \gammaPred \; \ldotp \ulcorner m \; !!\; \textsf{cr3val} = \textsf{Some } \gammaPred \urcorner \ast
    % \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \ast  \ownGhostpv\gammaPred{\authfull{\pvmapping\Xi}}
@@ -231,14 +231,22 @@ but describe the invariant here because installing a new level 3/2/1 table requi
 \end{figure*}
 
 For each $\paddr\in\Xi$, the invariant tracks a virtual points-to justifying that virtual address $\paddr+\textsf{KERNBASE}$ maps to physical address $\paddr$
-(the ``Ghost translation'' in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}),
-fractional ownership of the physical memory for that page table entry,
-and 
-\todo[inline,color=red]{
-  Another Figure 8 issue: last line provide membership in the id map / $\Xi$ not for pa plus whatever, but for \emph{the table base in val} plus whatever,
-  also only when the entry is present. I know we whiteboarded this way and sketched it in Zulip this way, and I'm pretty sure I saw something when
-  working on issue 19, but need to check w/ Ismail.
+(the ``Ghost translation'' in Figure \ref{fig:peraspaceinvariant_with_p2v_extension});
+fractional ownership of the physical memory for that page table entry;
+and for valid entries (with the present bit set), ghost map tokens for every entry in the table pointed to by the entry.
+
+\todo[inline,color=green]{Colin says: 
+The indexing into the next level of tables is a little weird at the L1 level. The page pointed to by an L1 entry will be a data
+page. We don't actually need to perform P2V on data pages in general. But also problematic is that this invariant implies
+partial ownership of the data (by taking the $\Xi$ tokens for the data page back to this invariant). So we need a way
+to make this ``bottom out'' after the L1 entries. Something like switching $\Xi$ to be a map from a physical address to the corresponding level of tables
+(as a natural number; we'll always start out knowing that $\ghostmaptoken{\textsf{id}}{\textsf{cr3val}}{4}$ for a traversal),
+and then switching the indexing into the next level to be
+\[
+\bigast{(\paddr,\mathsf{level})}{\ldots\left(\ulcorner\textsf{entry\_present}(\vale)\land \mathsf{level} > 1 \urcorner \wand \forall_{\textsf{i}\in\textsf{0..511}} \ldotp \ghostmaptoken{\textsf{id}}{((\mathsf{page\_addr}\;\vale) + \textsf{i * 8})}{(\mathsf{level}-1)}\right)}\]
+I'm surprised this hasn't come up during page table setup
 }
+
 The fractional ownership of the entry's physical memory is subtle. Recall that $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ retains some physical
 ownership of each page table entry that is traversed (proportional to how many virtual addresses share the entry).
 So in general the invariant cannot keep full permission to the memory in this part of the invariant, or it would overlap the page table walk for virtual points-to
@@ -293,11 +301,7 @@ assuring that looking the identity mapping for \textsf{entry} is safe under the 
 \end{comment}
 
 
- \subsubsection{Ensuring Presence of an Entry}
-\todo[inline]{some of this content is now earlier, rename to ``installing a new entry'' and just talk about the invariant update from installing the newly-allocated
-entry. include explanation of the resources returned from initialization call.
-Carefully check speck and then explain code of pte initialize, which currently has not prose (though this is a candidate for appendix in an oopsla submission)
-}
+ \subsubsection{Installing a New Table}
  After obtaining the identity mapping for \textsf{entry}, we are able to load the \textsf{entry\_val} into \textsf{rdi}, and check the presence bit through
  % \[ \begin{array}{l}
  %   \mathsf{and }\; 0x1, \;rdi \\
@@ -306,9 +310,15 @@ Carefully check speck and then explain code of pte initialize, which currently h
  % \end{array}
  % \] 
 Lines \ref{line:mask_present}--\ref{line:check_entry_present} in Figure \ref{fig:calltopteinitialize}.
- Accessing the presence bit and checking the value allow  us to exploit the fact in the side condition (*) in such a way that we either take the allocation path in the non-presence case (Lines 19-44 in Figure \ref{fig:calltopteinitialize}) with the knowledge of full ownership ($\textsf{qfrac} = 1$) to set the entry with proper values for the bitfields, most imporantly frame referencing freshly allocated page and presence bit, or, take non-allocation path and jump to Line 45 with fractional permission for looking up the entry values.
+Accessing the presence bit and checking the value allows us to exploit the side condition (*) when verifying the allocation
+path for when the entry is invalid (Lines \ref{line:alloc_path_start}--\ref{line:alloc_path_end} in Figure \ref{fig:calltopteinitialize}),
+as it entails full ownership of the entry's memory ($\textsf{qfrac} = 1$) and justifies writing to that memory.
+Otherwise, the code jumps past the end of this listing, to the following code at the top of Figure \ref{fig:p2v} (which is also the
+continuation of this code).
 
- In case of absence, \textsf{pte\_initialize} is called (Line 33 in Figure \ref{fig:calltopteinitialize}) for a physical page (utilizing the page-allocator's \textsf{kalloc} -- currently the only axiomatized call in the the proof of \textsf{pte\_initialize} (Line 9 in Figure \ref{pteinitializespec}, it is not part of \textsf{pte} (virtual-memory-management) module). 
+If the entry is not set, \textsf{pte\_initialize} is called (Line \ref{line:call_to_pte_initialize} in Figure \ref{fig:calltopteinitialize}) 
+for a physical page (utilizing the page-allocator's \textsf{kalloc} -- currently the only axiomatized call in the the proof of \textsf{pte\_initialize} 
+(Line \ref{line:call_to_kalloc} in Figure \ref{pteinitializespec}). 
 \begin{figure}\footnotesize
   \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
 
@@ -319,7 +329,7 @@ $\specline{\texttt{rax} \mapsto_{\textsf{r}} \textsf{\_} \ast \textsf{table\_add
 ;;set up the stack    
 ;;allocate a full zeroed page for 512 8-byte entries 
 ;;pte_t *local = kalloc();
-callq  81 <pte_initialize+0x11>	7d: R_X86_64_PLT32	kalloc-0x4
+callq  81 <pte_initialize+0x11>	7d: R_X86_64_PLT32	kalloc-0x4 (*\label{line:call_to_kalloc}*)
 mov    rax,-0x10[rbp] 
 ;;*table = local;
 mov    -0x10[rbp],rax
@@ -334,6 +344,7 @@ $\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \textsf{tab
 \caption{Allocating a physical page }
 \label{pteinitializespec}
 \end{figure}
+\todo[inline,color=blue]{Colin revision frontier}
 Since we are using \textsf{pte\_initialize} for page-table address allocation, we must relate this newly allocated physical address to the identity mapping map $\Xi$ -- Specification Lines 34 and 38 in Figure \ref{fig:calltopteinitialize}. Focusing on the specification of \textsf{pte\_initialize} separately in Figure \ref{fig:pteinitializespec}, we right immediately realize that instead of seeing see a physical pointsto for the fresly page-table address (e.g. $\mathsf{nextpaddr} \mapsto_{\mathsf{p}} \mathsf{w64\_0}$) deliberately in the post-conditoin in Lines 15-16, we observe a full-ownership token representing the knowledge that a frame and all the entries indexed from this frame are freshly allocated with full-ownership to be a part of the identity map, $\Xi$. The soundness argument of this specification relies on the fact that these freshly allocated resources is part of an entry construction that has not been completed yet: the presence bit is set (Line 42 in Figure \ref{fig:calltopteinitialize}) after these freshly allocated resources are incorporated to the entry construction (Line 41 in Figure \ref{fig:calltopteinitialize}). In other words, the side condition, (*), acknowledges any access to the entry with these resources as \textit{invalid}, as the entry is revealed to shared-accesses when the presence bit is set. 
 
   \subsubsection{Kernels Utilizing \textsf{P2V}}
