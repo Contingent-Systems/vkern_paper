@@ -532,7 +532,9 @@ mov    -0x18[rbp],rcx
 shr    0xc,rcx
 mov    -0x30[rbp],rdx
 mov    [rdx],rsi
-$\specline{\textsf{pt\_entry}_{\textsf{pfn}} \mapsto_{p} \textsf{addr\_to\_pfn}(\textsf{pa})}_{\rtv}$
+$\specline{\textsf{pt\_entry}_{\textsf{pfn}} \mapsto_{p} \textsf{addr\_to\_pfn}(\textsf{pa}) \ast \textsf{R}_{\textsf{walk\_acc}}}_{\rtv}$
+$\sqsubseteq$
+$\specline{\textsf{va} \mapsto_{\textsf{v,q}} \textsf{pa} \ast \textsf{P}}$
 movabs 0xffffffffff,rdi
 and    rdi,rcx
 shl    0xc,rcx
