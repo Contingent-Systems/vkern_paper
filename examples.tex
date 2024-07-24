@@ -400,7 +400,7 @@ add    rdi,rsi
 mov    rsi,-0x18[rbp]
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{plm4\_entry}\},m)  }_{\rtv}$
 $\specline{ \ghostmaptoken{\textsf{id}}{(\mathsf{plm4\_entry})}{\textsf{4}} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
-$\specline{\begin{array}{l} \textsf{entry\_present(l4e\_val)} -* \\  \;\;\;\;\;\;\; \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(plm4)}_{pfn} \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{3}    \end{array}} $
+$\specline{\begin{array}{l} \textsf{entry\_present(l4e\_val)} -* \\  \;\;\;\;\;\;\; \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(plm4)}_{pfn} \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{3}    \end{array}}_{\rtv} $
 $\specline{ \textsf{plm4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{plm4 l4e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}_{\rtv}$    
 ;;pte_t *pdp = pte_get_next_table_succ(pml4_entry);
 mov    -0x18[rbp],rdi
@@ -411,15 +411,16 @@ $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\s
 $\specline{ \ghostmaptoken{\textsf{id}}{(\mathsf{plm4\_entry})}{\textsf{4}}  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{\forall_{i\in\textsf{0..511}} \; \textsf{table\_root(plm4\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{3} } $
 $\specline{ \textsf{plm4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{plm4\_entry l4e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}_{\rtv}$
-$\specline{\texttt{rax}  \mapsto_{\textsf{r}} \textsf{table\_root(pml4\_entry}_{\textsf{pfn}})}$
+$\specline{\texttt{rax}  \mapsto_{\textsf{r}} \textsf{table\_root(pml4\_entry}_{\textsf{pfn}})}_{\rtv}$
 ;;pte_t *pdp_entry = &pdp[PDPEX(va)];
-$\specline{\textsf{pdp}+\textsf{PDPEX(va)} = \textsf{pdp\_entry} \land \textsf{table\_root(pml4\_entry}_{\textsf{pfn}})  = \textsf{pdp}}$
+$\specline{\textsf{pdp}+\textsf{PDPEX(va)} = \textsf{pdp\_entry} \land \textsf{table\_root(pml4\_entry}_{\textsf{pfn}})  = \textsf{pdp}}_{\rtv}$
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{plm4\_entry},\textsf{pdp\_entry}\},m)  }_{\rtv}$
 $\specline{\ghostmaptoken{\textsf{id}}{(\mathsf{plm4\_entry})}{\textsf{4}} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{\forall_{i\in\textsf{0..511}} \; \textsf{table\_root(plm4\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{3} }_{\rtv}$
 $\specline{ \textsf{plm4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l4e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$
 $\specline{ \textsf{pdp\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l3e\_val} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{pdp\_entry})}{\textsf{3}}}_{\rtv}$
-$\specline{\begin{array}{l} \textsf{entry\_present(l3e\_val)} -* \\  \;\;\;\;\;\;\; \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(pdp\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{2}    \end{array}} $
-$\specline{\ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l3e\_val})\urcorner}$
+$\specline{\begin{array}{l} \textsf{entry\_present(l3e\_val)} -* \\  \;\;\;\;\;\;\; \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(pdp\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{2}    \end{array}}_{\rtv} $
+$\specline{\ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l3e\_val})\urcorner}_{\rtv}$
 ;;pte_t *pd = pte_get_next_table_succ(pdp_entry);
 ...
 ;;pte_t *pd_entry = &pd[PDEX(va)];
@@ -509,11 +510,8 @@ known-valid page table walks (\textsf{pte\_walkpgdir} Line X in Figure \ref{fig:
 ;;char *a; pte_t *pte;
 ;;a = (char *)PGROUNDUP((uintptr_t)va);
 ...
+ $\specline{\textsf{P} \ast \textsf{plm4} \mapsto_{\textsf{id}} \textsf{\_} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}}_{\rtv}$      
 ;;pte = walkpgdir_succ(pml4, a);
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m)  \ast \texttt{rdi}\mapsto_{r} \textsf{plm4} \ast \texttt{rsi}\mapsto_{r} \textsf{va} \ast  \texttt{rdx}\mapsto_{r} \textsf{pa} \ast \texttt{rcx}\mapsto_{r} \textsf{perm} \ast \texttt{rax}\mapsto_{\textsf{r}} \textsf{pte\_addr} \ast }_{\rtv}$
-$\specline{\ulcorner \texttt{aligned va} \land  \theta \; !!\; \vaddr = \texttt{None}\urcorner\ast \textsf{vl4} \mapsto_{\textsf{vpte,qfrac}} \textsf{l4e l4} \ast \textsf{vl3} \mapsto_{\textsf{vpte,qfrac}} \textsf{l3e l3} \ast \textsf{vl2} \mapsto_{\textsf{vpte,qfrac}} \textsf{l2e pa}  \ast }_{\rtv}$
-$\specline{\textsf{pte\_addr} \mapsto_{\textsf{vpte,qfrac}} \textsf{pa} \textsf{pte\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \lnot (\textsf{entry\_present pte\_val}) \urcorner}_{\rtv}$     
-$\specline{\texttt{rbp-8}\mapsto_{v} \textsf{plm4} \ast \texttt{rbp-16}\mapsto_{v} \textsf{va}  \ast \texttt{rbp-24}\mapsto_{v} \textsf{pa} \ast \texttt{rbp-32}\mapsto_{v} \textsf{perm} \ast \textsf{r8} \mapsto_{\textsf{r}} \textsf{\_}}_{\rtv}$      
 mov    -0x8[rbp],rdi
 mov    -0x28[rbp],rsi
 mov    0x0,rax
@@ -527,17 +525,14 @@ mov    rcx,-0x30[rbp]
 ;;pte->user_acc     = PTE_USER_ACC_SET(perm);
 ;;pte->writethrough = PTE_WRITETHRU_SET(perm);
 ;;pte->nocache      = PTE_NOCACHE_SET(perm);
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m)  \ast \texttt{rdi}\mapsto_{r} \textsf{plm4} \ast \texttt{rsi}\mapsto_{r} \textsf{va} \ast  \texttt{rdx}\mapsto_{r} \textsf{pa} \ast \texttt{rcx}\mapsto_{r} \textsf{perm} \ast \texttt{rax}\mapsto_{\textsf{r}} \textsf{pte\_addr} \ast \ulcorner \texttt{aligned va} \land  \theta \; !!\; \vaddr = \texttt{None}\urcorner\ast }_{\rtv}$
-$\specline{\textsf{pte\_addr} \mapsto_{\textsf{vpte,qfrac}} \textsf{pa} \textsf{pte\_val} \ast \ulcorner \lnot \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present pte\_val}) \urcorner}$     
-$\specline{\texttt{rbp-8}\mapsto_{v} \textsf{plm4} \ast \texttt{rbp-16}\mapsto_{v} \textsf{va}  \ast \texttt{rbp-24}\mapsto_{v} \textsf{pa} \ast \texttt{rbp-32}\mapsto_{v} \textsf{perm} \ast \textsf{r8} \mapsto_{\textsf{r}} \textsf{\_}}_{\rtv}$      
+$\specline{ \left( \begin{array}{l} \textsf{pdp}+\textsf{PDPEX(va)} = \textsf{pdp\_entry} \land \textsf{table\_root(pml4\_entry}_{\textsf{pfn}})  = \textsf{pdp} \\ \textsf{pd}+\textsf{PDEX(va)} = \textsf{pd\_entry} \land \textsf{table\_root(pml3\_entry}_{\textsf{pfn}})  = \textsf{pd} \\ \textsf{pt}+\textsf{PDPEX(va)} = \textsf{pt\_entry} \land \textsf{table\_root(pml2\_entry}_{\textsf{pfn}})  = \textsf{pt} \\  \textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{plm4\_entry},\textsf{pdp\_entry},\textsf{pd\_entry},\textsf{pt\_entry}\},m)  \\ \ghostmaptoken{\delta{}s}{\rtv}{\delta} \\
+\ghostmaptoken{\textsf{id}}{(\mathsf{plm4\_entry})}{\textsf{4}}\ast \ghostmaptoken{\textsf{id}}{(\mathsf{plm3\_entry})}{\textsf{3}} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{plm2\_entry})}{\textsf{2}}  \\ \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(plm4\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{3}  \\ \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(pdp\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{2}  \\ \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(pd\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{1}  \\  \textsf{plm4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l4e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner \\  \textsf{pdp\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l3e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l3e\_val})\urcorner \\  \textsf{pd\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l2e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l2e\_val})\urcorner \\   \textsf{pt\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l1e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l1e\_val})\urcorner    \end{array} \right)  =\textsf{R}_{\textsf{walk\_acc}}}$
 pte->pfn          = PTE_ADDR_TO_PFN(pa);
 mov    -0x18[rbp],rcx
 shr    0xc,rcx
 mov    -0x30[rbp],rdx
 mov    [rdx],rsi
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m)  \ast \texttt{rdi}\mapsto_{r} \textsf{plm4} \ast \texttt{rsi}\mapsto_{r} \textsf{va} \ast  \texttt{rdx}\mapsto_{r} \textsf{pa} \ast \texttt{rcx}\mapsto_{r} \textsf{perm} \ast \texttt{rax}\mapsto_{\textsf{r}} \textsf{pte\_addr} \ast \ulcorner \texttt{aligned va} \land  \theta \; !!\; \vaddr = \texttt{None}\urcorner\ast }_{\rtv}$
-$\specline{\textsf{pte\_addr} \mapsto_{\textsf{vpte,qfrac}} \textsf{pa} (\textsf{pa}>>12) \ast \ulcorner \lnot \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present pte\_val}) \urcorner}$     
-$\specline{\texttt{rbp-8}\mapsto_{v} \textsf{plm4} \ast \texttt{rbp-16}\mapsto_{v} \textsf{va}  \ast \texttt{rbp-24}\mapsto_{v} \textsf{pa} \ast \texttt{rbp-32}\mapsto_{v} \textsf{perm} \ast \textsf{r8} \mapsto_{\textsf{r}} \textsf{\_}}_{\rtv}$      
+$\specline{\textsf{pt\_entry}_{\textsf{pfn}} \mapsto_{p} \textsf{addr\_to\_pfn}(\textsf{pa})}_{\rtv}$
 movabs 0xffffffffff,rdi
 and    rdi,rcx
 shl    0xc,rcx
@@ -551,7 +546,7 @@ mov    rsi,[rdx]
 ...
 ;;}
 \end{lstlisting}
-  \caption{Specification and proof of code for mapping a new page.}
+  \caption{Specification and proof of code for mapping a new page with $\textsf{R}_{\textsf{walk\_acc}}$ in Figure \ref{walkpgdir} expanded.}
 \label{fig:mapping_code}
 \end{figure}
 
