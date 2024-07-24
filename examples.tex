@@ -388,7 +388,7 @@ Realizing page-table directory walk amounts to calling \textsf{pte\_get\_next\_t
 \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
 ;;pte_t *walkpgdir_succ(pte_t *pml4, const void *va) {
  ...
- $\specline{\textsf{P} \ast \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}}_{\rtv}$
+ $\specline{\textsf{P} \ast \textsf{plm4} \mapsto_{\textsf{id}} \textsf{\_} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}}_{\rtv}$
 ;;set up the stack for root address and virtual address    
  ;;pte_t *pml4_entry = &pml4[PML4EX(va)];
 mov    -0x8[rbp],rsi
@@ -398,19 +398,28 @@ and    0x1ff,rdi
 shl    0x3,rdi
 add    rdi,rsi
 mov    rsi,-0x18[rbp]
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry}\},m)  }_{\rtv}$
-$\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
-$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$    
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{plm4\_entry}\},m)  }_{\rtv}$
+$\specline{ \ghostmaptoken{\textsf{id}}{(\mathsf{plm4\_entry})}{\textsf{4}} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{\begin{array}{l} \textsf{entry\_present(l4e\_val)} -* \\  \;\;\;\;\;\;\; \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(plm4)}_{pfn} \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{3}    \end{array}} $
+$\specline{ \textsf{plm4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{plm4 l4e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}_{\rtv}$    
 ;;pte_t *pdp = pte_get_next_table_succ(pml4_entry);
 mov    -0x18[rbp],rdi
 ...
 callq  c0 <pte_get_next_table_succ>
 ;;save the physical next table address in rax
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry},\textsf{entry}_{\textsf{pfn}}\},m)  }_{\rtv}$
-$\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
-$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$
-$\specline{ \textsf{entry}_{\textsf{pfn}} \mapsto_{\textsf{v,qf}} \textsf{pdp\_val} \ast \textsf{rax} \mapsto_{\textsf{r}} \textsf{entry}_{\textsf{pfn}}}_{\rtv}$    
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{plm4\_entry}\},m)  }_{\rtv}$
+$\specline{ \ghostmaptoken{\textsf{id}}{(\mathsf{plm4\_entry})}{\textsf{4}}  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{\forall_{i\in\textsf{0..511}} \; \textsf{table\_root(plm4\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{3} } $
+$\specline{ \textsf{plm4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{plm4\_entry l4e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}_{\rtv}$
+$\specline{\texttt{rax}  \mapsto_{\textsf{r}} \textsf{table\_root(pml4\_entry}_{\textsf{pfn}})}$
 ;;pte_t *pdp_entry = &pdp[PDPEX(va)];
+$\specline{\textsf{pdp}+\textsf{PDPEX(va)} = \textsf{pdp\_entry} \land \textsf{table\_root(pml4\_entry}_{\textsf{pfn}})  = \textsf{pdp}}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{plm4\_entry},\textsf{pdp\_entry}\},m)  }_{\rtv}$
+$\specline{\ghostmaptoken{\textsf{id}}{(\mathsf{plm4\_entry})}{\textsf{4}} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{ \textsf{plm4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l4e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$
+$\specline{ \textsf{pdp\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l3e\_val} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{pdp\_entry})}{\textsf{3}}}_{\rtv}$
+$\specline{\begin{array}{l} \textsf{entry\_present(l3e\_val)} -* \\  \;\;\;\;\;\;\; \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(pdp\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{2}    \end{array}} $
+$\specline{\ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l3e\_val})\urcorner}$
 ;;pte_t *pd = pte_get_next_table_succ(pdp_entry);
 ...
 ;;pte_t *pd_entry = &pd[PDEX(va)];
