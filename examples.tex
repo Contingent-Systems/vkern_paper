@@ -322,21 +322,25 @@ for a physical page (utilizing the page-allocator's \textsf{kalloc} -- currently
 \begin{figure}\footnotesize
   \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
 
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)   \ast \texttt{rbp-16} \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{table\_addr}  }_{\rtv}$
-$\specline{\texttt{rax} \mapsto_{\textsf{r}} \textsf{\_} \ast \textsf{table\_addr} \mapsto_{\mathsf{v}} \mathsf{\_}\ast\ghostmaptoken{\delta{}s}{\rtv}{\delta} }_{\rtv}$
-;;void pte_initialize(pte_t **table) {
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)   \ast \texttt{rbp-16} \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry+KERNBASE}  }_{\rtv}$
+$\specline{\texttt{rax} \mapsto_{\textsf{r}} \textsf{\_} \ast \lnot(\textsf{entry\_present entry\_val} }_{\rtv}$
+$\specline{\textsf{entry+KERNBASE} \mapsto_{\textsf{pte,1}} \textsf{entry entryv} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{entry})}{\textsf{level}} }$
+;;void pte_initialize(pte_t *entry) {
 ...
 ;;set up the stack    
 ;;allocate a full zeroed page for 512 8-byte entries 
 ;;pte_t *local = kalloc();
 callq  81 <pte_initialize+0x11>	7d: R_X86_64_PLT32	kalloc-0x4 (*\label{line:call_to_kalloc}*)
 mov    rax,-0x10[rbp] 
-;;*table = local;
+;;entry->pfn = PTE_ADDR_TO_PFN((uintptr_t) local);
 mov    -0x10[rbp],rax
 mov    -0x8[rbp],rdi
 mov    rax,[rdi]
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)   \ast \texttt{rbp-16} \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{table\_addr}  }_{\rtv}$
-$\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \textsf{table\_addr} \mapsto_{\mathsf{v}} \mathsf{\mathsf{nextpaddr}} \ast \textsf{nextpaddr} \mapsto_{\textsf{id}} \textsf{\_}\ast \forall_{i\in\textsf{0..511}} \textsf{nextpaddr + i * 8} \mapsto_{\textsf{id}} \textsf{\_} \ast\ghostmaptoken{\delta{}s}{\rtv}{\delta} }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)   \ast \texttt{rbp-16} \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry+KERNBASE} \ast \texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr}  }_{\rtv}$
+$\specline{\textsf{entry+KERNBASE} \mapsto_{\textsf{pte,q}} \textsf{entry entryv} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{entry})}{\textsf{level}} }$
+$\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \lnot(\textsf{entry\_present entry\_val}) }$
+$\specline{ \textsf{entry+KERNBASE} \mapsto_{\mathsf{pte,1}} \mathsf{entry} \; \textsf{pfn\_set(entryv nextpaddr)}}$
+$\specline{\ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \begin{array}{l} \textsf{entry\_present(pte\_initialize(pfn\_set(entryv nextpaddr)))} -* \\  \;\;\;\;\;\;\; \forall_{i\in\textsf{0..511} \; \textsf{table\_root(pte\_initialized (pfn\_set (entryv nextpaddr))) + i * 8} \mapsto_{\textsf{id}} \textsf{level-1}    \end{array}  }_{\rtv}$
 ;;clean up the stack
 ...
 \end{lstlisting}
