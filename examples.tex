@@ -324,7 +324,7 @@ for a physical page (utilizing the page-allocator's \textsf{kalloc} -- currently
 
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)   \ast \texttt{rbp-16} \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry+KERNBASE}  }_{\rtv}$
 $\specline{\texttt{rax} \mapsto_{\textsf{r}} \textsf{\_} \ast \lnot(\textsf{entry\_present entry\_val} }_{\rtv}$
-$\specline{\textsf{entry+KERNBASE} \mapsto_{\textsf{pte,1}} \textsf{entry entryv} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{entry})}{\textsf{level}} }$
+$\specline{\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{entry entryv} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{entry})}{\textsf{level}} }$
 ;;void pte_initialize(pte_t *entry) {
 ...
 ;;set up the stack    
@@ -337,7 +337,7 @@ mov    -0x10[rbp],rax
 mov    -0x8[rbp],rdi
 mov    rax,[rdi]
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)   \ast \texttt{rbp-16} \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry+KERNBASE} \ast \texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr}  }_{\rtv}$
-$\specline{\textsf{entry+KERNBASE} \mapsto_{\textsf{pte,q}} \textsf{entry entryv} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{entry})}{\textsf{level}} }$
+$\specline{\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,}} \textsf{entry entryv} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{entry})}{\textsf{level}} }$
 $\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \lnot(\textsf{entry\_present entry\_val}) }$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\mathsf{pte,1}} \mathsf{entry} \; \textsf{pfn\_set(entryv nextpaddr)}}$
 $\specline{\ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \begin{array}{l} \textsf{entry\_present(pte\_initialize(pfn\_set(entryv nextpaddr)))} -* \\  \;\;\;\;\;\;\; \forall_{i\in\textsf{0..511} \; \textsf{table\_root(pte\_initialized (pfn\_set (entryv nextpaddr))) + i * 8} \mapsto_{\textsf{id}} \textsf{level-1}    \end{array}  }_{\rtv}$
