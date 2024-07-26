@@ -339,9 +339,9 @@ mov    rax,-0x10[rbp] ;; Store into 'local'
 mov    -0x10[rbp],rax
 mov    -0x8[rbp],rdi
 mov    rax,[rdi]
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)   \ast \texttt{rbp-16} \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry+KERNBASE} \ast \texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr}  }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)   \ast \texttt{rbp-16} \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry+KERNBASE} }_{\rtv}$
 $\specline{\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,}} \textsf{entry entryv} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{entry})}{\textsf{level}} }$
-$\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \lnot(\textsf{entry\_present entry\_val}) }$
+$\specline{\texttt{rax} \mapsto_{\textsf{v}} \textsf{nextpaddr} \ast \lnot(\textsf{entry\_present entry\_v}) }$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\mathsf{pte,1}} \mathsf{entry} \; \textsf{pfn\_set(entryv nextpaddr)}}$
 $\specline{\ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \begin{array}{l} \ulcorner\textsf{present\_L(pte\_initialize(pfn\_set(entryv nextpaddr)),level)}\urcorner \wand \\  \;\;\;\;\;\;\; \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(pte\_initialized (pfn\_set (entryv nextpaddr))) + i * 8} \mapsto_{\textsf{id}} \textsf{level-1}    \end{array}  }_{\rtv}$
 ... ;;clean up the stack, return
