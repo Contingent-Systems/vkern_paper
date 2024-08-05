@@ -178,7 +178,7 @@ $\specline{  \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast \ghostmaptoken
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}}  \textsf{pte\_initialized(pfn\_set(entryv nextpaddr))} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
 $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{pte\_initialized(pfn\_set(entry\_val nextpaddr))}  \ast rax \mapsto_{r} \textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}  }_{\rtv}$
 $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:alloc_path_end}*)
-;;}
+;;} (*\label{line:end_of_allocation_path}*)
 ... ;; Code after conditional continued in Figure (*\ref{fig:p2v}*)
 \end{lstlisting}
 % ;;uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr);
@@ -256,8 +256,10 @@ which requires full permission. Fortunately, the entry can only be in use if its
 that no virtual points-to assertions in $\delta$/$\theta$ have any partial ownership.
 Thus we use the invariant portion annotated as ``Entry validity'' in Figure \ref{fig:peraspaceinvariant_with_p2v_extension} to capture this:
 if the entry is invalid the invariant holds full ownership of the entry, so it can be updated; while if the entry is valid,
-the invariant owns only a constant non-zero fragment sufficient to read the entry, but not modify it (which would invalidate some virtual points-to assertions).
-
+the invariant owns only a constant non-zero fragment sufficient to read the entry, but not modify it (which would invalidate some virtual points-to assertions):
+\begin{equation*}
+ \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner \tag{*}
+\end{equation*}
 Thus the fractional ownership of the physical location is enough for Line \ref{line:read_entry_contents} in Figure \ref{fig:calltopteinitialize} to access the entry, though in \lstinline|get_next_table|
 the caller has pulled that piece of information out of the invariant and passed it for the entry at hand.
 This removal appears explicitly in assertions,
@@ -271,18 +273,11 @@ and permits storing a new entry (in ellided code around Line \ref{line:install_n
 This seemingly-simple piece of code has a highly non-trivial correctness argument, which depends critically on detailed invariants on how access to page table
 entries is shared between parts of the kernel. No prior work has engaged with this problem.
 
-\todo[inline,color=blue]{Colin revision frontier: need to resolve entry+KERNBASE issue to finish pulling this into prose above}
-
-\textsf{pte\_walkpgdir}, as a client, holds the knowledge that there exists an identity mapping for the physical entry address (\textsf{entry}) in the root page table ($\textsf{L}_{4}$):  $\mathsf{entry} \mapsto_{\textsf{id}} \textsf{\_}$ in Specification Line 3 is a partially owned token for accessing and looking up the resources in the identity map, $\Xi$, to construct the \textit{virtual-to-physical} pointsto relation $\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry \entry\_val}$ with the virtual address (\textsf{entry+KERNBASE}) obtained by offsetting the physical address (\textsf{entry}). With this knowledge on the root-page-table-entry, we can start traversing the page-table tree which requires locating the address of the next table -- a call to \textsf{pte\_get\_next\_table} shown in Figure \ref{fig:calltopteinitialize}. 
-Beyond a frame, the precondition before Line 15 requires the current address space invariant, and knowledge that \textsf{entry} is mapped to a random entry value, subtly, the operation also, at least, requires that the relevant table entry is readable, but the exact portion of ownership returned must be determined by inspecting the valid bit
-of the value in memory --- so full ownership is returned only for unused entries.
-This is a simple piece of code whose functionality is critical and whose correctness is highly non-trivial. No prior work engages with this problem.
-
-Concretely speaking, going back to Line 15 in Figure \ref{fig:calltopteinitialize}, to read the value referenced by physical address \textsf{entry} while preserving the soundness of memory mappings, our extended invariant introduces the side condition (*)
-\begin{equation*}
- \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner \tag{*}
-\end{equation*}
-assuring that looking the identity mapping for \textsf{entry} is safe under the subtle justification which equates the full ownership to the non/presence of the entry which can only be known when investigated in Line 21 in Figure \ref{fig:calltopteinitialize}.
+% Concretely speaking, going back to Line 15 in Figure \ref{fig:calltopteinitialize}, to read the value referenced by physical address \textsf{entry} while preserving the soundness of memory mappings, our extended invariant introduces the side condition (*)
+% \begin{equation*}
+%  \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner \tag{*}
+% \end{equation*}
+% assuring that looking the identity mapping for \textsf{entry} is safe under the subtle justification which equates the full ownership to the non/presence of the entry which can only be known when investigated in Line 21 in Figure \ref{fig:calltopteinitialize}.
 \begin{comment}
  \begin{figure*}
    \footnotesize
@@ -362,12 +357,12 @@ typically by starting general virtual address allocation at the highest physical
 This reserves the virtual addresses corresponding to all physical addresses plus the offset for later use in this pool,
 as needed.
 } and satisfies the offset invariants.
-\todo[inline,color=blue]{colin frontier.
-Stuck with line 31 onwards in Figure 7. rax holds nextpaddr, but I think that should be entrypfn, and 
-the explicit entrypfn id token assertion should go away, as its covered by the forall assertion.
-then the postcondition for pte-initialize should have a specific level now for the entries,
-like 0, which can be updated in the view shift on line 42.
-}
+% \todo[inline,color=blue]{colin frontier.
+% Stuck with line 31 onwards in Figure 7. rax holds nextpaddr, but I think that should be entrypfn, and 
+% the explicit entrypfn id token assertion should go away, as its covered by the forall assertion.
+% then the postcondition for pte-initialize should have a specific level now for the entries,
+% like 0, which can be updated in the view shift on line 42.
+% }
 % Focusing on the specification of \textsf{pte\_initialize} separately in Figure \ref{fig:pteinitializespec}, 
 % we right immediately realize that instead of seeing see a physical pointsto for the fresly page-table address 
 % (e.g. $\mathsf{nextpaddr} \mapsto_{\mathsf{p}} \mathsf{w64\_0}$) deliberately in the post-conditoin in Lines 15-16,
@@ -375,14 +370,19 @@ like 0, which can be updated in the view shift on line 42.
 % frame are freshly allocated with full-ownership to be a part of the identity map, $\Xi$. 
 The soundness argument of this specification relies on the fact that these freshly allocated resources is part 
 of an entry construction that has not been completed yet: the presence bit is set 
-(Line 42 in Figure \ref{fig:calltopteinitialize}) after these freshly allocated resources are incorporated to the 
-entry construction (Line 41 in Figure \ref{fig:calltopteinitialize}). In other words, the side condition, (*),
- acknowledges any access to the entry with these resources as \textit{invalid}, as the entry is revealed to 
-shared-accesses when the presence bit is set. 
+(Line \ref{line:install_new_entry} in Figure \ref{fig:calltopteinitialize}) after these freshly allocated resources are incorporated to the 
+entry construction via the page-frame portion of the PTE. In other words, the side condition, (*),
+ formalizes that any access to the entry with these resources as \textit{invalid}, until the entry is revealed to 
+shared accesses when the presence bit is set. 
 
-  \subsubsection{Kernels Utilizing \textsf{P2V}}
-  \label{sec:p2v}
- Once we reach to the certain knowledge of having an entry with a frame referencing to an allocated resource resides inside the identity mappings which can already be known (not taking the allocation path in (Lines 21-53 in Figure \ref{fig:calltopteinitialize}) or by ensuring the allocated frame is made present to shared accesses, then put into identity mappings -- logical update from Specification Lines 43-47 to 49-52 putting $\textsf{entry}_{\textsf{pfn}}$ into $\Xi$ in Figure \ref{fig:calltopteinitialize}), no matther how it is constructed, we can utilize this knowledge to convert this frame address into an virtual address of the next page table through, again, identity mappings -- Line 57 in Figure \ref{fig:calltopteinitialize} specified in Figure \ref{fig:p2v}.
+\subsubsection{Physical-to-Virtual Conversion with \textsf{P2V}}
+\label{sec:p2v}
+Once we reach to the certain knowledge of having an entry with a frame referencing to an allocated resource resides inside the identity mappings
+(which can already be known if the branch at Line \ref{line:check_entry_present_jump} is taken, or ensured by allocating and installing a new entry
+as just discussed for Lines \ref{line:check_entry_present_jump}--\ref{line:end_of_allocation_path}), 
+we can utilize this knowledge 
+to convert this frame address into an virtual address of the next page table through, again, identity mappings -- Line 57 in Figure \ref{fig:calltopteinitialize} 
+specified in Figure \ref{fig:p2v}.
 
 This actually constitutes a very critical piece of the full page table walk verification, and we have verified the critical step for a small x86-64 kernel, which is the physical-to-virtual conversion (often appearing as a macro \texttt{P2V} inside the macro \textsf{ PTE\_PFN\_TO\_ADDR} in C source code). In our small kernel (Line 57 in Figure \ref{fig:calltopteinitialize}), as in larger kernels, \texttt{P2V} is actually just addition, but the correctness of this simple instruction is quite subtle and relies on identity mappings explained in the previous section (Section \ref{subsec:identitymappings}) as a part of understanding our address-space invariant in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}.
 \begin{figure}\footnotesize
@@ -422,6 +422,13 @@ Concretely speaking, accessing to the entry -- whose address is kept in the regi
 memory mapping that is logically provided through the update from Specfication Lines 3 to 15 in Figure \ref{walkpgdir} on the client side by the removal of \textsf{entry}
 from the map $\Xi$ in the invariant to construct the \textsf{vpte-ptsto} (Specfication Line 15 in Figure \ref{walkpgdir}). 
 This magical abstraction -- represented as $\Xi$ in the invariant definition -- provides us to construct this \textsf{pte-ptsto} out of an physical address is called \textit{identity-mappings}.
+}
+
+\todo[inline,color=blue]{MORE TO INTEGRATE: 
+\textsf{pte\_walkpgdir}, as a client, holds the knowledge that there exists an identity mapping for the physical entry address (\textsf{entry}) in the root page table ($\textsf{L}_{4}$):  $\mathsf{entry} \mapsto_{\textsf{id}} \textsf{\_}$ in Specification Line 3 is a partially owned token for accessing and looking up the resources in the identity map, $\Xi$, to construct the \textit{virtual-to-physical} pointsto relation $\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry \entry\_val}$ with the virtual address (\textsf{entry+KERNBASE}) obtained by offsetting the physical address (\textsf{entry}). With this knowledge on the root-page-table-entry, we can start traversing the page-table tree which requires locating the address of the next table -- a call to \textsf{pte\_get\_next\_table} shown in Figure \ref{fig:calltopteinitialize}. 
+Beyond a frame, the precondition before Line 15 requires the current address space invariant, and knowledge that \textsf{entry} is mapped to a random entry value, subtly, the operation also, at least, requires that the relevant table entry is readable, but the exact portion of ownership returned must be determined by inspecting the valid bit
+of the value in memory --- so full ownership is returned only for unused entries.
+This is a simple piece of code whose functionality is critical and whose correctness is highly non-trivial. No prior work engages with this problem.
 }
 
 Realizing page-table directory walk amounts to calling \textsf{pte\_get\_next\_table} for each level as shown in Figure \ref{walkpgdir}. The special part of the specficication for a page table walk can be considered as accumulation of memory mappings for the page-table entries visited and frame addresses for page-tables. For example, Line 23-24 in Figure \ref{walkpgdir} shows the virtual-pointsto for a L3 page table and the virtual-page-table-entry-pointsto for an L4 entry. In the final post-condition, we expect the accumulation of these resources from each level -- $\textsf{R}_{\textsf{walk\_succ}}$ -- which allows us to construct the path to the L1 entry in the tree to insert a new page.  
