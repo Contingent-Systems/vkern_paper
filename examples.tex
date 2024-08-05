@@ -384,7 +384,13 @@ we can utilize this knowledge
 to convert this frame address into an virtual address of the next page table through, again, identity mappings -- Line 57 in Figure \ref{fig:calltopteinitialize} 
 specified in Figure \ref{fig:p2v}.
 
-This actually constitutes a very critical piece of the full page table walk verification, and we have verified the critical step for a small x86-64 kernel, which is the physical-to-virtual conversion (often appearing as a macro \texttt{P2V} inside the macro \textsf{ PTE\_PFN\_TO\_ADDR} in C source code). In our small kernel (Line 57 in Figure \ref{fig:calltopteinitialize}), as in larger kernels, \texttt{P2V} is actually just addition, but the correctness of this simple instruction is quite subtle and relies on identity mappings explained in the previous section (Section \ref{subsec:identitymappings}) as a part of understanding our address-space invariant in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}.
+This actually constitutes a very critical piece of the full page table walk verification, and we have verified the critical step for a small x86-64 kernel, 
+which is the physical-to-virtual conversion (often appearing as a macro \texttt{P2V} in C source code). 
+In our small kernel (Line \ref{line:p2v} in Figure \ref{fig:p2v}), as in larger kernels, \texttt{P2V} is actually just addition by the
+constant offset mentioned in Section \ref{subsec:identitymappings}, but the correctness 
+of this simple instruction is quite subtle and relies on the extended invariant (Figure \ref{fig:peraspaceinvariant_with_p2v_extension})
+explained in that section.
+
 \begin{figure}\footnotesize
 \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
 ... ;; Continued from Figure (*\ref{fig:calltopteinitialize}*) either by following the pte allocation path or not
@@ -392,7 +398,7 @@ $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\s
 $\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{(pte\_initialized (entry\_val.pfn))} \urcorner }_{\rtv}$
 $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{(pte\_initialized (entry\_val.pfn)))} \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{ table\_root (pte\_initialize(entry\_val.pfn))} }_{\rtv}$
-;;uintptr_t next_virt_addr = (uintptr_t) P2V(entry.pfn<<12);  
+;;uintptr_t next_virt_addr = (uintptr_t) P2V(entry.pfn<<12); (*\label{line:p2v}*) 
  movabs KERNBASE,rcx
  add    rcx,rax
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \}),m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{rcx}  \mapsto_{\textsf{r}} \textsf{KERNBASE} }_{\rtv}$
@@ -407,7 +413,23 @@ $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{(pte\_initialized (entr
 \caption{Converting a physical address of a PTE to a virtual address (w/o instruction pointer or flag updates). Abreviating the other relevant resources (including the lower entries) peeled-out of the invariant as $\textsf{R}_{\textsf{children}}$ }
 \label{fig:p2v}
 \end{figure}
-As shown in Figure \ref{fig:p2v}, \lstinline|rcx| holds the offset value \textsf{KERNBASE} which gives us the value of the virtual address ($\textsf{entry}_{\textsf{pfn}}$ \textsf{+KERNBASE}) in the identity map ($\Xi\setminus\{entry\}\cup \{\textsf{entry}_{\textsf{pfn}}) \}$) of the kernel invariant: the logical update in Specification  Lines 5-10 to 10-14 for obtaining virtual-pointsto resource for the frame ($\textsf{entry}_{\textsf{pfn}}$) by removing it from the ghost map ($\Xi\setminus\{entry\}\cup \{\textsf{entry}_{\textsf{pfn}}) \}$) in Line 5 and compute the identity mapping for this physical frame address in Line 13 in Figure \ref{fig:p2v}).
+Figure \ref{fig:p2v} shows the verification of the end of \lstinline|pte_get_next_table| specialized to the case where 
+where no allocation was necessary (i.e., the conditional on Line \ref{line:check_entry_present} of Figure \ref{fig:calltopteinitialize} was taken).
+The code loads \lstinline|rcx| with the offset value \textsf{KERNBASE}, which gives us the value of the virtual address ($\textsf{entry}_{\textsf{pfn}}$ \textsf{+KERNBASE})
+of the \emph{base} of the next level of the page table.
+\todo[inline]{the next sentence depends on having figure 10 updated to reflect the page-worth of tokens}
+While we could now convert this address to a virtual points-to, this is not necessarily the correct thing to do.
+The caller \lstinline|walkpgdir| (discussed next) uses \lstinline|pte_get_next_table| to retrieve just the base address,
+because only the caller knows which entry in the subsequent table will be accessed (it depends on the corresponding bits from the virtual
+address being translated). So instead we pass back the per-address-space invariant with the identity mapping resources for \lstinline|entry|
+pulled out. It is up to the caller to determine which entry in that table must actually
+be accessed --- by selecting the appropriate index into the 512 ghost map tokens returned in the postcondition,
+and using the ghost translation and physical location portions of the invariant to assemble a vpte-pointsto.
+% in the identity map ($\Xi\setminus\{entry\}$) of the kernel invariant.
+% the logical update in Specification  Lines 5-10 to 10-14 for obtaining virtual-pointsto resource for the frame 
+% ($\textsf{entry}_{\textsf{pfn}}$) by removing it from the ghost map ($\Xi\setminus\{entry\}\cup \{\textsf{entry}_{\textsf{pfn}}) \}$) 
+% in Line 5 and compute the identity mapping for this physical frame address in Line 13 in Figure \ref{fig:p2v}).
+
 
 
 \subsubsection{Walking Page-Table Tree: Calling \textsf{pte\_get\_nexttable} for Each Level}
