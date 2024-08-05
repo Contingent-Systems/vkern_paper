@@ -448,31 +448,29 @@ and using the ghost translation and physical location portions of the invariant 
  ;;pte_t *pml4_entry = &pml4[PML4EX(va)];
 mov    -0x8[rbp],rsi
 mov    -0x10[rbp],rdi
-shr    0x27,rdi
-and    0x1ff,rdi
-shl    0x3,rdi
-add    rdi,rsi
-mov    rsi,-0x18[rbp]
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{plm4\_entry}\},m)  }_{\rtv}$
-$\specline{ \ghostmaptoken{\textsf{id}}{(\mathsf{plm4\_entry})}{\textsf{4}} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
-$\specline{\begin{array}{l} \textsf{entry\_present(l4e\_val)} -* \\  \;\;\;\;\;\;\; \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(plm4)}_{pfn} \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{3}    \end{array}}_{\rtv} $
-$\specline{ \textsf{plm4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{plm4 l4e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}_{\rtv}$    
+shr    0x27,rdi       ;; Shift L4 index to lowest bits
+and    0x1ff,rdi      ;; Mask to just lower 9 bits (0x1ff=511)
+shl    0x3,rdi        ;; Multiply by 8
+add    rdi,rsi        ;; Add to pml4 (virtual) table base
+mov    rsi,-0x18[rbp] ;; Store to local variable pml4_entry; logical pml4_entry is physical, program variable is virtual
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{pml4\_entry}\},m) \ast \forall_{i\in\textsf{0..511}\setminus\{\textsf{PML4EX(va)}\}}\ghostmaptoken{\textsf{id}}{(\textsf{rtv}+i*8)}{\textsf{4}}\ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{\textsf{entry\_present(l4e\_val)} \wand \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(pml4)}_{pfn} \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{3} }_{\rtv} $
+$\specline{ \textsf{pml4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{pml4\_entry l4e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}_{\rtv}$    
 ;;pte_t *pdp = pte_get_next_table(pml4_entry);
 mov    -0x18[rbp],rdi
 ...
 callq  c0 <pte_get_next_table>
 ;;save the physical next table address in rax
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{plm4\_entry}\},m)  }_{\rtv}$
-$\specline{ \ghostmaptoken{\textsf{id}}{(\mathsf{plm4\_entry})}{\textsf{4}}  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
-$\specline{\forall_{i\in\textsf{0..511}} \; \textsf{table\_root(plm4\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{3} } $
-$\specline{ \textsf{plm4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{plm4\_entry l4e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}_{\rtv}$
-$\specline{\texttt{rax}  \mapsto_{\textsf{r}} \textsf{table\_root(pml4\_entry}_{\textsf{pfn}})}_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{pml4\_entry}\},m)  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{\forall_{i\in\textsf{0..511}} \; \textsf{table\_root(l4e\_val'.pfn) + i * 8} \mapsto_{\textsf{id}} \textsf{3}  \ast \ulcorner\textsf{pdp-KERNBASE}=\textsf{table\_root(l4e\_val'.pfn)}\urcorner} $
+$\specline{ \textsf{pml4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{pml4\_entry l4e\_val'} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}_{\rtv}$
+$\specline{\texttt{rax}  \mapsto_{\textsf{r}} \textsf{table\_root(l4e\_val'.pfn)} }_{\rtv}$ ;; pte_get_next_table may have allocated a new page, updating entry
 ;;pte_t *pdp_entry = &pdp[PDPEX(va)];
 $\specline{\textsf{pdp}+\textsf{PDPEX(va)} = \textsf{pdp\_entry} \land \textsf{table\_root(pml4\_entry}_{\textsf{pfn}})  = \textsf{pdp}}_{\rtv}$
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{plm4\_entry},\textsf{pdp\_entry}\},m)  }_{\rtv}$
-$\specline{\ghostmaptoken{\textsf{id}}{(\mathsf{plm4\_entry})}{\textsf{4}} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
-$\specline{\forall_{i\in\textsf{0..511}} \; \textsf{table\_root(plm4\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{3} }_{\rtv}$
-$\specline{ \textsf{plm4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l4e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$(*\label{line:ex_l4_vpte}*)
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{pml4\_entry},\textsf{pdp\_entry}\},m)  }_{\rtv}$
+$\specline{\ghostmaptoken{\textsf{id}}{(\mathsf{pml4\_entry})}{\textsf{4}} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{\forall_{i\in\textsf{0..511}} \; \textsf{table\_root(pml4\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{3} }_{\rtv}$
+$\specline{ \textsf{pml4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l4e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$(*\label{line:ex_l4_vpte}*)
 $\specline{ \textsf{pdp\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l3e\_val} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{pdp\_entry})}{\textsf{3}}}_{\rtv}$(*\label{line:ex_l3_vpte}*)
 $\specline{\begin{array}{l} \textsf{entry\_present(l3e\_val)} -* \\  \;\;\;\;\;\;\; \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(pdp\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{2}    \end{array}}_{\rtv} $
 $\specline{\ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l3e\_val})\urcorner}_{\rtv}$
@@ -501,11 +499,15 @@ which allows us to construct and return the path to the L1 entry in the tree to 
 This is the code which performs the actual physical-to-virtual conversions using the identity mapping portion of the per-address-space invariant.
 
 \todo[inline]{colin frontier, need to incorporate these next 3 (2+1) paragraphs taken from earlier}
-\todo[inline,color=green]{need to finish updating ghost token assertions in figure}
+\todo[inline,color=green]{need to finish updating ghost token assertions in figure; I think they're correct now up to the pdp_entry assignment line}
 
 In the very first precondition on the client side -- e.g.\textsf{pte\_walkpgdir} in Figure \ref{walkpgdir} -- 
-we see that \textsf{vpte-ptsto} for the entry being accessed (\textsf{entry}) is constructed -- in S
-pecification Line \ref{line:get_next_vpte_precondition} of Figure \ref{fig:calltopteinitialize} for \textsf{entry}. Intuitively speaking, we start traversal from a certain entry address at the current level for which we know ($\textsf{entry} \mapsto_{\textsf{id}} \textsf{\_}$ in Line 3 in Figure \ref{walkpgdir}) that there is a memory mapping ($\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val}$  Line 15 in Figure \ref{walkpgdir}) that can be used to explore deeper in the page-tree.
+we see that \textsf{vpte-ptsto} for the entry being accessed (\textsf{entry}) is constructed -- in 
+Specification Line \ref{line:get_next_vpte_precondition} of Figure \ref{fig:calltopteinitialize} for \textsf{entry}. 
+Intuitively speaking, we start traversal from a certain entry address at the current level for which we know 
+($\textsf{entry} \mapsto_{\textsf{id}} \textsf{\_}$ in Line 3 in Figure \ref{walkpgdir}) that 
+there is a memory mapping ($\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val}$ 
+Line 15 in Figure \ref{walkpgdir}) that can be used to explore deeper in the page-tree.
 
 The most crucial aspect of page-table entry access relies on the subtle interplay between updating the shared page tables, and the not violating the memory mappings. 
 Concretely speaking, accessing to the entry -- whose address is kept in the register $\texttt{r8}$ -- in Line 15 in Figure \ref{fig:calltopteinitialize} requires a 
@@ -513,8 +515,15 @@ memory mapping that is logically provided through the update from Specfication L
 from the map $\Xi$ in the invariant to construct the \textsf{vpte-ptsto} (Specfication Line 15 in Figure \ref{walkpgdir}). 
 This magical abstraction -- represented as $\Xi$ in the invariant definition -- provides us to construct this \textsf{pte-ptsto} out of an physical address is called \textit{identity-mappings}.
 
-\textsf{pte\_walkpgdir}, as a client, holds the knowledge that there exists an identity mapping for the physical entry address (\textsf{entry}) in the root page table ($\textsf{L}_{4}$):  $\mathsf{entry} \mapsto_{\textsf{id}} \textsf{\_}$ in Specification Line 3 is a partially owned token for accessing and looking up the resources in the identity map, $\Xi$, to construct the \textit{virtual-to-physical} pointsto relation $\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry \entry\_val}$ with the virtual address (\textsf{entry+KERNBASE}) obtained by offsetting the physical address (\textsf{entry}). With this knowledge on the root-page-table-entry, we can start traversing the page-table tree which requires locating the address of the next table -- a call to \textsf{pte\_get\_next\_table} shown in Figure \ref{fig:calltopteinitialize}. 
-Beyond a frame, the precondition before Line 15 requires the current address space invariant, and knowledge that \textsf{entry} is mapped to a random entry value, subtly, the operation also, at least, requires that the relevant table entry is readable, but the exact portion of ownership returned must be determined by inspecting the valid bit
+\textsf{walkpgdir}, as a client, holds the knowledge that there exists an identity mapping for the physical entry address (\textsf{entry})
+ in the root page table ($\textsf{L}_{4}$):  $\mathsf{entry} \mapsto_{\textsf{id}} \textsf{\_}$ in Specification Line 3 is a partially owned
+ token for accessing and looking up the resources in the identity map, $\Xi$, to construct the \textit{virtual-to-physical} pointsto relation 
+$\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry \entry\_val}$ with the virtual address (\textsf{entry+KERNBASE}) obtained 
+by offsetting the physical address (\textsf{entry}). With this knowledge on the root-page-table-entry, we can start traversing the page-table 
+tree which requires locating the address of the next table -- a call to \textsf{pte\_get\_next\_table} shown in Figure \ref{fig:calltopteinitialize}. 
+Beyond a frame, the precondition before Line 15 requires the current address space invariant, and knowledge that \textsf{entry} is mapped to a 
+random entry value, subtly, the operation also, at least, requires that the relevant table entry is readable, but the exact portion of ownership 
+returned must be determined by inspecting the valid bit
 of the value in memory --- so full ownership is returned only for unused entries.
 This is a simple piece of code whose functionality is critical and whose correctness is highly non-trivial. No prior work engages with this problem.
 
@@ -592,7 +601,7 @@ known-valid page table walks (\textsf{pte\_walkpgdir} Line X in Figure \ref{fig:
 ;;char *a; pte_t *pte;
 ;;a = (char *)PGROUNDUP((uintptr_t)va);
 ...
- $\specline{\textsf{P} \ast \textsf{plm4} \mapsto_{\textsf{id}} \textsf{\_} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}}_{\rtv}$      
+ $\specline{\textsf{P} \ast \textsf{pml4} \mapsto_{\textsf{id}} \textsf{\_} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}}_{\rtv}$      
 ;;pte = walkpgdir(pml4, a);
 mov    -0x8[rbp],rdi
 mov    -0x28[rbp],rsi
@@ -607,8 +616,8 @@ mov    rcx,-0x30[rbp]
 ;;pte->user_acc     = PTE_USER_ACC_SET(perm);
 ;;pte->writethrough = PTE_WRITETHRU_SET(perm);
 ;;pte->nocache      = PTE_NOCACHE_SET(perm);
-$\specline{ \left( \begin{array}{l} \textsf{pdp}+\textsf{PDPEX(va)} = \textsf{pdp\_entry} \land \textsf{table\_root(pml4\_entry}_{\textsf{pfn}})  = \textsf{pdp} \\ \textsf{pd}+\textsf{PDEX(va)} = \textsf{pd\_entry} \land \textsf{table\_root(pml3\_entry}_{\textsf{pfn}})  = \textsf{pd} \\ \textsf{pt}+\textsf{PDPEX(va)} = \textsf{pt\_entry} \land \textsf{table\_root(pml2\_entry}_{\textsf{pfn}})  = \textsf{pt} \\  \textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{plm4\_entry},\textsf{pdp\_entry},\textsf{pd\_entry},\textsf{pt\_entry}\},m)  \\ \ghostmaptoken{\delta{}s}{\rtv}{\delta} \\
-\ghostmaptoken{\textsf{id}}{(\mathsf{plm4\_entry})}{\textsf{4}}\ast \ghostmaptoken{\textsf{id}}{(\mathsf{plm3\_entry})}{\textsf{3}} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{plm2\_entry})}{\textsf{2}}  \\ \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(plm4\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{3}  \\ \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(pdp\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{2}  \\ \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(pd\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{1}  \\  \textsf{plm4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l4e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner \\  \textsf{pdp\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l3e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l3e\_val})\urcorner \\  \textsf{pd\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l2e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l2e\_val})\urcorner \\   \textsf{pt\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l1e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l1e\_val})\urcorner    \end{array} \right)  =\textsf{R}_{\textsf{walk\_acc}}}$
+$\specline{ \left( \begin{array}{l} \textsf{pdp}+\textsf{PDPEX(va)} = \textsf{pdp\_entry} \land \textsf{table\_root(pml4\_entry}_{\textsf{pfn}})  = \textsf{pdp} \\ \textsf{pd}+\textsf{PDEX(va)} = \textsf{pd\_entry} \land \textsf{table\_root(pml3\_entry}_{\textsf{pfn}})  = \textsf{pd} \\ \textsf{pt}+\textsf{PDPEX(va)} = \textsf{pt\_entry} \land \textsf{table\_root(pml2\_entry}_{\textsf{pfn}})  = \textsf{pt} \\  \textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{pml4\_entry},\textsf{pdp\_entry},\textsf{pd\_entry},\textsf{pt\_entry}\},m)  \\ \ghostmaptoken{\delta{}s}{\rtv}{\delta} \\
+\ghostmaptoken{\textsf{id}}{(\mathsf{pml4\_entry})}{\textsf{4}}\ast \ghostmaptoken{\textsf{id}}{(\mathsf{plm3\_entry})}{\textsf{3}} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{plm2\_entry})}{\textsf{2}}  \\ \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(pml4\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{3}  \\ \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(pdp\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{2}  \\ \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(pd\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{1}  \\  \textsf{pml4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l4e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner \\  \textsf{pdp\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l3e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l3e\_val})\urcorner \\  \textsf{pd\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l2e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l2e\_val})\urcorner \\   \textsf{pt\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l1e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l1e\_val})\urcorner    \end{array} \right)  =\textsf{R}_{\textsf{walk\_acc}}}$
 pte->pfn          = PTE_ADDR_TO_PFN(pa);
 mov    -0x18[rbp],rcx
 shr    0xc,rcx
