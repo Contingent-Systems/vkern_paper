@@ -245,7 +245,7 @@ but describe the invariant here because installing a new level 3/2/1 table requi
   \label{fig:peraspaceinvariant_with_p2v_extension}
 \end{figure*}
 
-For each $\paddr\mapsto \texsf{v} \in\Xi$, the invariant tracks a virtual points-to justifying that virtual address $\paddr+\textsf{KERNBASE}$ maps to physical address $\paddr$
+For each $\paddr\mapsto \textsf{v} \in\Xi$, the invariant tracks a virtual points-to justifying that virtual address $\paddr+\textsf{KERNBASE}$ maps to physical address $\paddr$
 (the ``Ghost translation'' in Figure \ref{fig:peraspaceinvariant_with_p2v_extension});
 fractional ownership of the physical memory for that page table entry;
 and for valid entries (with the present bit set) above L1, ghost map tokens for every entry in the table pointed to by the entry, which can be used
