@@ -62,16 +62,17 @@ Second, we formally verify a switch into a new address space as part of a task s
 %\end{comment}
 \subsection{Traversing Live Page Tables}
 \label{sec:traversing}
-We build up to the main 
-The mapping operation of Figure \ref{fig:mapping_code} assumes an operation \textsf{pte\_walkpgdir} which must traverse the page tables
-in order to locate the address of the L1 entry to update --- possibly allocating tables at levels 3, 2, and 1 in the process.
+We build up to the main task of mapping a new page after traversing page tables in software.
+The mapping operation of Figure \ref{fig:mapping_code} assumes an operation \textsf{walkpgdir} which must traverse the page tables
+in order to locate the address of the L1 entry to update --- possibly allocating tables for levels 3, 2, and 1 in the process,
+installing them into levels 4, 3, and 2, along the way.
 Traversing the page tables is itself challenging functionality to verify: loading the current table root from \lstinline|cr3| is straightforward
 (a \lstinline|mov| instruction), however this produces the physical address of \lstinline|cr3|, not the virtual address the kernel code would use to access that memory.
 This problem repeats at each level of the page table: assuming the code has \emph{somehow} read the appropriate L4 (or L3, or L2) entry, those entries again
 yield physical addresses, not virtual.
 
 \subsubsection{Loading Page-Table Address Value}
-We will discuss access to the level 4 table later. But for subsequent levels, the base address of level $n$ must be
+We will discuss access to the level 4 table later (Section \ref{wlkpgdir}). But for subsequent levels, the base address of level $n$ must be
 fetched from the appropriate entry in the level $n+1$ table.
 This is the role of \lstinline|pte_get_next_table| (Figures \ref{fig:calltopteinitialize} and \ref{fig:p2v}):
 it is passed the virtual address of the page table entry in level $n+1$, and should return the \emph{virtual} 
@@ -83,8 +84,9 @@ Figure \ref{fig:calltopteinitialize} presents the initial part of the function, 
 Figure \ref{fig:p2v} (discussed in Section \ref{sec:p2v}) deals with the cases where no allocation is necessary \emph{or} the allocation has already
 been performed by the code in this figure.
 
-Note that none of the verification for this function assumes specific page table levels (it is not even a parameter to the verification);
-it is used for all three level transitions when traversing page tables (4 to 3, 3 to 2, 2 to 1).
+Note that none of the verification for this function assumes specific page table levels --- logical parameter \textsf{v} represents the level
+of the entry passed as an argument, and this code
+is used for all three level transitions when traversing page tables (4 to 3, 3 to 2, 2 to 1).
 This comes into play with a subtlety of the specification of \lstinline|pte_get_next_table| that we will
 revisit several times: \lstinline|pte_get_next_table|'s specification
 assumes it is given a virtual \emph{vpte-pointsto}\footnote{A \emph{vpte-pointsto}
@@ -138,20 +140,21 @@ The code for allocating a new level of the page table must establish this extend
 ;;pte_t *pte_get_next_table(pte_t *entry) {
 ... ;; setting up the stack
 ;; pte_t *next;
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry}\},m)  \ast \texttt{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{\_}  \ast \ghostmaptoken{\textsf{id}}{\textsf{entry}}{\textsf{v}} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry}\},m)  \ast \texttt{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$ (*\label{line:get_next_vpte_precondition}*)
+$\specline{\ulcorner\textsf{entry\_present(entry\_val)}\urcorner \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(entry\_val.pfn) + i * 8}}{\textsf{v-1}} }_{\rtv} $ (*\label{line:conditional_children}*)
 mov    -0x8[rbp],rdi
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{entry\},m)  \ast \textsf{entry}\mapsto_{\textsf{pte,q}}\textsf{entry\_val} \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{\_}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry}  }_{\rtv}$
-$\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast\urcorner \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{entry\},m)   \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{\_}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$
+$\specline{\ulcorner\textsf{entry\_present(entry\_val)}\urcorner \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(entry\_val.pfn) + i * 8}}{\textsf{v-1}} }_{\rtv} $
 mov     rdi, r8
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} }_{\rtv}$
-$\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$
+$\specline{\ulcorner\textsf{entry\_present(entry\_val)}\urcorner \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(entry\_val.pfn) + i * 8}}{\textsf{v-1}} }_{\rtv} $
 mov    [r8],rdi (*\label{line:read_entry_contents}*)
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}   }_{\rtv}$
-$\specline{  \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
+$\specline{\ulcorner\textsf{entry\_present(entry\_val)}\urcorner \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(entry\_val.pfn) + i * 8}}{\textsf{v-1}} }_{\rtv} $
 and    0x1,rdi (* \label{line:mask_present} *)
 mov    rdi,rax
 cmp    0x0,rax ;;  if (!entry->present) {(* \label{line:check_entry_present} *)
@@ -242,11 +245,14 @@ but describe the invariant here because installing a new level 3/2/1 table requi
   \label{fig:peraspaceinvariant_with_p2v_extension}
 \end{figure*}
 
-For each $\paddr\in\Xi$, the invariant tracks a virtual points-to justifying that virtual address $\paddr+\textsf{KERNBASE}$ maps to physical address $\paddr$
+For each $\paddr\mapsto \texsf{v} \in\Xi$, the invariant tracks a virtual points-to justifying that virtual address $\paddr+\textsf{KERNBASE}$ maps to physical address $\paddr$
 (the ``Ghost translation'' in Figure \ref{fig:peraspaceinvariant_with_p2v_extension});
 fractional ownership of the physical memory for that page table entry;
-and for valid entries (with the present bit set) above L1, ghost map tokens for every entry in the table pointed to by the entry.
+and for valid entries (with the present bit set) above L1, ghost map tokens for every entry in the table pointed to by the entry, which can be used
+to repeat the process one level down. i
 (L1 entries point to data pages, whose physical memory ownership resides in some virtual points-to).
+The assertion on Line \ref{line:conditional_children} originates from the invariant one level up, and if this code determines the valid bit is set,
+it can return those child tokens without the conditional guard.
 
 The fractional ownership of the entry's physical memory is subtle. Recall that $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ retains some physical
 ownership of each page table entry that is traversed (proportional to how many virtual addresses share the entry).
@@ -400,7 +406,7 @@ $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\s
 $\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{(pte\_initialized (entry\_val.pfn))} \urcorner }_{\rtv}$
 $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{(pte\_initialized (entry\_val.pfn)))} \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{ table\_root (pte\_initialize(entry\_val.pfn))} }_{\rtv}$
-$\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (entry\_val.pfn)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$
+$\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (entry\_val.pfn)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:children}*)
 ;;uintptr_t next_virt_addr = (uintptr_t) P2V(entry.pfn<<12); (*\label{line:p2v}*) 
  movabs KERNBASE,rcx
  add    rcx,rax
@@ -421,6 +427,8 @@ $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}
 \end{figure}
 Figure \ref{fig:p2v} shows the verification of the end of \lstinline|pte_get_next_table| specialized to the case where 
 where no allocation was necessary (i.e., the conditional on Line \ref{line:check_entry_present} of Figure \ref{fig:calltopteinitialize} was taken).
+In this case, the present bit being set grants access to the child tokens from Line \ref{line:conditional_children} of Figure \ref{fig:calltopteinitialize},
+which is then refined to the assertion on Line \ref{line:children} of Figure \ref{fig:p2v}.
 The code loads \lstinline|rcx| with the offset value \textsf{KERNBASE}, which gives us the value of the virtual address ($\textsf{entry}_{\textsf{pfn}}$ \textsf{+KERNBASE})
 of the \emph{base} of the next level of the page table.
 % \todo[inline]{the next sentence depends on having figure 10 updated to reflect the page-worth of tokens}
@@ -456,7 +464,7 @@ shl    0x3,rdi        ;; Multiply by 8
 add    rdi,rsi        ;; Add to pml4 (virtual) table base(*\label{line:end_pml4_calc}*)
 mov    rsi,-0x18[rbp] ;; Store to local variable pml4_entry; logical pml4_entry is physical, program variable is virtual
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{pml4\_entry}\},m) \ast \forall_{i\in\textsf{0..511}\setminus\{\textsf{PML4EX(va)}\}}\ghostmaptoken{\textsf{id}}{(\textsf{rtv}+i*8)}{\textsf{4}}\ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
-$\specline{\textsf{entry\_present(l4e\_val)} \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(pml4.pfn)+ i * 8}}{\textsf{3}} }_{\rtv} $
+$\specline{\textsf{entry\_present(l4e\_val)} \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(l4e\_val)+ i * 8}}{\textsf{3}} }_{\rtv} $
 $\specline{ \textsf{pml4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{pml4\_entry l4e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}_{\rtv}$    
 ;;pte_t *pdp = pte_get_next_table(pml4_entry);
 mov    -0x18[rbp],rdi
@@ -508,8 +516,6 @@ described by Figure \ref{fig:peraspaceinvariant_with_p2v_extension} and Section 
 The ghost translation and physical location are used to form the virtual pte-pointsto for the L4 entry
 (Line \ref{line:first_pte_pointsto}), with the entry validity and next-level indexing
 satisfying the rest of the precondition for \lstinline|pte_get_next_table|.
-\todo[inline]{This line above assumes the fixes to the precondition of get-next-table to take the conditional child
-token map}
 \lstinline|pte_get_next_table| then, as described earlier, checks the valid bit in the indicated
 entry and either returns the (unconditional) tokens for the L3 entry physical addresses (if valid), or
 allocates into the entry and returns new (also unconditional) tokens for the L3 entry physical addresses.
@@ -585,6 +591,8 @@ to install a new mapping.
 % temporarily destroying the mappings and restoring them can actually crash the OS. \textsc{CertiKOS} papers share little in the way of precise details about
 % their virtual memory management, but because their core technology is based on a fork of \textsc{CompCert}, whose model of memory is
 % a set of unordered block allocations, we can infer their proofs must also trust these translations.
+
+
 \subsection{Mapping a New Page}
 One of the key tasks of a page fault handler in a general-purpose OS kernel is
 to map new pages into an address space by writing into an existing page table via a call
