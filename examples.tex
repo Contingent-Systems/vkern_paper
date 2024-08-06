@@ -309,8 +309,10 @@ entries is shared between parts of the kernel. No prior work has engaged with th
  % \] 
 Lines \ref{line:mask_present}--\ref{line:check_entry_present} in Figure \ref{fig:calltopteinitialize}.
 Accessing the presence bit and checking the value allows us to exploit the side condition (*) when verifying the allocation
-path for when the entry is invalid (Lines \ref{line:alloc_path_start}--\ref{line:alloc_path_end} in Figure \ref{fig:calltopteinitialize}),
-as it entails full ownership of the entry's memory ($\textsf{qfrac} = 1$) and justifies writing to that memory.
+path for when the entry is invalid (Lines \ref{line:alloc_path_start}--\ref{line:alloc_path_end} in Figure \ref{fig:calltopteinitialize}).
+This operation is subtle: the operation requires that the relevant table entry is readable, but the exact portion of ownership 
+returned must be determined by inspecting the valid bit of the value in memory --- so full ownership is returned only for unused entries.
+When the bit is not set, that entails full ownership of the entry's memory ($\textsf{qfrac} = 1$) and justifies writing to that memory.
 Otherwise, the code jumps past the end of this listing, to the following code at the top of Figure \ref{fig:p2v} (which is also the
 continuation of this code).
 
@@ -368,7 +370,7 @@ as needed.
 % (e.g. $\mathsf{nextpaddr} \mapsto_{\mathsf{p}} \mathsf{w64\_0}$) deliberately in the post-conditoin in Lines 15-16,
 %  we observe a full-ownership token representing the knowledge that a frame and all the entries indexed from this 
 % frame are freshly allocated with full-ownership to be a part of the identity map, $\Xi$. 
-The soundness argument of this specification relies on the fact that these freshly allocated resources is part 
+The soundness argument of this specification relies on the fact that these freshly allocated resources are part 
 of an entry construction that has not been completed yet: the presence bit is set 
 (Line \ref{line:install_new_entry} in Figure \ref{fig:calltopteinitialize}) after these freshly allocated resources are incorporated to the 
 entry construction via the page-frame portion of the PTE. In other words, the side condition, (*),
@@ -459,11 +461,11 @@ $\specline{ \textsf{pml4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{
 ;;pte_t *pdp = pte_get_next_table(pml4_entry);
 mov    -0x18[rbp],rdi
 ...
-callq  c0 <pte_get_next_table>
+callq  c0 <pte_get_next_table>(*\label{line:first_getnext_call}*)
 ;;save the physical next table address in rax
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{pml4\_entry}\},m)  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{\forall_{i\in\textsf{0..511}} \ghostmaptoken{\textsf{id}}{\textsf{table\_root(l4e\_val'.pfn) + i * 8}}{\textsf{3}}  \ast \ulcorner\textsf{pdp-KERNBASE}=\textsf{table\_root(l4e\_val'.pfn)}\urcorner} $
-$\specline{ \textsf{pml4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{pml4\_entry l4e\_val'} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}_{\rtv}$
+$\specline{ \textsf{pml4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{pml4\_entry l4e\_val'} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}_{\rtv}$(*\label{line:first_pte_pointsto}*)
 $\specline{\texttt{rax}  \mapsto_{\textsf{r}} \textsf{table\_root(l4e\_val'.pfn)} }_{\rtv}$ ;; pte_get_next_table may have allocated a new page, updating entry
 ;;pte_t *pdp_entry = &pdp[PDPEX(va)]; // Virtual address of L3 entry
 $\specline{\ulcorner\textsf{pdp}+\textsf{PDPEX(va)*8} = \textsf{pdp\_entry} \land \textsf{table\_root(l4e\_val'.pfn)}  = \textsf{pdp} \urcorner }_{\rtv}$
@@ -494,51 +496,47 @@ For example, Lines \ref{line:ex_l4_vpte} and \ref{line:ex_l3_vpte} in Figure \re
 In the final post-condition, we expect the accumulation of these resources from each level -- $\textsf{R}_{\textsf{walk}}$ -- 
 which allows us to construct and return the path to the L1 entry in the tree to insert a new page.  
 
-This is the code which performs the actual physical-to-virtual conversions using the identity mapping portion of the per-address-space invariant.
+This is the code which performs most actual physical-to-virtual conversions using the identity mapping portion of the per-address-space invariant.
 \lstinline|walkpgdir| accepts a \emph{virtual} pointer to the base of the L4 table, and the address to translate.
-The precondition provides knowledge that the virtual base of the L4 is at the appropriate offset from the current \lstineline|cr3| value,
+The precondition provides knowledge that the virtual base of the L4 is at the appropriate offset from the current \lstinline|cr3| value,
 but does not provide a virtual points-to assertion --- because the function must calculate (Lines \ref{line:start_pml4_calc}--\ref{line:end_pml4_calc})
 which entry it needs access to.
 Instead the precondition has 512 identity map tokens, guaranteeing that every entry on the page is subject to the identity mapping invariant.
 Line \ref{line:end_pml4_calc} calculates the virtual address of the relevant entry, and the subsequent view shift
-pulls that entry out of the identity mapping ($\Xi$) and fetches its 
+pulls that entry out of the identity mapping ($\Xi$) and fetches its corresponding resources as
+described by Figure \ref{fig:peraspaceinvariant_with_p2v_extension} and Section \ref{subsec:identitymappings}.
+The ghost translation and physical location are used to form the virtual pte-pointsto for the L4 entry
+(Line \ref{line:first_pte_pointsto}), with the entry validity and next-level indexing
+satisfying the rest of the precondition for \lstinline|pte_get_next_table|.
+\todo[inline]{This line above assumes the fixes to the precondition of get-next-table to take the conditional child
+token map}
+\lstinline|pte_get_next_table| then, as described earlier, checks the valid bit in the indicated
+entry and either returns the (unconditional) tokens for the L3 entry physical addresses (if valid), or
+allocates into the entry and returns new (also unconditional) tokens for the L3 entry physical addresses.
+\lstinline|pte_get_next_table|'s first call (Line \ref{line:first_getnext_call}) returns
+the virtual address of the base of the L3 table (a \emph{page directory pointer}, so PDP, in official
+x86-64 terminology). Then the situation to move from that pointer to the base of the L2
+is just like the process just followed: the proof calculates the address of the relevant
+L3 entry, uses the appropriate L3 identity mapping token to construct a virtual pte-pointsto to that entry,
+and passes that along with additional resources pulled out of the invariant to another call to
+\lstinline|pte_get_next_table|. That call then returns the base of an L2 table, and the process
+repeats until the function returns the virtual address of the relevant L1 entry.
+That will then be used in the next section by the caller of \lstinline|walkpgdir|
+to install a new mapping.
 
-\todo[inline]{Colin is unsure:
-It looks like the call to pte-get-next-table on line 19 is done after using the idmap ($\Xi$) token for the entry's physical address.
-But the verification of pte-get-next-table starts by assuming it has a vpte-pointsto \emph{and} the token!
-Except to build the vpte-pointsto, we had to remove that from the invariant around $\Xi$; 2/3 of the resources membership in $\Xi$
-entails were already consumed to build it. That's why we have the entry-present-implies-l3-tokens
-assertion on line 14 of Figure 11.
-So there's a misalignment of these specs. It seems like pte-get-next-table should not get the token for the physical address, but should instead get
-the conditional assertion at line 14 directly?
-}
 
-
-In the very first precondition on the client side -- e.g.\textsf{pte\_walkpgdir} in Figure \ref{walkpgdir} -- 
-we see that \textsf{vpte-ptsto} for the entry being accessed (\textsf{entry}) is constructed -- in 
-Specification Line \ref{line:get_next_vpte_precondition} of Figure \ref{fig:calltopteinitialize} for \textsf{entry}. 
-Intuitively speaking, we start traversal from a certain entry address at the current level for which we know 
-($\textsf{entry} \mapsto_{\textsf{id}} \textsf{\_}$ in Line 3 in Figure \ref{walkpgdir}) that 
-there is a memory mapping ($\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val}$ 
-Line 15 in Figure \ref{walkpgdir}) that can be used to explore deeper in the page-tree.
-
-The most crucial aspect of page-table entry access relies on the subtle interplay between updating the shared page tables, and the not violating the memory mappings. 
-Concretely speaking, accessing to the entry -- whose address is kept in the register $\texttt{r8}$ -- in Line 15 in Figure \ref{fig:calltopteinitialize} requires a 
-memory mapping that is logically provided through the update from Specfication Lines 3 to 15 in Figure \ref{walkpgdir} on the client side by the removal of \textsf{entry}
-from the map $\Xi$ in the invariant to construct the \textsf{vpte-ptsto} (Specfication Line 15 in Figure \ref{walkpgdir}). 
-This magical abstraction -- represented as $\Xi$ in the invariant definition -- provides us to construct this \textsf{pte-ptsto} out of an physical address is called \textit{identity-mappings}.
-
-\textsf{walkpgdir}, as a client, holds the knowledge that there exists an identity mapping for the physical entry address (\textsf{entry})
- in the root page table ($\textsf{L}_{4}$):  $\mathsf{entry} \mapsto_{\textsf{id}} \textsf{\_}$ in Specification Line 3 is a partially owned
- token for accessing and looking up the resources in the identity map, $\Xi$, to construct the \textit{virtual-to-physical} pointsto relation 
-$\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry \entry\_val}$ with the virtual address (\textsf{entry+KERNBASE}) obtained 
-by offsetting the physical address (\textsf{entry}). With this knowledge on the root-page-table-entry, we can start traversing the page-table 
-tree which requires locating the address of the next table -- a call to \textsf{pte\_get\_next\_table} shown in Figure \ref{fig:calltopteinitialize}. 
-Beyond a frame, the precondition before Line 15 requires the current address space invariant, and knowledge that \textsf{entry} is mapped to a 
-random entry value, subtly, the operation also, at least, requires that the relevant table entry is readable, but the exact portion of ownership 
-returned must be determined by inspecting the valid bit
-of the value in memory --- so full ownership is returned only for unused entries.
-This is a simple piece of code whose functionality is critical and whose correctness is highly non-trivial. No prior work engages with this problem.
+% \textsf{walkpgdir}, as a client, holds the knowledge that there exists an identity mapping for the physical entry address (\textsf{entry})
+%  in the root page table ($\textsf{L}_{4}$):  $\mathsf{entry} \mapsto_{\textsf{id}} \textsf{\_}$ in Specification Line 3 is a partially owned
+%  token for accessing and looking up the resources in the identity map, $\Xi$, to construct the \textit{virtual-to-physical} pointsto relation 
+% $\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry \entry\_val}$ with the virtual address (\textsf{entry+KERNBASE}) obtained 
+% by offsetting the physical address (\textsf{entry}). With this knowledge on the root-page-table-entry, we can start traversing the page-table 
+% tree which requires locating the address of the next table -- a call to \textsf{pte\_get\_next\_table} shown in Figure \ref{fig:calltopteinitialize}. 
+% Beyond a frame, the precondition before Line 15 requires the current address space invariant, and knowledge that \textsf{entry} is mapped to a 
+% random entry value, subtly, 
+% the operation also, at least, requires that the relevant table entry is readable, but the exact portion of ownership 
+% returned must be determined by inspecting the valid bit
+% of the value in memory --- so full ownership is returned only for unused entries.
+% This is a simple piece of code whose functionality is critical and whose correctness is highly non-trivial. No prior work engages with this problem.
 
 
 
