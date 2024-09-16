@@ -722,12 +722,14 @@ the corresponding modality.
 \subsection{Soundness}
 Our rules from Figure \ref{fig:wpdamd} are proven sound in Iris against an assembly-level hardware model
 implementing a fragment of x86-64 including 64-bit address translation with 4-level page tables.
-\todo[inline]{
+
+%\todo[inline]{
 Our rules for control transfers (\lstinline|jmp|, \lstinline|call|, and \lstinline|ret|) are currently
-axiomatized (with completely standard specifications~\cite{ni2007contexts,Chlipala2013Bedrock}) because Iris's built-in machinery does not provide
-convenient ways to discard the current continuation. We are working to adapt existing machinery~\cite{de2023type} to prove their soundness.
+axiomatized (with completely standard specifications~\cite{ni2007contexts,Chlipala2013Bedrock}).% because Iris's built-in machinery does not provide
+%convenient ways to discard the current continuation.
+We are working to adapt existing machinery~\cite{de2023type} to prove their soundness.
 Our soundness proofs for all other instructions (including the instructions above, arithmetic, other heap-accessing operations, push, and pop)
 are axiom-free.
-}
+%}
 % At the moment our proofs do rely on 13 small axioms of properties which should be provable, but
 % are challenging to discharge due to some representation choices in our model.\footnote{See \lstinline|srx/x64/machine/current_axioms.v|}
