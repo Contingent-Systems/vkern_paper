@@ -13,12 +13,14 @@ address, but tagged with the physical data addresses, so cache lookups and addre
 
 \begin{figure}
     \includegraphics[width=\columnwidth]{pagetables2.png}
+    \vspace{-2.5em}
     \caption{x86-64 page table lookups.}
     \label{fig:pagetables}
+    \vspace{-1em}
 \end{figure}
 
-On the x86-64 architecture, the input to the \textsc{MMU}'s address translation is a sparse hierarchical set of tables 
-called \emph{page tables} (referring to pages of memory). As Figure \ref{fig:pagetables} (based on Figure 5-17 of the 
+On the x86-64 architecture, the \textsc{MMU}'s address translation uses a sparse hierarchical set of tables:
+\emph{page tables} (referring to pages of memory). As Figure \ref{fig:pagetables} (based on Figure 5-17 of the 
 AMD64 architecture manual~\cite{amd64_manual_vol2}\footnote{While x86 up through its 32-bit incarnation were due to Intel,
 the x86-64 architecture as a 64-bit extension to x86 was originally due to AMD. As a result, it is sometimes also referred to as the \texttt{amd64} architecture.}) shows, 
 address translation proceeds by repeatedly taking designated slices of the virtual address and indexing into a table.
@@ -31,8 +33,7 @@ fewer levels. We omit those names to avoid confusion for those not already steep
  and for greater consistency with the recent addition of a 5th level 
 on the most recent processors, where levels 4 and 5 are simply known by their numbers. Our formalization
 only deals with 4-level page tables, but is straightforwardly extensible to 5.}  
-Because address translation 
-traverses a series of tables, the translation process or algorithm is sometimes referred to as a \emph{page-table walk}. 
+The translation process or algorithm is sometimes referred to as a \emph{page-table walk}. 
 While Figure \ref{fig:pagetables} and most of our constants (how many levels, which virtual address bits index which
 table levels) are specific to the x86-64 architecture, ARMv8 (a.k.a.\ 
 \texttt{aarch64}), RISC-V, and PowerPC use similar hierarchical page tables for address translation.
@@ -45,9 +46,13 @@ The entries of each table are 64 bits wide, but each points to a physical addres
 control a validity bit (called the \emph{present} bit), a read-write bit (which permits write access through the entry if and only if it is set), 
 and a range of additional bits which can be used to control caching, write-through, and more. This paper will only consider the present bit (0).
 
-The page tables mapping virtual addresses to physical addresses are managed by the OS. Typically each process has its own 
-virtual-to-physical mappings represented by its own page table, which the OS registers with the CPU by storing the (page-aligned)
-physical address of the root of the page table tree (in our context, the start of the L4 table) in a 
+The page tables are managed by the OS, typically by a \emph{virtual memory manager} (VMM).\footnote{Not to be confused with Virtual 
+Machine Monitor. In this paper we focus on non-hypervisor scenarios, but hardware virtualization extensions for both 
+x86-64 and ARM make use of an additional set of page tables translating what a \emph{guest} considers to be its 
+(virtualized) physical memory to actual physical memory. Our contributions should offer value in this scenario as well.}
+Typically each process has its own 
+page table, which the OS registers with the CPU by storing the (page-aligned)
+physical address of the root of the page table treethe start of the L4 table) in a 
 specific register (\texttt{cr3}) as part of switching to a new process. 
 Using different mappings, which map only disjoint portions of physical memory (with some exceptions in the next section) 
 is how the OS ensures memory isolation between processes.
@@ -55,11 +60,34 @@ is how the OS ensures memory isolation between processes.
 If an instruction is executed that accesses a virtual address that either has no mapping, or does not have a mapping permitting 
 the kind of access that was performed (e.g., the instruction was a memory write, but the relevant address range was marked read-only in
 the relevant page table entry), the hardware triggers a \emph{page fault}, transferring control to a \emph{page fault handler} registered 
-with the hardware by the OS, allowing it to take corrective action (described in the next section).
+with the hardware by the OS, allowing it to take corrective action.
+If no mapping was supposed to exist, this is a program bug (e.g., dereferencing virtual address 0 / NULL)
+and the faulting program should be terminated. But this can also be used for
+specialized functionality and optimizations, such as \emph{paging} (saving room in physical RAM and deferring
+unnecessary IO by only reading program code from disk when it is accessed, or even swapping memory that has not
+recently been accessed to disk, to read back in when a page fault indicates access).
+
+The key pieces of VMM functionality are
+adding a new page mapping (whether the mapped page contains zeros, file data, or swap data), and removing an existing 
+page mapping.
+While this initially sounds like relatively modest functionality whose implementation may be complicated by hardware 
+subtleties, correctness of even these basic operations are actually quite intrictate.
+Notably, updates to the page tables are performed as writes to memory --- \emph{which are themselves subject to address translation},
+and finding the correct page table to update requires converting between physical and virtual addresses.
+In the case of changing the mappings for the currently-active set of page tables, 
+\emph{the OS kernel is modifying the tables involved in its
+own access of the tables}.
+
+Virtual memory concerns propagate to the OS scheduler, which deals with multiple 
+address spaces, so must keep track of which virtual addresses are valid (and in what way) in which address spaces. 
+Some virtual addresses are valid in only a single address space (e.g., a code address for a particular usermode 
+process), while others are valid in all address spaces (e.g., kernel data structure pointers). 
+The VMM must maintain some of these assumptions on behalf of the rest of the kernel, for example by guaranteeing that 
+a certain range of virtual addresses (corresponding to the kernel's code and data) are valid in every address space.
 
 \paragraph{Out of Scope: Translation Lookaside Buffers (TLBs)}
 CPUs with MMUs typically have an additional \emph{translation lookaside buffer}
-(TLB), to cache the (successful) results of page table walks, rather than merely transforming every virtual
+(TLB), to cache the (successful) results of page table walks, rather than transforming every virtual
 memory access into 5 physical accesses. 
 Any time a virtual address that was accessible becomes inaccessible (or has downgraded permissions),
 the TLB (or at least entries in affected virtual address ranges) should be flushed.
@@ -72,35 +100,24 @@ it to be possible to combine this paper's insights with that support. Even witho
 our logic already enables verification of virtual memory management functionality that prior verified kernel work
 either trusts completely (\textsc{seL4}, \textsc{CertiKOS}) or is incapable of reasoning about.
 Appendix \ref{apdx:tlb} gives more details on the challenges involved for the interested reader.
+\looseness=-1
 
-\subsection{Virtual Memory Managers}
-\label{sec:backgroundonvmm}
-Most OS kernels have a component called a \emph{Virtual Memory Manager} (VMM)\footnote{Not to be confused with Virtual 
-Machine Monitor. In this paper we focus on non-hypervisor scenarios, but hardware virtualization extensions for both 
-x86-64 and ARM make use of an additional set of page tables translating what a \emph{guest} considers to be its 
-(virtualized) physical memory to actual physical memory. Our contributions should offer value in this scenario as well.}
-which is responsible for setting up page table mappings and for taking action when a page fault occurs. Often, a page 
-fault indicates a bug in a program --- for example, a null pointer dereference crashes a program not because the hardware
- designates it an error, but because most OSes refuse to map the first 4K worth of virtual addresses, so dereferencing 
-\texttt{NULL} results in a page fault. In such cases, the OS will terminate the program.
+% \subsection{Virtual Memory Managers}
+% \label{sec:backgroundonvmm}
+% Most OS kernels have a component called a \emph{Virtual Memory Manager} (VMM)
+% which is responsible for setting up page table mappings and for taking action when a page fault occurs. Often, a page 
+% fault indicates a bug in a program --- for example, a null pointer dereference crashes a program not because the hardware
+%  designates it an error, but because most OSes refuse to map the first 4K worth of virtual addresses, so dereferencing 
+% \texttt{NULL} results in a page fault. In such cases, the OS will terminate the program.
 
-In other cases the OS uses page faults to implement specialized functionality and optimizations. A key example of this is 
-(confusingly) called \emph{paging}: saving room in physical RAM and avoiding unnecessary IO 
-by waiting until memory addresses for code are accessed 
-before copying them to RAM (in particular, saving process startup time); 
-or copying memory that has not recently been accessed to disk 
-(i.e., in a \emph{swap} file or partition) and marking those page table entries invalid so a future page fault will give 
-the OS the chance to copy the relevant data back into memory when the program tries to access it again.
+% In other cases the OS uses page faults to implement specialized functionality and optimizations. A key example of this is 
+% (confusingly) called \emph{paging}: saving room in physical RAM and avoiding unnecessary IO 
+% by waiting until memory addresses for code are accessed 
+% before copying them to RAM (in particular, saving process startup time); 
+% or copying memory that has not recently been accessed to disk 
+% (i.e., in a \emph{swap} file or partition) and marking those page table entries invalid so a future page fault will give 
+% the OS the chance to copy the relevant data back into memory when the program tries to access it again.
 
-The key pieces of functionality a VMM must implement itself, or have available in another OS component (depending on 
-design), are
-adding a new page mapping (whether the mapped page contains zeros, file data, or swap data), and removing an existing 
-page mapping.
-While this initially sounds like relatively modest functionality whose implementation may be complicated by hardware 
-subtleties, even these basic operations are actually quite intrictate.
-Most notably, updates to the page tables are performed as writes to memory --- which are themselves subject to address translation.
-In the case of changing the mappings for the currently-active set of page tables, the OS kernel is modifying the tables involved in its
-own access of the tables.
 
 % \todo[inline]{Colin says: we should chat about the paragraph below. We don't want to advertise too many
 % challenges of VMM verification that we don't actually solve (or rather, we'd push them to the and of the paper
@@ -135,32 +152,24 @@ own access of the tables.
 % a higher-level page table, and then to reuse that kernel mapping portion in every process's page tables. This was mostly 
 % phased out in the wake of Spectre, but remains relevant on correctly-implemented hardware.
 
-Virtual memory concerns propagate to the OS scheduler, which is responsible for dealing with multiple 
-address spaces, so must keep track of which virtual addresses are valid (and in what way) in which address spaces. 
-Some virtual addresses are valid in only a single address space (e.g., a code address for a particular usermode 
-process), while others are valid in all address spaces (e.g., kernel data structure pointers). 
-The VMM must maintain some of these assumptions on behalf of the rest of the kernel, for example by guaranteeing that 
-a certain range of virtual addresses (corresponding to the kernel's code and data) are valid in every address space.
 
 \subsection{Modal Logic}
 \label{sec:backgroundonmodallogic}
 The problem of needing to keep track of things being true in some contexts and not in others is hardly unique to virtual 
-memory management, and is the general insight behind most flavors of modal logic.
+memory management, and is the general insight behind most flavors of modal logic, which use
+unary operators to express that a logical claim $P$ is \emph{contingently} true 
+in certain other circumstances, such as in other times~\cite{pnueli1977temporal} or places~\cite{murphy2008type,gordon2019modal}.
 
-Most modal logics use unary operators on propositions to express that a logical claim $P$ is \emph{contingently} true 
-in certain other circumstances, such as in other times~\cite{pnueli1977temporal} or places~\cite{gordon2019modal}. That is, for 
-different modal operators $M$, $M(P)$ may mean that $P$ is true in another time or place (which may be a physical place 
-like another network node~\cite{murphy2008type,gordon2019modal} or a conceptual place like a person's 
-mind~\cite{hintikka1962knowledge}). A unifying concept across any modality is that they behave as applicative functors, 
-typically satisfying (directly, or as a derived law, depending on the modality):
-\[ (P\rightarrow Q) \rightarrow M(P) \rightarrow M(Q)\]
-%\todo[inline]{Ismail, I think this means we have pure intro, $\square P \mathrel{-\ast} [r](\square P)$ if I'm using the right symbol for pure assertions }
-%\todo[inline,color=red]{The above todo comment isn't quite right.
-%Purity is about being able to duplicate. You had defined another typeclass/property-of-assertions that meant it didn't
-%care what address space it was in (like physical pointstos). That's orthogonal to purity.
-%}
-Many modalities, so-called \emph{normal} modalities also possess introduction rules of the form $P\rightarrow M(P)$, 
-the classic example being that if $P$ is true, then $P$ is \emph{necessarily} true with the contingency picked up.%($\square P$).
+%   A unifying concept across any modality is that they behave as applicative functors, 
+% typically satisfying (directly, or as a derived law, depending on the modality):
+% \[ (P\rightarrow Q) \rightarrow M(P) \rightarrow M(Q)\]
+% %\todo[inline]{Ismail, I think this means we have pure intro, $\square P \mathrel{-\ast} [r](\square P)$ if I'm using the right symbol for pure assertions }
+% %\todo[inline,color=red]{The above todo comment isn't quite right.
+% %Purity is about being able to duplicate. You had defined another typeclass/property-of-assertions that meant it didn't
+% %care what address space it was in (like physical pointstos). That's orthogonal to purity.
+% %}
+% Many modalities, so-called \emph{normal} modalities also possess introduction rules of the form $P\rightarrow M(P)$, 
+% the classic example being that if $P$ is true, then $P$ is \emph{necessarily} true with the contingency picked up.%($\square P$).
 
 Of particular interest for reasoning about virtual memory are modalities that permit \emph{naming} the alternate 
 circumstances, prominently \emph{hybrid} modal logics~\cite{blackburn1995hybrid,areces2001hybrid}, which come equipped 
@@ -170,22 +179,24 @@ the points at which a modal assertion is evaluated inside the modality's definit
 assertion should be true in is chosen \emph{in the assertion itself}. This allows assertions to talk about not simply whether some other assertion
 is true in some possible future or past world related in a fixed way to the current world, but to talk about \emph{arbitrary}
 other worlds. This explicit naming of alternate worlds increases the power of modal logics~\cite{blackburn1995hybrid}, and is actually
-necessary for completeness in classical separation logics~\cite{brotherston2014parametric}.  A key distinguishing feature of
-hybrid logic is that the logic itself does not fix the set of modalities, but is defined relative to any set of sensible worlds.
+necessary for completeness in classical separation logics~\cite{brotherston2014parametric}.
+%   A key distinguishing feature of
+% hybrid logic is that the logic itself does not fix the set of modalities, but is defined relative to any set of sensible worlds.
 
 For our purposes, these are natural candidates to adapt for virtual memory management. We can reinterpret the notion of 
 naming an alternate world slightly more loosely, and instead name \emph{address spaces} by the physical address of the 
 page table root, since these structures are the physical representations of page tables. Thus in this paper we develop 
 the notion that we can represent contingent truth of an assertion via $[r](P)$ indicating that $P$ holds in the address 
 space rooted at physical address $r$. Because OS kernels create and destroy address spaces, it is sensible to use
-a hybrid-style logic that does not care about the exact set of modalities.
+a hybrid-style logic that is not specialized to a fixed set of modalities, but this introduces
+some subtleties from the fact that the existence of certain modalities (address spaces) can change.
 
-The typical hybrid modality introduction rule, that $P$ and $\ell$ (indicating the current world is $\ell$) imply 
-$[\ell](P)$, has a natural analogue: knowing $P$ and that the current address space is $r$ (i.e., that $r$ is the 
-current \texttt{cr3} value) suggests a way to construct $[r](P)$. 
-We identify an assertion as \emph{contextual} if its validity depends on the choice of address space. Used outside an explicit
-modality, the truth of this assertion depends on the current \texttt{cr3} value. Used under an explicit address space
-modality, its truth depends on both the modality-chosen address space and associated physical resources.
+% The typical hybrid modality introduction rule, that $P$ and $\ell$ (indicating the current world is $\ell$) imply 
+% $[\ell](P)$, has a natural analogue: knowing $P$ and that the current address space is $r$ (i.e., that $r$ is the 
+% current \texttt{cr3} value) suggests a way to construct $[r](P)$. 
+% We identify an assertion as \emph{contextual} if its validity depends on the choice of address space. Used outside an explicit
+% modality, the truth of this assertion depends on the current \texttt{cr3} value. Used under an explicit address space
+% modality, its truth depends on both the modality-chosen address space and associated physical resources.
 % \begin{itemize}
 %   \item as a \textit{contextual} fact if its validity depends on \texttt{cr3} when it is outside the modality (i.e. modal context), and made 
 %   \texttt{cr3} independent as a part of custom-tailored modal logic for virtual-memory: a truth representing a virtual-memory addressing depends
@@ -195,16 +206,21 @@ modality, its truth depends on both the modality-chosen address space and associ
 %   \item as a \textit{pure} fact as long as it does not \textit{necessarily} depend on any fact related to \texttt{cr3}: a truth representing a raw physical memory addressing, unlike virtual-address translation, does not need the \textit{knowledge} of \texttt{cr3}, therefore it can be introduce into the modal context as a pure fact
 % \end{itemize}
 
-A relatively under-explored space of modal logics is the interaction of modal and substructural logics, 
-in particular hybrid-style modalities in substructural logics, which has seen only minimal exploration~\cite{dovsen1992modal,restall1993modalities,d1997grafting,kamide2002kripke,licata2017fibrational} and no prior 
-application. We develop our ideas in the Iris program logic~\cite{jung2018iris}, as a result exploring additional subtleties 
+Interaction of hybrid modalities and substructural reasoning is relatively unexplored (see Section \ref{sec:relwork}).
+% A relatively under-explored space of modal logics is the interaction of modal and substructural logics, 
+% in particular hybrid-style modalities in substructural logics, which has seen only minimal exploration~\cite{dovsen1992modal,restall1993modalities,d1997grafting,kamide2002kripke,licata2017fibrational} and no prior 
+% application. 
+We develop our ideas in the Iris program logic~\cite{jung2018iris}, as a result exploring additional subtleties 
 that arise where the modality itself may entail ownership of resources, as well as interactions between our hybrid-style 
-modality and substructural rules.  For example, Iris contains a number of modalities that distribute over separating 
-conjunction, or for which resources can freely move into the modality 
-(e.g., $\blacktriangleright(P)\ast Q \wand \blacktriangleright(P\ast Q)$). In our setting some of these rules 
-apply while others do not. For example, in our setting, an assertion that involves no modalities is interpreted as 
-holding in the current (active-on-the-CPU) address space, so clearly cannot move into arbitrary other address spaces 
---- unless guarded by another address space modality.
+modality and substructural rules.  
+% For example, Iris contains a number of modalities that distribute over separating 
+% conjunction, or for which resources can freely move into the modality 
+% (e.g., $\blacktriangleright(P)\ast Q \wand \blacktriangleright(P\ast Q)$). In our setting some of these rules 
+% apply while others do not. For example, 
+% In our setting, an assertion that involves no modalities is interpreted as 
+% holding in the current (active-on-the-CPU) address space, so clearly cannot move into arbitrary other address spaces,
+% while address-space-relative assertions 
+% --- unless guarded by another address space modality.
 Some prior \iris-based work~\cite{dang2019rustbelt,dang2022compass} has constructed derived modalities in the style we propose, indexed
 by thread IDs. However in that setting, the intepretation of those modalities was fully fixed ahead of time (to refer to essentially buffers in operationalized versions of C11
 concurrency). In this setting, while our modalities will be indexed by page table roots, it is possible to modify the address translation for an address
