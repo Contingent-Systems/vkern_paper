@@ -1,0 +1,176 @@
+
+\definecolor{mGreen}{rgb}{0,0.6,0}
+\definecolor{mGray}{rgb}{0.5,0.5,0.5}
+\definecolor{mPurple}{rgb}{0.58,0,0.82}
+\definecolor{backgroundColour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{CStyle}{
+    backgroundcolor=\color{backgroundColour},   
+    commentstyle=\color{mGreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{mGray},
+    stringstyle=\color{mPurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=C
+}
+
+\section{C Implementation of \textsf{PTE} Library}
+\label{sec:cimpl}
+
+\subsection{Page-Table-Walk}
+\label{sec:ctablewalk}
+
+\begin{lstlisting}[style=CStyle]
+void pte_initialize(pte_t *entry) {
+   
+    // Allocate a full page for 512 8-byte entries
+    pte_t *local = kalloc();
+   
+    // Clear the entire table. Ensures present (and reserved, etc.) bits are 0
+    //memset(local, 0, PAGE_SIZE);
+    entry->pfn = PTE_ADDR_TO_PFN((uintptr_t) local);
+
+    return;
+}
+
+/*
+ * pte_get_next_table - given a page table entry, returns a pointer to the base
+ * of the next level of page tables, allocating a new one if necessary and if
+ * told to do so
+ * @param entry - the entry from which to get the next level of tables
+ * @param alloc - if non-zero, if the next table is not present, allocates it
+ * @return - pointer to the next page table level or, if not present and alloc
+ * is not set or memory is not sufficient, NULL
+ */
+ pte_t *pte_get_next_table_succ(pte_t *entry) {
+    pte_t *next;
+   
+    
+    // If not already present, try to allocate
+    if (!entry->present) {
+      // If it shouldn't be or cannot be allocated, indicate failure
+      pte_initialize(entry);
+     
+
+      // Update the entry to indicate that a new table has now been allocated.
+      // Make it writable and user-accesible - if necessary, the lowest level
+      // of page table can fix these access rights. Indicate the *physical*
+      // address of the newly allocated structure in pfn.
+      entry->writable = 1;
+      entry->user_acc = 1;
+      // entry->pfn = PTE_ADDR_TO_PFN((uintptr_t) next);
+      entry->present = 1;
+    }
+    uintptr_t next_phys_addr = PTE_PFN_TO_ADDR(entry->pfn);
+    uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr);
+    next = (pte_t *) next_virt_addr;
+
+    return next;
+}
+
+
+pte_t *walkpgdir_succ(pte_t *pml4, const void *va) {
+  pte_t *pdp;
+  pte_t *pd;
+  pte_t *pt;
+  uintptr_t next_phys_addr;
+  uintptr_t next_virt_addr;  
+  pte_t *local;
+   
+  pte_t *pml4_entry = &pml4[PML4EX(va)];
+    
+    // If not already present, try to allocate
+    if (!pml4_entry->present) {
+      // If it shouldn't be or cannot be allocated, indicate failure
+      // Allocate a full page for 512 8-byte entries
+      local = kalloc();
+   
+      // Clear the entire table. Ensures present (and reserved, etc.) bits are 0
+      //memset(local, 0, PAGE_SIZE);
+      
+      *(&pdp) = local;
+
+      // Update the entry to indicate that a new table has now been allocated.
+      // Make it writable and user-accesible - if necessary, the lowest level
+      // of page table can fix these access rights. Indicate the *physical*
+      // address of the newly allocated structure in pfn.
+      pml4_entry->writable = 1;
+      pml4_entry->user_acc = 1;
+      pml4_entry->pfn = PTE_ADDR_TO_PFN((uintptr_t) pdp);
+      pml4_entry->present = 1;
+    }
+    next_phys_addr = PTE_PFN_TO_ADDR(pml4_entry->pfn);
+    next_virt_addr = (uintptr_t) P2V(next_phys_addr);
+    pdp = (pte_t *) next_virt_addr;
+
+    //= pte_get_next_table_succ(pml4_entry);
+
+    pte_t *pdp_entry = &pdp[PDPEX(va)];
+
+     // If not already present, try to allocate
+    if (!pdp_entry->present) {
+      // If it shouldn't be or cannot be allocated, indicate failure
+      // Allocate a full page for 512 8-byte entries
+      local = kalloc();
+   
+      // Clear the entire table. Ensures present (and reserved, etc.) bits are 0
+      //memset(local, 0, PAGE_SIZE);
+      
+      *(&pd) = local;
+
+      // Update the entry to indicate that a new table has now been allocated.
+      // Make it writable and user-accesible - if necessary, the lowest level
+      // of page table can fix these access rights. Indicate the *physical*
+      // address of the newly allocated structure in pfn.
+      pdp_entry->writable = 1;
+      pdp_entry->user_acc = 1;
+      pdp_entry->pfn = PTE_ADDR_TO_PFN((uintptr_t) pd);
+      pdp_entry->present = 1;
+    }
+    next_phys_addr = PTE_PFN_TO_ADDR(pdp_entry->pfn);
+    next_virt_addr = (uintptr_t) P2V(next_phys_addr);
+    pd = (pte_t *) next_virt_addr;
+    
+   
+
+    pte_t *pd_entry = &pd[PDEX(va)];
+  // If not already present, try to allocate
+    if (!pd_entry->present) {
+      // If it shouldn't be or cannot be allocated, indicate failure
+      // Allocate a full page for 512 8-byte entries
+      local = kalloc();
+   
+      // Clear the entire table. Ensures present (and reserved, etc.) bits are 0
+      //memset(local, 0, PAGE_SIZE);
+      
+      *(&pt) = local;
+
+      // Update the entry to indicate that a new table has now been allocated.
+      // Make it writable and user-accesible - if necessary, the lowest level
+      // of page table can fix these access rights. Indicate the *physical*
+      // address of the newly allocated structure in pfn.
+      pd_entry->writable = 1;
+      pd_entry->user_acc = 1;
+      pd_entry->pfn = PTE_ADDR_TO_PFN((uintptr_t) pt);
+      pd_entry->present = 1;
+    }
+    next_phys_addr = PTE_PFN_TO_ADDR(pd_entry->pfn);
+    next_virt_addr = (uintptr_t) P2V(next_phys_addr);
+    pt = (pte_t *) next_virt_addr;
+    
+    pt = pte_get_next_table_succ(pd_entry);
+
+    return &pt[PTEX(va)];
+}
+\end{lstlisting}
+
