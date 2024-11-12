@@ -106,7 +106,13 @@ in the \emph{other} address space), and to deal with the fact that the standard 
 for separation logic is unsound in the presence of address space changes and address-space-contingent assertions.
 Our approach in this paper uses modalities to distinguish virtual-address-based assertions that hold only in specific 
 address spaces, making it possible to manipulate other address spaces, and equally critically, to \emph{change} address 
-spaces while reasoning about correctness. 
+spaces while reasoning about correctness.
+The only other attempt to verify a change of address space was by \citet{syeda2018program,syeda2020formal}, whose focus was on TLB maintenance (which we
+do not model). However, they verified only the 4 instructions to switch address spaces and update the TLB on an ARM processor, in isolation.
+The specification they proved for those instructions did not address program invariants that may be valid in one address space and not the other,
+so is not flexible enough to extend directly to a full context switching primitive as in Figure \ref{fig:swtch}.
+Of course as we do not address TLB management (see Appendix \ref{apdx:tlb}), the right eventual solution would be to combine our work
+and theirs, which we leave to future work.
 
 Unlike our work, Kolanski and Klein prove very useful embedding theorems stating that code that does not modify page table 
 entries can be verified in a VM-ignorant program logic, and that proofs in that logic can be embedded into the VM-aware logic 

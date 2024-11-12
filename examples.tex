@@ -48,7 +48,7 @@ installing the new mapping;
 and collecting sufficient resources to form a virtual points-to assertion.
 Of these, only the second-to-last step (installing the correct mapping into the
 current address space) has previously been formally verified with respect to a machine model with address translation.
-Second, we formally verify a switch into a new address space as part of a task switch.\todo{Colin will double-check the TLB work's details before claiming this is the first}
+Second, we formally verify a switch into a new address space as part of a task switch.
 
 %\begin{comment}
 %\todo[inline]{Identity mappings are difficult, and our current approach won't quite work. Consider trying to have a virtual pointsto for an actual page table entry (i.e., that one could use to update a page table mapping), while also having a virtual pointsto for an address that entry mapped. With the current (let's call it v1) solution, we can't actually have both of those simultaneously!  That's because the PTE pointsto will assert full ownership of the physical memory cell holding the PTE as its data value, while the virtual pointsto for the data mapped by that entry will \emph{also} assert (fractional) ownership of all entries a page table walk would traverse.
