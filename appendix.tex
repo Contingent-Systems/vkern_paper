@@ -30,7 +30,7 @@
 \subsection{Page-Table-Walk}
 \label{sec:ctablewalk}
 
-\begin{lstlisting}[style=CStyle]
+\begin{lstlisting}[caption={Page-Table-Entry Library for Page-Table Traversal},label={cpagetablewalk},style=CStyle]
 void pte_initialize(pte_t *entry) {
    
     // Allocate a full page for 512 8-byte entries
@@ -174,3 +174,42 @@ pte_t *walkpgdir_succ(pte_t *pml4, const void *va) {
 }
 \end{lstlisting}
 
+\subsection{Mapping a Page}
+\label{sec:cmapapage}
+
+\begin{lstlisting}[caption={Mapping a Single Page},label={cmapapage},style=CStyle]
+complstatus_t vaspace_mappage(
+    pte_t *pml4,
+    void *va,
+    uintptr_t pa,
+    uint64_t perm
+) {
+    char *a;
+    pte_t *pte;
+
+    a = (char *)PGROUNDUP((uintptr_t)va);
+    
+    pte = walkpgdir_succ(pml4, a);
+    if (!pte->present){
+      pte->writable     = PTE_WRITEABLE_SET(perm);
+      pte->user_acc     = PTE_USER_ACC_SET(perm);
+      pte->writethrough = PTE_WRITETHRU_SET(perm);
+      pte->nocache      = PTE_NOCACHE_SET(perm);
+      pte->pfn          = PTE_ADDR_TO_PFN(pa);
+      pte->nx           = PTE_NX_SET(perm);
+      pte->present      = 1;
+    }
+
+    return COMPL_SUCCESS;
+}
+\end{lstlisting}
+
+
+\subsection{Address-Space-Switch}
+\label{sec:caspaceswitch}
+
+\begin{lstlisting}[caption={Loading \textsf{cr3} for Address-Space Switch},label={caspace},style=CStyle]
+void pte_load(pte_t *pml4) {
+    lcr3(V2P(pml4));
+}
+\end{lstlisting}
