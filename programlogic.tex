@@ -197,11 +197,11 @@ Our solution removes some restrictions in this definition by further abstracting
   \label{sec:sharingpages}  
   The virtual points-to definition shown in Figure \ref{fig:strongvirtualpointsto} 
   is too strong to specify some operations a virtual memory manager may need to do, such as
-  move one level of the page table to a different physical location while preserving all virtual-to-physical mappings.\footnote{
-    x86-64 hardware, like other architectures, includes a feature (which we do not formalize assertions for) to
-    replace an L1 page table address in an L2 entry with a pointer to a \emph{larger} 2MB page (called super-pages), 
-    or replace an L2 page table address in an L3 entry with a pointer to a 1GB page (called huge-pages).
-  }
+  move one level of the page table to a different physical location while preserving all virtual-to-physical mappings. %\footnote{
+  %   x86-64 hardware, like other architectures, includes a feature (which we do not formalize assertions for) to
+  %   replace an L1 page table address in an L2 entry with a pointer to a \emph{larger} 2MB page (called super-pages), 
+  %   or replace an L2 page table address in an L3 entry with a pointer to a 1GB page (called huge-pages).
+  % }
   The use of $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}'s
   virtual points-to definition'
    stores knowledge of the page table walk's details with ownership of the backing physical
@@ -211,6 +211,9 @@ Our solution removes some restrictions in this definition by further abstracting
   would require explicitly collecting all virtual points-to facts that traverse affected entries.
   It is preferable to permit the page tables themselves to be updated independently of the virtual points-to assertions,
   so long as those updates preserve the same virtual-to-physical translations.
+  But this is not possible with Figure \ref{fig:strongvirtualpointsto}'s definition, which ties ownership of particular
+  pieces of page table memory to the virtual points-to.
+
 
   % iris.sty lacks nice syntax for the ghost maps
   \newcommand{\ghostmaptoken}[3]{\ensuremath{#2\hookrightarrow^{#1}#3}}
@@ -219,7 +222,7 @@ Our solution removes some restrictions in this definition by further abstracting
 \newcommand{\vale}{\textsf{val}}
 \begin{figure*}
 \footnotesize
-\[
+\centerline{$
 \begin{array}{l}
     \vaddr\mapsto_{\textsf{v}}\{\textsf{q}\}\;\vale : \mathsf{vProp}~\Sigma \stackrel{\triangle}{=} 
     \exists \paddr\ldotp
@@ -230,19 +233,19 @@ Our solution removes some restrictions in this definition by further abstracting
   \underbrace{\fracghostmaptoken{\delta}{\mathsf{va}}{\mathsf{pa}}{\mathsf{q}} }_\text{Ghost translation}\ast 
   \underbrace{\paddr \mapsto_{\mathsf{p}}\{\textsf{q}\}\; \vale}_\text{Physical location}
 \end{array}
-\]
+$}
 \vspace{-1em}
 \caption{Virtual-Pointsto for Sharing Pages}
   \label{fig:virtualpointstosharing}
 \end{figure*}  
 
-  Intuitively, the definition in Figure \ref{fig:strongvirtualpointsto} is too strong because the virtual points-to
-  assertion there tracks too much information: when writing programs that access memory via virtual addresses,
-  most code does not care \emph{which physical memory locations are involved in address translation}: it only cares
-  that virtual address translation would succeed. The necessary information about the physical page table walk
-  must still be tracked, but can be tracked separately from the virtual points-to assertion itself.
-  In practice the decisions about which virtual addresses are valid rest not with code posessing a virtual address, but with
-  the virtual memory manager --- and its invariants.
+  % Intuitively, the definition in Figure \ref{fig:strongvirtualpointsto} is too strong because the virtual points-to
+  % assertion there tracks too much information: when writing programs that access memory via virtual addresses,
+  % most code does not care \emph{which physical memory locations are involved in address translation}: it only cares
+  % that virtual address translation would succeed. The necessary information about the physical page table walk
+  % must still be tracked, but can be tracked separately from the virtual points-to assertion itself.
+  % In practice the decisions about which virtual addresses are valid rest not with code posessing a virtual address, but with
+  % the virtual memory manager --- and its invariants.
 
   We separate the physical page-table-walk  
   from the virtual pointsto relation, replacing it with ghost state that merely guarantees the address translation would succeed.
@@ -253,9 +256,8 @@ Our solution removes some restrictions in this definition by further abstracting
    The map includes for each key in the map (i.e.,
   each virtual address) a token $\ghostmaptoken{\gamma}{k}{v}$ whose ownership is required to update that key-value pair in the ghost map
   named $\gamma$. The existence of such a token implies that the actual map $\theta$ tracked by a corresponding $\mathsf{GhostMap}(\gamma,\theta)$
-  resource indeed maps $k$ to $v$. These properties are captured by the Iris rules:\footnote{Iris ghost maps lack established notation in the literature,
+  resource indeed maps $k$ to $v$. These properties are captured by Iris rules using the token to update or draw conclusions about the logical map:\footnote{Iris ghost maps lack established notation in the literature,
   but the syntax we use captures the details of \texttt{iris.base\_logic.lib.ghost\_map}.}
-
   \begin{mathpar}
   \inferrule{ }{\mathsf{GhostMap}(\gamma,\theta) \ast \ghostmaptoken{\gamma}{\mathsf{pa}}{\mathsf{va}} \vs 
   \mathsf{GhostMap}(\gamma,\theta[\mathsf{pa}\mapsto\mathsf{va'}]) \ast \ghostmaptoken{\gamma}{\mathsf{pa}}{\mathsf{va}'} 
@@ -307,7 +309,7 @@ changes in the virtual-to-physical translations become possible.
 
   \begin{figure*}
   \footnotesize
-\[
+\centerline{$
 \begin{array}{l}
   \mathcal{I}\textsf{ASpace}(\ptablestore,m)\stackrel{\triangle}{=} \textsf{ASpace\_Lookup}(\ptablestore,m) \ast \\
  \qquad\qquad\qquad \bigast{(\vaddr, \textsf{paddr})\in \ptablestore}{\exists\;(\textsf{l4e l3e l2e, l1e, paddr})\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr\textsf{, l4e, l3e, l2e, l1e, paddr})} \\
@@ -315,19 +317,21 @@ changes in the virtual-to-physical translations become possible.
    \textsf{ASpace\_Lookup} (\ptablestore,m) \stackrel{\triangle}{=} \lambda\textsf{ cr3val} \ldotp \; \exists \gammaPred \; \ldotp \ulcorner m \; !!\; \textsf{cr3val} = \textsf{Some } \gammaPred \urcorner \ast
     %\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}
     \ptableabswalk{\delta,\theta}
-  
 \end{array}
-\]
+$}
 \vspace{-1em}
 \caption{Global Address-Space Invariant with a fixed global map of address-space names $m$}
   \label{fig:peraspaceinvariant}
+\vspace{-1em}
   \end{figure*}
 
-Because our logic is the first to address the existence of multiple address spaces,
-the ghost map of virtual-to-physical translations (identified by the ghost name $\delta$ in Figure \ref{fig:virtualpointstosharing}
- \emph{for each address space}) must be locateable from a representation of the specific address space:
+Our logic is the first to address the existence of multiple address spaces, so requires
+a way to look up
+the ghost map of virtual-to-physical translations for an address space (the ghost name $\delta$ in Figure \ref{fig:virtualpointstosharing}).
+% for each address space must be locateable from a representation of the specific address space:
 % This means we also require a way to locate the map for the current address space from 
-the current root page table pointer stored in \lstinline|cr3|.
+We support lookup by the current root page table pointer stored in \lstinline|cr3|.
+\looseness=-1
 
 Figure \ref{fig:peraspaceinvariant} describes the resources for each address space.
 $\theta$ is the logical map from virtual addresses to the physical addresses they should translate to, 
@@ -394,15 +398,6 @@ kernel to future work. We do, however, deal with the existence of multiple addre
 So far, we have introduced logical abstractions for a single address space, but VMMs
  handle more than one address-space,
 and doing so requires a way to talk about other address spaces, and means to switch address spaces.
-% requiring a means to  which we abstract as a ghost map from root address of an address-space to a namespace labelling the address space
-
-% \paragraph{Valid Context-Resources} Fragmental ownership of $\mathcal{A}\textsf{spaces}$ ($\sumapaces\rtv\gammaPred$) conveys the fact that a current address-space ($\gammaPred$) is the one selected, i.e. loaded into the $\rtv$. This simple fact becomes essential when we observe it inside virtual-pointsto definition in Figure \ref{fig:virtualpointstosharing} and pictorially Figure \ref{logicaladdrspace}. Existence of this fragmental ownership ensures that the contextual resource, i.e. a virtual pointsto assertion, resides under the correct address-space, i.e. modal-context, that makes it valid.
-
-% \paragraph{Modal Resource Context\&Interaction with Ambient Logic \textsf{vProp}}
-% \label{sec:resourcecontext}
-% The relation between the address-space and and the validity of virtual-pointsto assertions exhibits itself as a contingency, i.e. \textit{"a certain virtual-pointsto facts whose validity is indexed by the root address of an address space"}. But, what sort of convenience this pattern provides when we do reasoning about more than one address-space.
-
-% In Figure \ref{fig:addrswitch}, we see two different address-spaces rooted at R0 and R1 in the pre/post condition. To be put into words, while switching an address-space by executing \lstinline|mov_ctl|) updating the  \lstinline|cr3|, it is expected to mention resources of two different address-spaces in the specification. In the precondition,  \lstinline|cr3| is loaded with R0 and all the virtual-pointsto assertions $a_0 \mapsto_{\textsf{v}}p_0$ and $a_1 \mapsto_{\textsf{v}}p_1$ are in the current-view of the memory and valid in the ambient logic \textsf{vProp}. The other address-space with the root address R1 has its own resources ($b_0 \mapsto_{\textsf{v}}p_3$ and $b_1 \mapsto_{\textsf{v}}p_4$) which are invalid under the current address space rooted at R0. This pattern of specification requires resources being mentioned under the \textit{world} they are valid, i.e. a modal-framing within the specification. Once the current address-space becomes the one with root address R1, i.e.  \lstinline|cr3| is loaded with R1, the context-resources $b_0 \mapsto_{\textsf{v}}p_3$ and $b_1 \mapsto_{\textsf{v}}p_4$ are loaded into the current-view of the memory, and all the other resources that are valid under R0 are introduced into the modal context rooted at R0
 \begin{figure}
 \footnotesize
 \begin{mathpar}
@@ -429,6 +424,7 @@ and doing so requires a way to talk about other address spaces, and means to swi
 \vspace{-1em}
   \caption{Other-space Modality and Its Laws}
   \label{fig:modaldef}
+\vspace{-1em}
   \end{figure}
 Figure \ref{fig:modaldef} gives the definition of our modal operator for asserting truth of a modal
 (address-space-contingent) assertion \emph{in another address space}, which we call
@@ -440,8 +436,6 @@ The novelty here is not in the details of the definition, but in recognizing tha
 multiple address spaces, and working out how to support interaction of multiple address spaces (discussed in the next section).
 % This simple definition is 
 % what we need in order for assertions in one address space to talk about assertions in another.
-\looseness=-1
-
 % The inspiration for this assertion comes from hybrid logic~\cite{blackburn1995hybrid,areces2001hybrid,goranko1996hierarchies,gargov1993modal},
 % which as mentioned earlier uses as modalities the names of worlds in a Kripke model to state
 % that an assertion is true in that specific world.
@@ -449,13 +443,13 @@ multiple address spaces, and working out how to support interaction of multiple 
 % is a distinct world, and it makes sense to name it by referring to the root of the
 % supporting page table structure. However, rather than explicitly building a Kripke model for our
 % assertions, we inherit them by lifting the model of our ambient logic, Iris.
-
 We can prove that this modality follows certain basic laws: that its truth is independent of the address
 space in which it is considered,  it distributes over various logical connectives, and it follows the rule of
 consequence.
 We call \textsf{vProp} assertions whose truth is independent of the current address space
 \textsf{Fact}s; these include other-space assertions, physical memory points-tos, and register assertions.
 \textsf{Fact}s can move in and out of other-space modalities freely.
+\looseness=-1
 
 
 
@@ -488,6 +482,7 @@ We call \textsf{vProp} assertions whose truth is independent of the current addr
 % \end{remark}
 
 \subsection{Subtleties of Changing Address Spaces Using Modalities}
+\todo[inline]{Colin will push this to an appendix, and leave just a short comment of a few lines here with a forward ref}
 % \subsection{Considering Hoare Doubles in the Context of Switching Address-Space}
 % \subsubsection{Issues with Using Hoare Triples in Address-Space Specification}
 \label{sec:issues}
