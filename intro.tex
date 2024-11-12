@@ -13,12 +13,16 @@ to it by the kernel will fail. But this is complicated by the fact that
 %and the fact that 
 control over these mappings of virtual to physical addresses is itself mediated by \emph{in-memory data structures}, 
 which the kernel still accesses via virtual address, leading to indirect cycles.
+\looseness=-1
 
-Further complicating matters is that addresses themselves bear no information about which address space they originate 
-from. For user processes this is of little concern, as these have access to only their own address space. But the kernel has
+Further complicating matters, addresses themselves bear no information about which address space they originate 
+from. 
+%For user processes this is of little concern, as these have access to only their own address space. 
+This is not a problem for usermode code, which only accesses its own address space.
+But the kernel has
 (or can grant itself) access to all address spaces. Mixing up addresses from different address spaces leads to severe bugs.
-More concerning, keeping track of which \emph{assertions} hold in different address spaces during kernel verification is 
-difficult: some assertions should hold across all address spaces, while others hold in only one, and others may hold in 
+Proofs of kernel correctness must also track which \emph{assertions} hold in different address spaces:
+some assertions should hold across all address spaces, while others hold in only one, and others may hold in 
 multiple but still not all.
 
 This kind of context-dependent assertion, where a fact may be true in one address space but not others, has a modal flavor. 
@@ -37,7 +41,7 @@ the \emph{non-local} effects of page table updates whether within the current ad
 
 \paragraph{Contributions}
 We develop these ideas in the form of a logic for working with virtual-address-space-relative assertions,
-implemented as an embedded separation logic within the Iris~\cite{jung2018iris} separation logic.
+implemented as an embedded separation logic within Iris~\cite{jung2018iris}.
 The result is a separation logic that lifts a number of major semantic restrictions present in the few
 prior logics tackling virtual address translation.
 The logic we develop covers core reasoning principles for reasoning about memory configurations and code

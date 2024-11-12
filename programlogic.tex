@@ -62,9 +62,7 @@ essentially working with separation logic assertions indexed by a choice of page
   distribution~\cite{dang2019rustbelt,dang2022compass}. This is essentially true, but the standard formalization does not work for index types which
   are indexed in the sense of \coq's metatheory, as our \lstinline|word n| types are.
 }
-\begin{lstlisting}[language=Coq]
-  Definition vProp  $\Sigma$ : bi := word 64 -b> iPropI  $\Sigma$.
-\end{lstlisting}
+\lstinline[language=Coq]|Definition vProp  $\Sigma$ : bi := word 64 -b> iPropI  $\Sigma$|.
 This is the (\textsc{Coq}) type of assertions in our logic.
 Most constructs in Iris's base logic are defined with respect to any BI-algebra (of \textsc{Coq} type \lstinline|bi|), so automatically
 carry over to our derived logic.
@@ -79,9 +77,10 @@ of virtual points-to.
 %   \label{fig:vprop}
 % \end{figure}
 
-\subsection{Base Points-To Assertions}
-\label{sec:pointsto}
-We build up our context-dependent assertions from two basic types of assertions that do not care about address spaces.
+% \subsection{Base Points-To Assertions}
+% \label{sec:pointsto}
+% We build up our context-dependent assertions from two basic types of assertions that do not care about address spaces.
+To define and use virtual points-to assertions, we require two more basic assertions:
 
 \paragraph{Register points-to} 
 The assertion $\textsf{r}\;\mapsto_{\textsf{r}}\{q\}\;\textsf{rv}$ ensures the ownership of the register $\rg$ naming the register value $\rv$. 
@@ -97,15 +96,15 @@ and \textsf{pageoff} (a $\mathcal{W}_{12}$) is an offset within that page.
 % could be an 52-bits masked address to level 4 table 
 % ($\textsf{w1 } =( \textsf{ l4M52 maddr cr3val}) $),
 %and, expectedly \textsf{w2} is an address computed by page-offset computation (e.g. $\textsf{l4off maddr cr3val}$). 
-From this we can derive a more concise physical points-to when the split is unimportant:
+From this we can derive a more concise physical points-to when the split is unimportant:\\
 % Giving a raw 64-bits memory pointsto assertion becomes
-\[\textsf{w} \mapsto_{\textsf{p}} \{q\} \textsf{ v} \stackrel{\triangle}{=} (\textsf{drop 12}~w) \ \sim \ (\textsf{bottom 12}~w)\mapsto_{\textsf{a}} \; \{\textsf{q}\} \textsf{ v} \]
+\centerline{$\textsf{w} \mapsto_{\textsf{p}} \{q\} \textsf{ v} \stackrel{\triangle}{=} (\textsf{drop 12}~w) \ \sim \ (\textsf{bottom 12}~w)\mapsto_{\textsf{a}} \; \{\textsf{q}\} \textsf{ v} $}
+
  %I put a newline in between the following two Definitions as the second Definition seems not proper without the newline
 \begin{figure*}
   \begin{lstlisting}[language=Coq]
  Definition $\vaddr\mapsto_{\textsf{t}}\{\textsf{q}\}\; \vpage$ : vProp $\Sigma$ := 
  $\exists_{\textsf{l4e l3e l2e l1e}} \ldotp$  $\ulcorner$ aligned $\vaddr \urcorner \ast$ L4_L1_PointsTo($\vaddr$ l4e l3e l2e l1e paddr) $\ast$ paddr $\mapsto_{p}\{\mathsf{q}\} \vpage$.
-
  Definition L4_L1_PointsTo (maddr l4e l3e l2e l1e paddr :word 64) : vProp $\Sigma$ := $\lambda$ cr3val.
   $\ulcorner$ entry_present l4e $\land$ entry_present l3e $\land$ entry_present l2e $\land$ entry_present l1e$\urcorner$ $\ast$
   (l4M52 maddr cr3val) $\sim$ (l4off maddr cr3val) $\mapsto_{a}$ {q1}  l4e  $\ast$
@@ -116,24 +115,32 @@ From this we can derive a more concise physical points-to when the split is unim
 \vspace{-1em}
 \caption{A Strong Virtual Points-to Relation}
   \label{fig:strongvirtualpointsto}
+\vspace{-1em}
 \end{figure*}
 
 
 
 \subsection{An Overly-Restrictive Definition for Virtual Memory Addressing}
 \label{sec:overly-restrictive}
-A natural definition for a virtual points-to that depends on the current address space is to
-require that in order for a virtual address \textsf{va} to point to a value \textsf{v}, the assertion contains
+A natural definition for a virtual points-to
+asserting that virtual address \textsf{va} points to a value \textsf{v}
+would 
+% require that in order for a virtual address \textsf{va} to point to a value \textsf{v}, the assertion 
+contain
 partial ownership of the physical memory involved in the page table walk that would translate \textsf{va} to
 its backing physical location --- with locations existentially quantified since a virtual points-to should not assert
-\emph{which} locations are accessed in a page table walk.
-Figure \ref{fig:strongvirtualpointsto} gives such a definition.
+\emph{which} locations are accessed in a page table walk, as in Figure \ref{fig:strongvirtualpointsto}.
+% Figure \ref{fig:strongvirtualpointsto} gives such a definition.
 It asserts the existence of four page table entries, one at each translation level, and via \lstinline|L4_L1_PointsTo|
-asserts from the current \lstinline|cr3| value, taking the offsets from \textsf{va} (as in Figure \ref{fig:pagetables})
-to index each level, finding the existentially quantified entries in each level, 
-ending with the L1 entry, whose physical page base is added to the page offset of \textsf{va} to obtain the physical address
- --- and there (\lstinline|addr_L1(va,l1e)|) in physical memory, is the value.
+asserts that the physical page table walk (per Figure \ref{fig:pagetables}) succeeds in reaching the L1 entry,
+% asserts from the current \lstinline|cr3| value, taking the offsets from \textsf{va} (as in Figure \ref{fig:pagetables})
+% to index each level, finding the existentially quantified entries in each level, 
+% ending with the L1 entry, 
+% whose physical page base is added to the page offset of \textsf{va} to obtain the physical address
+ % --- and there (\lstinline|addr_L1(va,l1e)|) in physical memory, is the value.
+which points to the page holding the physical memory backing the virtual address, which contains value \textsf{v}.
 Most of the definition lives directly in \textsf{vProp}, using the separation logic structure lifted from Iris's \textsf{iProp}.
+\looseness=-1
 
 \lstinline|L4_L1_PointsTo| works by
 chaining together the entries for each level, using the sequence of table offsets from the address being translated to index
@@ -152,6 +159,7 @@ The statement of these assertions is simplified by the use of our split physical
 each level of tables is page-sized.\footnote{We do not address superpages and hugepages in this paper.}
 This helper definition is also a more explicit \textsf{vProp}, explicitly binding a value for \lstinline|cr3| and using it
 to start the translation process.
+\looseness=-1
 
 
 % Given the definition of physical page-pointsto assertion and the root address of virtual-address space as shown in Figure \ref{fig:pagetable}, one can build the physical address-translation for a virtual address (e.g. \textsf{va}) via abstracting the L4-L1 table traversal as the following:

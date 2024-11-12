@@ -108,12 +108,12 @@
 To develop our core logical ideas, we instantiate \textsf{Iris} with a simple language for streams of instructions, 
 and a logical machine model corresponding to execution of x86-64 assembly instructions with virtual memory enabled on the 
 CPU.
-
+%
 % \subsection{Registers and Memory}
-Programs we demonstrate in this paper requires accessing two types of computer resource: registers and memory.
+% Programs we demonstrate in this paper requires accessing two types of computer resource: registers and memory.
 A register identifier, $\reg$, is chosen from a fixed finite set of register identifiers, $\regset$. 
-We use these identifiers $\reg$ for register names such as \texttt{rax}, \texttt{r8}, or \texttt{cr3}. Our model includes
-all x86-64 integer registers (including stack and instruction pointers), as well as \texttt{cr3} (for page table roots) and \texttt{rflags} (for
+We use these identifiers $\reg$ for register names such as \lstinline|rax|, \lstinline|r8|, or \lstinline|cr3|. Our model includes
+all x86-64 integer registers (including stack and instruction pointers), as well as \lstinline|cr3| (for page table roots) and \lstinline|rflags| (for
 flags set by comparison operations and inspected by conditional jumps).
 % \begin{figure}[t]
 % \newcommand{\commentary}[1]{ & \text{\small\it #1} \\}
@@ -167,7 +167,7 @@ We represent the machine state mainly as a finite map of registers to register v
 to 64-bit physical memory values. 
 Thus our states $\sigma$ include register maps $\sigma.\mathcal{R}: \kw{greg} \rightarrow_{\textrm{fin}} \kw{regval} $ and
 memory maps $\sigma.\mathcal{M}: \Locft \rightharpoonup_{\textrm{fin}} (\Loctw \rightharpoonup_{\textrm{fin}} \Locsf )$.
-Of particular note, \texttt{cr3}, the page table register, is included in the machine state.
+Of particular note, \lstinline|cr3|, the page table register, is included in the machine state.
 % As one might have already anticipated from the syntax we introduce, we do not bind any value of an evaluated expression. All the indices and accessed values are treated as globally referenced. In align with this design choice, our expression is a stream of instructions, which is not evaluated to a value to be bound, but changes the machine state through the indices (e.g. $\kw{r}\in\kw{greg}$) -- to the global maps.
 
 
@@ -206,21 +206,28 @@ The latter require page table walks.
 % only consider.
 
 The most important instructions we model are memory-accessing variants of the x86-64 \lstinline|mov| instruction, which we format in Intel syntax
-(destination on the left, source on the right):
-\[
-\begin{array}{l}
-  \hbox{(\TirNameStyle{WriteToMemFromReg})} \qquad
-  \textsf{mov}~[r_m]~r_r \\
-  \hbox{(\TirNameStyle{WriteToRegFromMem})} \qquad 
-  \textsf{mov}~r_r~[r_m]
-  \end{array}
-  \]
-The semantics of each is realized by first translating the virtual-memory address of a memory location stored in $r_m$ to a physical memory location
-per the description in Section \ref{sec:backgroundonmachinemodel},
-then either updating those memory contents with the contents of register $r_r$ (\TirNameStyle{WriteToMemFromReg}) 
-or loading the value at that physical memory location into the register $r_r$
-(\TirNameStyle{WriteToRegFromMem}). 
-Additional \lstinline|mov| variants (e.g., accessing memory at constant offsets from the base register, or moves between registers) are also treated.
-Our formalization also includes basic integer and bitwise operations (\lstinline|add|,
+(destination on the left, source on the right).
+Thus a store to memory is $\textsf{mov}~[r_m]~r_r$, and a load from memory is $\textsf{mov}~r_r~[r_m]$.
+% \[
+% \begin{array}{l}
+%   \hbox{(\TirNameStyle{WriteToMemFromReg})} \qquad
+%   \textsf{mov}~[r_m]~r_r \\
+%   \hbox{(\TirNameStyle{WriteToRegFromMem})} \qquad 
+%   \textsf{mov}~r_r~[r_m]
+%   \end{array}
+%   \]
+Operationally, each first translates the virtual address stored in register $r_m$ to a physical address,
+then either updates the memory at that physical location with the contents of $r_r$ (for store) or
+or updates $r_r$ with the contents of that memory (for load).
+% The semantics of each is realized by first translating the virtual-memory address of a memory location stored in $r_m$ to a physical memory location
+% per the description in Section \ref{sec:backgroundonmachinemodel},
+% then either updating those memory contents with the contents of register $r_r$ (\TirNameStyle{WriteToMemFromReg}) 
+% or loading the value at that physical memory location into the register $r_r$
+% (\TirNameStyle{WriteToRegFromMem}). 
+Our formalization includes
+additional \lstinline|mov| variants (e.g., accessing memory at constant offsets from the base register, or moves between registers),
+basic integer and bitwise operations (\lstinline|add|,
 \lstinline|and|, bit shifts, etc.) with their effects on \lstinline|rflags|, jumps and some (not all) conditional jumps, \lstinline|call|, \lstinline|ret|, \lstinline|push|,
 and \lstinline|pop|.
+The semantics model updates to the instruction pointer, though we elide that register (\lstinline|rip|)
+from specifications in the paper for clarity.
