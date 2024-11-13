@@ -34,12 +34,15 @@
 }
 \section{Experiments}
 \label{sec:experiment}
-To both validate and demonstrate the value of the modal approach to reasoning about virtual memory management, we study several
-distillations of real concerns of virtual memory managers.
-Recall from Section \ref{sec:logic} that virtual points-to assertions work just like regular points-to assertions, by design.
-In this section we work through two critical and challenging aspects of virtual memory management.
+%To both validate and demonstrate the value of the modal approach to reasoning about virtual memory management, 
+% we study several
+% We validate our logic by studying
+% distillations of key VMM functionality.
+% real concerns of virtual memory managers.
+% Recall from Section \ref{sec:logic} that virtual points-to assertions work just like regular points-to assertions, by design.
+In this section we verify several critical and challenging pieces of VMM code.
 First, in several stages, we work up to mapping a new page in the current address space.
-This requires a number of challenging substeps: dynamically traversing a page table to find
+This requires a number of independently challenging substeps: dynamically traversing a page table to find
 the appropriate L1 entry to update; inserting additional levels of the page table if necessary (updating
 the VMM invariants along the way);
 converting the physical addresses found in intermediate entries into the corresponding virtual addresses
@@ -48,7 +51,8 @@ installing the new mapping;
 and collecting sufficient resources to form a virtual points-to assertion.
 Of these, only the second-to-last step (installing the correct mapping into the
 current address space) has previously been formally verified with respect to a machine model with address translation.
-Second, we formally verify a switch into a new address space as part of a task switch.
+Second, we formally verify a switch into a new address space as part of a task switch,
+the first such verification handling both old and new processes' assertions at the time of the switch.
 
 %\begin{comment}
 %\todo[inline]{Identity mappings are difficult, and our current approach won't quite work. Consider trying to have a virtual pointsto for an actual page table entry (i.e., that one could use to update a page table mapping), while also having a virtual pointsto for an address that entry mapped. With the current (let's call it v1) solution, we can't actually have both of those simultaneously!  That's because the PTE pointsto will assert full ownership of the physical memory cell holding the PTE as its data value, while the virtual pointsto for the data mapped by that entry will \emph{also} assert (fractional) ownership of all entries a page table walk would traverse.
@@ -89,15 +93,16 @@ of the entry passed as an argument, and this code
 is used for all three level transitions when traversing page tables (4 to 3, 3 to 2, 2 to 1).
 This comes into play with a subtlety of the specification of \lstinline|pte_get_next_table| that we will
 revisit several times: \lstinline|pte_get_next_table|'s specification
-assumes it is given a virtual \emph{vpte-pointsto}\footnote{A \emph{vpte-pointsto}
-$\vaddr\mapsto_{\textsf{vpte,qfrac}} \textsf{\paddr~\val}$ is a virtual points-to granting
-access to virtual address $\vaddr$, which is known to hold \textsf{\val}, but additionally exposing the physical address
-$\paddr$ that the virtual address translates to. This is commonly used, as the name suggests, when updating PTEs,
-where we require assurance that we are accessing the intended PTE.
-Its definition is just like the regular virtual points-to in Figure \ref{fig:virtualpointstosharing},
-except taking the physical address as a parameter rather than existentially quantifying it.
-}
- granting access to the specified entry,
+assumes it is given a virtual \emph{vpte-pointsto}
+% \footnote{A \emph{vpte-pointsto}
+% $\vaddr\mapsto_{\textsf{vpte,qfrac}} \textsf{\paddr~\val}$ is a virtual points-to granting
+% access to virtual address $\vaddr$, which is known to hold \textsf{\val}, but additionally exposing the physical address
+% $\paddr$ that the virtual address translates to. This is commonly used, as the name suggests, when updating PTEs,
+% where we require assurance that we are accessing the intended PTE.
+% Its definition is just like the regular virtual points-to in Figure \ref{fig:virtualpointstosharing},
+% except taking the physical address as a parameter rather than existentially quantifying it.
+% }
+(a virtual points-to exposing the underlying physical address; see Section \ref{sec:mapnew}) granting access to the specified entry,
 but its postcondition does not yield new virtual points-to assertions!
 Instead it merely computes the base address of the next table, and returns adequate capabilities (discussed in Section \ref{subsec:identitymappings})
 for the \emph{caller} to construct a vpte-pointsto for the next table level (if this is not an L1 entry ---
@@ -136,6 +141,45 @@ The code for allocating a new level of the page table must establish this extend
 %          (WordImpl.concat (WordImpl.zero 56) (WordImpl.from_nat 8 12 ^& WordImpl.concat (WordImpl.zero 2) WO~1~1~1~1~1~1)) ^& constf)
 %       (WordImpl.concat (WordImpl.zero 56) (natToWord 8 12 ^& WordImpl.concat (WordImpl.zero 2) WO~1~1~1~1~1~1)) 
 \begin{figure}%\footnotesize
+\ifPLDI
+\begin{lstlisting}[mathescape, basicstyle=\footnotesize,escapeinside={(*}{*)}]
+;;pte_t *pte_get_next_table(pte_t *entry) { ... // setting up the stack for a pte_t *next elided
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry}\},m)  \ast \texttt{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$ (*\label{line:get_next_vpte_precondition}*)
+$\specline{\ulcorner\textsf{entry\_present(entry\_val)}\urcorner \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(entry\_val.pfn) + i * 8}}{\textsf{v-1}} }_{\rtv} $ (*\label{line:conditional_children}*)
+mov    -0x8[rbp],rdi $\specline{\ldots \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} \ast \ldots }$
+mov     rdi, r8 $\specline{\ldots \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \ldots }$
+mov    [r8],rdi (*\label{line:read_entry_contents}*) $\specline{\ldots \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  \ast\ldots}$
+and    0x1,rdi (* \label{line:mask_present} *)
+mov    rdi,rax
+cmp    0x0,rax ;;  if (!entry->present) {(* \label{line:check_entry_present} *)
+jne    161 <pte_get_next_table+0xa1> (* \label{line:check_entry_present_jump} *) ;; Jump if the present bit is not zero
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val \& 0x1} }_{\rtv}$
+$\specline{  \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  \ast \texttt{rax}  \mapsto_{\textsf{r}} \textsf{entry\_val \& 0x1} \ast \ulcorner\textsf{entry\_val \& 0x1}=\textsf{0x0}\urcorner}_{\rtv}$
+$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow  \lnot(\textsf{entry\_val \& 0x1}=\textsf{0x1})  \urcorner }_{\rtv}$ (*\label{line:before_concluding_qfrac1}*)
+mov    rbp,rdi (*\label{line:alloc_path_start}*)
+sub    0x10, rdi ;; Store the value of rbp minus 16 bytes (address of (*\textsf{next}*)) into rdi (*\label{line:pass_addrof_next}*)
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{rbp - 16} }_{\rtv}$
+$\specline{  \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta} }_{\rtv}$
+$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$ (*\label{line:after_concluding_qfrac1}*)
+callq  70 <pte_initialize> ;;pte_initialize(entry);(* \label{line:call_to_pte_initialize} *)
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  }_{\rtv}$
+$\specline{  \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta} }_{\rtv}$
+$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
+$\specline{\ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present (pfn\_set (entry\_val nextpaddr))}  \urcorner   }_{\rtv}$
+$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{pfn\_set(entry\_val nextpaddr)}   }_{\rtv}$
+$\specline{ \begin{array}{l}\textsf{entry\_present (pte\_initialized (pfn\_set(entryv nextpaddr)))} \wand  \\ \;\;\;\;\;\;\;\;\  \forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}} \end{array}  }$ (*\label{line:page_of_caps}*)
+... ;;entry value updates: entry->pfn = nextpaddr; entry->present = 1; (*\label{line:install_new_entry}*)
+... ;;now we know that entry is initialized, so we satisfy the condition to access children list
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  }_{\rtv}$
+$\specline{  \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta} }_{\rtv}$
+$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}}  \textsf{pte\_initialized(pfn\_set(entryv nextpaddr))} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
+$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{pte\_initialized(pfn\_set(entry\_val nextpaddr))}  \ast rax \mapsto_{r} \textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}  }_{\rtv}$
+$\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:alloc_path_end}*)
+;;} (*\label{line:end_of_allocation_path}*)
+... ;; Code after conditional continued in Figure (*\ref{fig:p2v}*)
+\end{lstlisting}
+\else
 \begin{lstlisting}[mathescape, basicstyle=\footnotesize,escapeinside={(*}{*)}]
 ;;pte_t *pte_get_next_table(pte_t *entry) {
 ... ;; setting up the stack
@@ -184,6 +228,7 @@ $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}
 ;;} (*\label{line:end_of_allocation_path}*)
 ... ;; Code after conditional continued in Figure (*\ref{fig:p2v}*)
 \end{lstlisting}
+\fi
 % ;;uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr);
 % movabs KERNBASE,rcx
 % add    rcx,rax
@@ -336,9 +381,7 @@ $\specline{\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{entry entry
 callq  81 <kalloc>	;;pte_t *local = kalloc();(*\label{line:call_to_kalloc}*)
 mov    rax,-0x10[rbp] ;; Store into 'local'
 ;;entry->pfn = PTE_ADDR_TO_PFN((uintptr_t) local);
-mov    -0x10[rbp],rax
-mov    -0x8[rbp],rdi
-mov    rax,[rdi]
+mov    -0x10[rbp],rax; mov    -0x8[rbp],rdi; mov    rax,[rdi]
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)   \ast \texttt{rbp-16} \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry+KERNBASE} }_{\rtv}$
 $\specline{\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,}} \textsf{entry entryv} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{entry})}{\textsf{level}} }$
 $\specline{\texttt{rax} \mapsto_{\textsf{r}} \textsf{nextpaddr} \ast \lnot(\textsf{entry\_present entry\_val}) }$
@@ -594,6 +637,7 @@ to install a new mapping.
 
 
 \subsection{Mapping a New Page}
+\label{sec:mapnew}
 One of the key tasks of a page fault handler in a general-purpose OS kernel is
 to map new pages into an address space by writing into an existing page table via a call
 \[\textsf{vaspace\_mappage(pte\_t *pml4, void *va,uintptr\_t fpaddr, uint64\_t perm )}\] in Figure \ref{fig:mapping_code}).
@@ -759,14 +803,12 @@ lack effective ways to specify and reason about this low-level operation, for re
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\Xi,m) \ast [\rtv'](\mathcal{I}\texttt{ASpace}(\theta',\Xi',m') \ast \texttt{Pother}) \ast \texttt{rsi}\mapsto_{\textsf{r}} new \ast \texttt{rdi}\mapsto_{\textsf{r}} old \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} }_{\rtv}$
 $\specline{\texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} \ast \texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
 $\specline{\mathsf{ContextAt}(old,\_) \ast \mathsf{ContextAt}(new,[\mathsf{rbxv}',\ldots,\rtv']) }_{\rtv}$
-mov 0[rdi], rbx
-... ;; mov rsp, rbp, r12, r13, r14, saved to offsets 8, 16, 24, 32, and 40 from rdi
+mov 0[rdi], rbx ... ;; also mov rsp, rbp, r12, r13, r14, saved to offsets 8, 16, 24, 32, and 40 from rdi
 mov 48[rdi], r15
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\Xi,m) \ast [\rtv'](\mathcal{I}\texttt{ASpace}(\theta',\Xi',m') \ast \texttt{Pother})  \ast  \texttt{rsi}\mapsto_{\textsf{r}} new \ast \texttt{rdi}\mapsto_{\textsf{r}} old \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} }_{\rtv}$
 $\specline{ \texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} \ast \texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
 $\specline{\mathsf{ContextAt}(old,[\mathsf{rbxv,\ldots,\rtv}]) \ast \mathsf{ContextAt}(new,[\mathsf{rbxv}',\ldots,\rtv']) }_{\rtv}$
-mov 56[%rdi], %cr3
-$\specline{\ldots \ast \texttt{rdi+56} \mapsto_{\textsf{v}} \rtv}_{\rtv}$    
+mov 56[%rdi], %cr3 $\specline{\ldots \ast \texttt{rdi+56} \mapsto_{\textsf{v}} \rtv \ast \ldots }_{\rtv}$    
 ;; Restore target context
 mov rbx, 0[rsi] 
 mov rsp, 8[rsi] ;; Switch to new stack, which may not be mapped in the current address space!
@@ -775,8 +817,7 @@ mov r15, 48[rsi]
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\Xi,m) \ast [\rtv'](\mathcal{I}\texttt{ASpace}(\theta',\Xi',m') \ast \texttt{Pother})  \ast  \texttt{rsi}\mapsto_{\textsf{r}} new \ast \texttt{rdi}\mapsto_{\textsf{r}} old \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv}' }_{\rtv}$
 $\specline{\texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv}' \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv}' \ast \texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v}' \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v}' \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v}' \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}'}_{\rtv}$
 $\specline{\mathsf{ContextAt}(old,[\mathsf{rbxv,\ldots,\rtv}]) \ast \mathsf{ContextAt}(new,[\mathsf{rbxv}',\ldots,\rtv']) }_{\rtv}$
-;; Switch to the new address space
-mov cr3, 56[rsi]
+mov cr3, 56[rsi] ;; <-- Switch to the new address space
 $\specline{ [\rtv](\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\Xi,m) \ast \mathsf{ContextAt}(old,[\mathsf{rbxv,\ldots,\rtv}]) \ast \mathsf{ContextAt}(new,[\mathsf{rbxv}',\ldots,\rtv']))  }_{\rtv}$
 $\specline{ \mathcal{I}\texttt{ASpace}(\theta',\Xi',m') \ast \texttt{Pother} \ast  \texttt{rsi}\mapsto_{\textsf{r}} new \ast \texttt{rdi}\mapsto_{\textsf{r}} old \ast \ldots }_{\rtv'}$
 \end{lstlisting}

@@ -290,7 +290,7 @@ $}
   % The resource algebra itself is instantiated as:
   % \[\mathcal{A}\textsf{bsPTableWalk} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \;  ( (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \Loc,\mathord{=}) ))\]
 For clarity we refer to the ghost map summarizing virtual-to-physical translations by 
-\[\mathcal{A}\textsf{bsPTableWalk}(\delta,\theta) \stackrel{\triangle}{=} \mathsf{GhostMap}(\delta,\theta)\]
+\centerline{$\mathcal{A}\textsf{bsPTableWalk}(\delta,\theta) \stackrel{\triangle}{=} \mathsf{GhostMap}(\delta,\theta)$}\\
 (omitting $\delta$ for brevity when only one is in scope)
 and keep this in a per-address-space invariant described shortly.
 We then replace the physical
@@ -325,7 +325,7 @@ $}
 \vspace{-1em}
   \end{figure*}
 
-Our logic is the first to address the existence of multiple address spaces, so requires
+Our logic is the first to address the existence of multiple address spaces, so also requires
 a way to look up
 the ghost map of virtual-to-physical translations for an address space (the ghost name $\delta$ in Figure \ref{fig:virtualpointstosharing}).
 % for each address space must be locateable from a representation of the specific address space:
@@ -380,18 +380,18 @@ of the physical page table walk for each virtual-to-physical translation in $\Th
 %   \label{fig:logicaladdrspace}
 %   \end{figure}
 
-\paragraph{From A Single Address Space to Many}
-In principle the resources from each individual address space should be collected into a single
-shared invariant, and for each memory access,
-a fragment of this corresponding to $\mathcal{I}\textsf{ASpace}(\Theta,m)$
-for the current address space should be extracted from this global resource, used to prove correctness of the
-memory access, and put back.
-In this paper we focus on the middle section, explicity identifying resources for each
-address space. The reason for this is that in practice, this global resource is also
-the place where kernel-specific assumptions, such as guaranteeing that certain virtual address range
-was mapped in all address spaces, would be enforced. This paper focuses on the
-reasoning principles behind the virtual memory access, and we leave the use of this within a larger
-kernel to future work. We do, however, deal with the existence of multiple address spaces in examples (Section \ref{sec:experiment}).
+% \paragraph{From A Single Address Space to Many}
+% In principle the resources from each individual address space should be collected into a single
+% shared invariant, and for each memory access,
+% a fragment of this corresponding to $\mathcal{I}\textsf{ASpace}(\Theta,m)$
+% for the current address space should be extracted from this global resource, used to prove correctness of the
+% memory access, and put back.
+% In this paper we focus on the middle section, explicity identifying resources for each
+% address space. The reason for this is that in practice, this global resource is also
+% the place where kernel-specific assumptions, such as guaranteeing that certain virtual address range
+% was mapped in all address spaces, would be enforced. This paper focuses on the
+% reasoning principles behind the virtual memory access, and we leave the use of this within a larger
+% kernel to future work. We do, however, deal with the existence of multiple address spaces in examples (Section \ref{sec:experiment}).
 
 \subsection{Address-Space Management}
 \label{sec:aspacemanagement}
@@ -452,6 +452,15 @@ We call \textsf{vProp} assertions whose truth is independent of the current addr
 \textsf{Fact}s can move in and out of other-space modalities freely.
 \looseness=-1
 
+In general, per-address-space invariants should be collected in a larger
+VMM invariant, with individual address spaces' invariants pulled out as needed, such as when proving
+soundness of an individual virtual memory access.
+But such larger invariants would contain many kernel-specific properties that are orthogonal
+to the fundamental reasoning principles that are the focus of this paper.
+We leave such kernel-specific reasoning to future work, but our verification of task switching
+(Section \ref{sec:experiment}) demonstrates support for managing multiple address spaces.
+\looseness=-1
+
 
 
   
@@ -488,9 +497,9 @@ We call \textsf{vProp} assertions whose truth is independent of the current addr
 \subsection{Selected Logical Rules}
 \label{sec:selected_rules}
 % Per the discussion in Section \ref{sec:issues}, w
-As common for assembly-level verification, we define our logic using Hoare doubles:\footnote{This
-omits some low-level Iris details (stuckness, observations) that play no meaningful
-role in our development.}
+As common for assembly-level verification, we define our logic using Hoare doubles:%\footnote{This
+% omits some low-level Iris details (stuckness, observations) that play no meaningful
+% role in our development.}
   \[
   \begin{array}{l}
     %\textsf{wpd\_def e s E1 } \Phi \;\mathsf{ rtv } : \textsf{iProp }\Sigma := \\
@@ -524,9 +533,9 @@ in our logic.
 These rules and others (e.g., including accessing memory at an instruction-specified offset from a register
 value, which is common in most ISAs)
 can be found in our artifact.
-Each rule in Figure \ref{fig:wpdamd}, 
-is annotated with a root (i.e., \lstinline|cr3|) address value (\textsf{rtv}), 
-under which the resources mentioned in the specification are valid.
+% Each rule in Figure \ref{fig:wpdamd}, 
+% is annotated with a root (i.e., \lstinline|cr3|) address value (\textsf{rtv}), 
+% under which the resources mentioned in the specification are valid.
 In general, we use metavariables $\textsf{r}_s$ and $\textsf{r}_d$ to specify source and destination registers
 for each instruction, and prefix various register value variables with \textsf{rv}.
 We sometimes use $\textsf{r}_a$ to emphasize when a register is expected to hold an address used
@@ -613,8 +622,9 @@ most unique to our development.
 % }
 \end{mathpar}
 \vspace{-1em}
-\caption{Reasoning Rules for Selected \textsf{AMD64} Instructions under}
+\caption{Proof rules for selected \textsf{AMD64} instructions}
 \label{fig:wpdamd}
+\vspace{-1em}
 \end{figure}
 
 
@@ -655,12 +665,15 @@ address space back into the \emph{new} address space, where they may not hold. A
 \subsection{Soundness}
 Our rules from Figure \ref{fig:wpdamd} are proven sound in Iris against an assembly-level hardware model
 implementing a fragment of x86-64 including 64-bit address translation with 4-level page tables.
-\todo[inline]{
-Our rules for control transfers (\lstinline|jmp|, \lstinline|call|, and \lstinline|ret|) are currently
-axiomatized (with completely standard specifications~\cite{ni2007contexts,Chlipala2013Bedrock}) because Iris's built-in machinery does not provide
-convenient ways to discard the current continuation. We are working to adapt existing machinery~\cite{de2023type} to prove their soundness.
-Our soundness proofs for all other instructions (including the instructions above, arithmetic, other heap-accessing operations, push, and pop)
+% \todo[inline]{
+Our rules for control transfers (\lstinline|jne|, \lstinline|call|, and \lstinline|ret|) are currently
+axiomatized (with completely standard specifications~\cite{ni2007contexts,Chlipala2013Bedrock}) 
+because Iris's built-in machinery does not provide
+convenient ways to discard the current continuation; adaptation of others'
+approaches~\cite{de2023type} is ongoing work.
+Our soundness proofs for all other instructions (including, critically, all memory accesses)
 are axiom-free.
-}
+% }
 % At the moment our proofs do rely on 13 small axioms of properties which should be provable, but
 % are challenging to discharge due to some representation choices in our model.\footnote{See \lstinline|srx/x64/machine/current_axioms.v|}
+\looseness=-1

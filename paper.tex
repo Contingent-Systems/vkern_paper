@@ -47,6 +47,10 @@
 %%
 %%
 \documentclass[acmsmall,screen,nonacm,review,anonymous]{acmart}
+
+\newif\ifPLDI
+\PLDItrue
+
 \settopmatter{printacmref=false}
 %%
 %% \BibTeX command to typeset BibTeX logo in the docs
@@ -135,7 +139,7 @@
   numbers=left,
   basicstyle=\ttfamily,
   keywordstyle=\color{blue}\bfseries,
-  morekeywords={mov,add,call,and,or,xor,ret,push,pop,shl,shr,movabs,callq,jmp,je,jlt,jge,jle,shiftr,shiftl},
+  morekeywords={mov,add,call,and,or,xor,ret,push,pop,shl,shr,movabs,callq,jmp,jz,je,jlt,jge,jle,shiftr,shiftl,sub,cmp,jne},
   emph={rsp,rdx,rax,rbx,rbp,rsi,rdi,rcx,r8,r9,r10,r11,r12,r13,r14,r15,rflags,rip},
   emphstyle=\color{green},
   emph={[2]cr3},
