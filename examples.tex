@@ -398,7 +398,10 @@ Since we are using \textsf{pte\_initialize} for page-table address allocation, w
 allocated physical address to the identity mapping map $\Xi$ --- 
 see Line \ref{line:page_of_caps} in Figure \ref{fig:calltopteinitialize}, where
 \texttt{kalloc}'s specification guarantees it has returned memory from a designated memory
-pool that is already mapped\footnote{A reasonable reader might wonder where this pool
+pool that is already mapped
+\ifPLDI
+\else
+\footnote{A reasonable reader might wonder where this pool
 initially comes from, and how it might grow when needed. Typically an initial mapping subject to this identity mapping
 constraint is set up prior to transition to 64-bit kernel code (notably,
 a page table must exist \emph{before} virtual memory is enabled during boot, as part of enabling it is setting
@@ -407,7 +410,9 @@ Growing this pool later requires cooperation of physical memory range allocation
 typically by starting general virtual address allocation at the highest physical memory address plus the identity mapping offset.
 This reserves the virtual addresses corresponding to all physical addresses plus the offset for later use in this pool,
 as needed.
-} and satisfies the offset invariants.
+} 
+\fi
+and satisfies the offset invariants.
 % \todo[inline,color=blue]{colin frontier.
 % Stuck with line 31 onwards in Figure 7. rax holds nextpaddr, but I think that should be entrypfn, and 
 % the explicit entrypfn id token assertion should go away, as its covered by the forall assertion.
