@@ -149,7 +149,7 @@ $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry 
 $\specline{\ulcorner\textsf{entry\_present(entry\_val)}\urcorner \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(entry\_val.pfn) + i * 8}}{\textsf{v-1}} }_{\rtv} $ (*\label{line:conditional_children}*)
 mov    -0x8[rbp],rdi $\specline{\ldots \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} \ast \ldots }$
 mov     rdi, r8 $\specline{\ldots \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \ldots }$
-mov    [r8],rdi (*\label{line:read_entry_contents}*) $\specline{\ldots \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  \ast\ldots}$
+mov    [r8],rdi (*\label{line:read_entry_contents}*) $\specline{\ldots \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  \ast\ldots}$ ;; Justified by virtual pte-pointsto
 and    0x1,rdi (* \label{line:mask_present} *)
 mov    rdi,rax
 cmp    0x0,rax ;;  if (!entry->present) {(* \label{line:check_entry_present} *)
@@ -445,22 +445,14 @@ explained in that section.
 \begin{figure}\footnotesize
 \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
 ... ;; Continued from Figure (*\ref{fig:calltopteinitialize}*); assertions below specialized to non-allocating path for clarity
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \}),m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{rcx}  \mapsto_{\textsf{r}} \textsf{\_}  }_{\rtv}$
-$\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \}),m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{rcx}  \mapsto_{\textsf{r}} \textsf{\_}  \ast \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{(pte\_initialized (entry\_val.pfn))} \urcorner }_{\rtv}$
 $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{(pte\_initialized (entry\_val.pfn)))} \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{ table\_root (pte\_initialize(entry\_val.pfn))} }_{\rtv}$
 $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (entry\_val.pfn)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:children}*)
 ;;uintptr_t next_virt_addr = (uintptr_t) P2V(entry.pfn<<12); (*\label{line:p2v}*) 
- movabs KERNBASE,rcx
- add    rcx,rax
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \}),m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{rcx}  \mapsto_{\textsf{r}} \textsf{KERNBASE} }_{\rtv}$
-$\specline{ \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
-$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{(pte\_initialized (entry\_val.pfn))} \urcorner }_{\rtv}$
-$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{(pte\_initialized (entry\_val.pfn)))} \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{ table\_root (pte\_initialize(entry\_val.pfn)) + KERNBASE} }_{\rtv}$
-$\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (entry\_val.pfn)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$
-...
-;;next = (pte_t *) next_virt_addr;
-;;clean up the stack and return next
+movabs KERNBASE,rcx $\specline{\ldots \ast  \texttt{rcx}  \mapsto_{\textsf{r}} \textsf{KERNBASE}  \ast \ldots}_{\rtv}$
+add    rcx,rax $\specline{ \ldots \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{ table\_root (pte\_initialize(entry\_val.pfn)) + KERNBASE}  \ast \ldots}_{\rtv}$
+... ;;clean up the stack and return the rax value
 \end{lstlisting}
 \vspace{-1em}
 \caption{Converting a physical address of a PTE to a virtual address (w/o instruction pointer or flag updates).
@@ -642,7 +634,9 @@ One of the key tasks of a page fault handler in a general-purpose OS kernel is
 to map new pages into an address space by writing into an existing page table via a call
 \[\textsf{vaspace\_mappage(pte\_t *pml4, void *va,uintptr\_t fpaddr, uint64\_t perm )}\] in Figure \ref{fig:mapping_code}).
 To do so, with a given allocated a fresh page (\textsf{fpaddr}), then calculate the appropriate
-known-valid page table walks (\textsf{pte\_walkpgdir} Line X in Figure \ref{fig:mapping_code})  and update the appropriate L1 page table entry (permissions and frame address Lines in Figure \ref{fig:mapping_code}).
+known-valid page table walks (\textsf{pte\_walkpgdir} Line X\todo{!!!} in Figure \ref{fig:mapping_code})  and update the appropriate L1 page table entry (permissions and frame address Lines in Figure \ref{fig:mapping_code});
+unmapping is the reverse of the logic we discuss here.
+\looseness=-1
 %\lstset{
 %  columns=fullflexible,
 %  numbers=left,
@@ -661,47 +655,25 @@ known-valid page table walks (\textsf{pte\_walkpgdir} Line X in Figure \ref{fig:
   \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
 ;;complstatus_t vaspace_mappage(pte_t *pml4, void *va,uintptr_t fpaddr, uint64_t perm ) {
 ... ;;setting up the stack      
-;;char *a; pte_t *pte;
-;;a = (char *)PGROUNDUP((uintptr_t)va);
-...
  $\specline{\textsf{P} \ast \textsf{pml4} \mapsto_{\textsf{id}} \textsf{\_} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}}_{\rtv}$      
-;;pte = walkpgdir(pml4, a);
-mov    -0x8[rbp],rdi
-mov    -0x28[rbp],rsi
-mov    0x0,rax
-callq  291 <vaspace_mappage+0x41>	28d: R_X86_64_PLT32	walkpgdir-0x4
+;; pte_t *pte = walkpgdir(pml4, a);
+mov    -0x8[rbp],rdi; mov    -0x28[rbp],rsi; mov    0x0,rax; callq  291 <vaspace_mappage+0x41>
 ;;if(pte->present != 0) {
 ...        
-mov    0x0,r8
-mov    rax,rcx
-mov    rcx,-0x30[rbp]
-;;pte->writable     = PTE_WRITEABLE_SET(perm);
-;;pte->user_acc     = PTE_USER_ACC_SET(perm);
-;;pte->writethrough = PTE_WRITETHRU_SET(perm);
-;;pte->nocache      = PTE_NOCACHE_SET(perm);
+mov    0x0,r8; mov    rax,rcx; mov    rcx,-0x30[rbp]
+... ;; Copy user access bit, writethrough, etc. (not part of our semantics) into pte from perm
 $\specline{ \left( \begin{array}{l} \textsf{pdp}+\textsf{PDPEX(va)} = \textsf{pdp\_entry} \land \textsf{table\_root(pml4\_entry}_{\textsf{pfn}})  = \textsf{pdp} \\ \textsf{pd}+\textsf{PDEX(va)} = \textsf{pd\_entry} \land \textsf{table\_root(pml3\_entry}_{\textsf{pfn}})  = \textsf{pd} \\ \textsf{pt}+\textsf{PDPEX(va)} = \textsf{pt\_entry} \land \textsf{table\_root(pml2\_entry}_{\textsf{pfn}})  = \textsf{pt} \\  \textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{pml4\_entry},\textsf{pdp\_entry},\textsf{pd\_entry},\textsf{pt\_entry}\},m)  \\ \ghostmaptoken{\delta{}s}{\rtv}{\delta} \\
 \ghostmaptoken{\textsf{id}}{(\mathsf{pml4\_entry})}{\textsf{4}}\ast \ghostmaptoken{\textsf{id}}{(\mathsf{plm3\_entry})}{\textsf{3}} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{plm2\_entry})}{\textsf{2}}  \\ \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(pml4\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{3}  \\ \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(pdp\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{2}  \\ \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(pd\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{1}  \\  \textsf{pml4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l4e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner \\  \textsf{pdp\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l3e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l3e\_val})\urcorner \\  \textsf{pd\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l2e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l2e\_val})\urcorner \\   \textsf{pt\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l1e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l1e\_val})\urcorner    \end{array} \right)  =\textsf{R}_{\textsf{walk\_acc}}}$
-pte->pfn          = PTE_ADDR_TO_PFN(pa);
-mov    -0x18[rbp],rcx
-shr    0xc,rcx
-mov    -0x30[rbp],rdx
-mov    [rdx],rsi
-$\specline{\textsf{pt\_entry}_{\textsf{pfn}} \mapsto_{p} \textsf{addr\_to\_pfn}(\textsf{pa}) \ast \textsf{R}_{\textsf{walk\_acc}}}_{\rtv}$
-$\sqsubseteq$
-$\specline{\textsf{va} \mapsto_{\textsf{v,q}} \textsf{pa} \ast \textsf{P}}$
-movabs 0xffffffffff,rdi
-and    rdi,rcx
-shl    0xc,rcx
-movabs 0xfff0000000000fff,rdi
-and    rdi,rsi
-or     rcx,rsi
-mov    rsi,[rdx]
+;;pte->pfn          = PTE_ADDR_TO_PFN(pa);
+mov    -0x18[rbp],rcx; shr    0xc,rcx; mov    -0x30[rbp],rdx; mov    [rdx],rsi ;; Load current entry in rsi
+$\specline{\textsf{pt\_entry}_{\textsf{pfn}} \mapsto_{p} \textsf{addr\_to\_pfn}(\textsf{pa}) \ast \textsf{R}_{\textsf{walk\_acc}}}_{\rtv} \Rrightarrow \specline{\textsf{va} \mapsto_{\textsf{v,q}} \textsf{pa} \ast \textsf{P}}$
+movabs 0xffffffffff,rdi; and    rdi,rcx; shl    0xc,rcx; movabs 0xfff0000000000fff,rdi
+and    rdi,rsi; or     rcx,rsi; mov    rsi,[rdx] ;; Store updated entry back to L1 entry
 ;;}
-;;pte->present      = 1;
-;;clean up the stack and return
-...
+... ;; set present bit in entry, then clean up the stack and return (proof re-packs invariants)
 ;;}
 \end{lstlisting}
+\vspace{-1em}
   \caption{Specification and proof of code for mapping a new page with $\textsf{R}_{\textsf{walk\_acc}}$ in Figure \ref{walkpgdir} expanded.}
 \label{fig:mapping_code}
 \end{figure}
@@ -784,6 +756,8 @@ This is the first proof we know of for mapping a virtual memory page that does n
 % By incorporating verification of the
 % \lstinline|ensure_L1| function (see Section \ref{sec:traversing}), our verification also directly handles several subtle aspects which
 % were axiomatized in prior work.
+\ifPLDI
+\else
 \subsection{Unmapping a Page}
 \todo[inline]{update (esp. line refs) for new mapping code}
 The reverse operation, unmapping a designated page that is currently mapped,
@@ -793,6 +767,7 @@ machine words of memory that the L1 entry would map,
 and information about the physical location, 
 full permission on the L1 entry could be obtained, allowing the construction of a
 full virtual PTE pointer for it, setting to 0, and reclaiming the now-unmapped physical memory.
+\fi
 
 \subsection{Change of Address Space}
 A critical piece of \emph{trusted} code in current verified OS kernels is the assembly code to change the current address space; current verified OS kernels currently 
@@ -803,7 +778,7 @@ lack effective ways to specify and reason about this low-level operation, for re
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\Xi,m) \ast [\rtv'](\mathcal{I}\texttt{ASpace}(\theta',\Xi',m') \ast \texttt{Pother}) \ast \texttt{rsi}\mapsto_{\textsf{r}} new \ast \texttt{rdi}\mapsto_{\textsf{r}} old \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} }_{\rtv}$
 $\specline{\texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} \ast \texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
 $\specline{\mathsf{ContextAt}(old,\_) \ast \mathsf{ContextAt}(new,[\mathsf{rbxv}',\ldots,\rtv']) }_{\rtv}$
-mov 0[rdi], rbx ... ;; also mov rsp, rbp, r12, r13, r14, saved to offsets 8, 16, 24, 32, and 40 from rdi
+mov 0[rdi], rbx ... ;; also save rsp, rbp, r12, r13, r14, to offsets 8, 16, 24, 32, and 40 from rdi
 mov 48[rdi], r15
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\Xi,m) \ast [\rtv'](\mathcal{I}\texttt{ASpace}(\theta',\Xi',m') \ast \texttt{Pother})  \ast  \texttt{rsi}\mapsto_{\textsf{r}} new \ast \texttt{rdi}\mapsto_{\textsf{r}} old \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} }_{\rtv}$
 $\specline{ \texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} \ast \texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
