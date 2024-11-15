@@ -671,7 +671,7 @@ to map new pages into an address space by writing into an existing page table vi
 \[\textsf{vaspace\_mappage(pte\_t *pml4, void *va,uintptr\_t fpaddr, uint64\_t perm )}\] in Figure \ref{fig:mapping_code}.
 To do so, with a given allocated a fresh page (\textsf{fpaddr}), then calculate the appropriate
 known-valid page table walks (via \textsf{walkpgdir} Line \ref{line:call_walkpgdir} in Figure \ref{fig:mapping_code})  and update 
-the appropriate L1 page table entry (Line \ref{line:l1entry_store} in Figure \ref{fig:mapping_code});
+the appropriate L1 page table entry (Line 11 in Figure \ref{fig:mapping_code});
 unmapping is the reverse of the logic we discuss here.
 \looseness=-1
 %\lstset{
@@ -738,8 +738,6 @@ This supports rules for accessing memory
 at that virtual address, but exposing the physical location being modified
 makes this convenient to use for page table modifications, since we must ensure
 the modified data is at the specific physical location that will be used as the L1 entry.
-This is also guaranteed ($ \ulcorner
-\texttt{addr\_L1}(\vaddr,\entryo) = \paddr\urcorner$).
 % After obtaining a virtual address \textsf{pte\_addr} in \textsf{rax} backed 
 % by the physical memory for the L1 entry that will be used to translate the virtual addresses
 % we are mapping, we save it to \textsf{r14} to be updated later in Line 9.
@@ -747,48 +745,15 @@ This is also guaranteed ($ \ulcorner
 %In the precondition, we see Line 12 allocates a fresh page-aligned, zero-initialized page  (at \textsf{fpaddr}),
 %returning a pre-filled PTE entry in \textsf{rax} ($+3$ sets the lower 2 bits).
 
-The crucial step is actually updating the L1 entry (Line \ref{line:l1entry_store} in Figure \ref{fig:mapping_code}),
+The crucial and the only step in addition to traversing the page table in Figure \ref{walkpgdir} is actually updating the L1 entry (Line 11 in Figure \ref{fig:mapping_code}),
 via the virtual address
 (\textsf{pt\_entry+KERNBASE}) known to translate to the appropriate physical address, in our example the L1
-table entry address ($\textsf{addr\_L1}(\textsf{va, l1e})$).
+table entry address ($\textsf{addr\_to\_pfn(pa)}$).
 % , to hold the freshly
 % allocated physical page address (\textsf{fpaddr}) in Line X.
-After this write, we have
-% \[\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\; \textsf{fpaddr}  \qquad\qquad (\textsf{by the PTE variant of Rule}~\TirNameStyle{WriteToVirtMemFromReg})\]
-\[\texttt{pt\_entry+KERNBASE} \mapsto_{\texttt{vpte}}  \; \paddr\; (\textsf{fpaddr \& 0x1})  \quad (\textsf{by PTE variant of}~\TirNameStyle{WriteToVirtMemFromReg})\]
 
-At this point in the proof, % $\texttt{pte\_addr} \mapsto_{\texttt{vpte}}  \; \paddr\; (\textsf{fpaddr})$ 
-the virtual PTE points-to
-contains  full ownership of the L1 table entry's backing physical memory.
-Then, we can split the full-ownership of that
-physical pointsto
-% ($\textsf{fpaddr}\mapsto_{\textsf{p}} \;\textsf{wzero 64}$) 
-into 512 pieces to obtain
-fractional ownership of the physical memory appropriate for a single virtual address's share of an L1 entry.
-% \todo{ismail comment out the rest of this subsection and fix according to the new map-a-page}
-\begin{comment}
-Since we know $\texttt{addr\_L1 }(\vaddr,
-\entryo) \mapsto_{\mathsf{p}} \{q4\} \;\textsf{fpaddr}$) from
-$\mapsto_{\textsf{vpte}}$, after the split of the PTE points-to, and, thanks to the post-condition of the page-table walk (Specification of \textsf{pte\_walkpgdir} in Figure \ref{}), we know the existence of L4-L2 mappings reaching to the L1 exist, so that we can add the last mapping $\texttt{fpaddr} \mapsto_{p} (\texttt{wzero 64})$ to obtain the complete table-walk.
-\todo{with the virtual-pte-pointsto assertions (L4\_L1\_PointsTo($\vaddr$ l4e l3e l2e
-fpaddr)) in Line 25}
-
-Finally, we can insert $\vaddr$ into the ghost page-table-walk summarization
-map ($\theta$) to change its state from unmapped ($\ulcorner \theta
-\;!!\;\vaddr = \texttt{None}\urcorner$ (Line 28) and the
-precondition) to mapped (Line 29) using Iris' ghost-map update
-($\sqsubseteq$), and construct a PTE -points-to $\vaddr
-\mapsto_{\textsf{vpte}}\; \qfrac \;\fpaddr\;(\textsf{wzero 64})$ (Line 31) using $\sumwalkabs\vaddr\qfrac\fpaddr$ obtained from ghost
-page-table-walk insertions, $\ghostmaptoken{\delta{}s}{\rtv}{\delta}$ from unfolding the
-definition of $\mapsto_{\textsf{vpte}}$, and $\fpaddr
-\mapsto_{\textsf{p}} \textsf{wzero 64}$.
-\end{comment}
-Finally, by existentially quantifying away \textsf{fpaddr},
-we can shift the PTE points-to into a normal virtual points-to.
-
-For brevity this proof only maps the first word of the allocated page; the generalization to the full page
-is straightforward use of iterated separating conjunction to manage collections of clusters of 512 things
-(slices of the L1 entry physical ownership, virtual addresses at 8 byte increments, etc.).
+At this point in the proof, i.e. after the traversal to obtain the sound physical path resources ($\textsf{R}_{\textsf{walk\_acc}}$ Line 27 in Figure \ref{walkpgdir}), which coontains
+virtual PTE points-to relations along the path to the full ownership of the L1 table entry's backing physical memory, we update the L1 entry to point the fresh page, as we do for the non-existent entries in the page table traversal (Line 6 in Figure \ref{pteinitializespec}.   
 \looseness=-1
 
 Unlike the only prior work verifying analogous code for mapping a new page~\cite{kolanski08vstte,kolanski09tphols}, our proof above

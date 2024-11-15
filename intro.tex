@@ -50,9 +50,10 @@ reliant upon or manipulating those memory configurations in the presence of in-m
 memory protection mechanism across Intel/AMD's x86-64 processors, ARM's application class processors including
 AArch64 CPUs, POWER, RISC-V, and other architectures.
 We prove the soundness of our \textsf{vProp} logic with respect to a RISC-like fragment of \textsf{AMD64} instructions.
-We verify simplified versions of several critical virtual-memory-related pieces of OS functionality, 
-including mapping  pages, switching address spaces, and converting physical addresses to virtual addresses for
-software page table walks (as when mapping pages). These examples demonstrate the suitability and flexibility of
+We verify simplified versions of several critical virtual-memory-related pieces of OS functionality, most importantly:
+switching address spaces, converting physical addresses to virtual addresses for
+software page table walks, and complete page table walk which backbones other essential functionalities of
+virtual-memory which we discuss for mapping and unmapping pages. These examples demonstrate the suitability and flexibility of
 a modal treatment of address spaces: each has a concise specification, each example either goes beyond the technical
 capabilities of prior logics, or revisits an example from prior work with more details (treating parts of the kernel
 invariant never addressed by prior work) and fewer assumptions (e.g., verifying virtual-to-physical conversion rather
