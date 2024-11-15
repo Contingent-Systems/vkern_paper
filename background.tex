@@ -28,10 +28,9 @@ The final lookup in the page tables gives the base physical address of a 4KB pag
 bits of the accessed virtual address are added to determine the actual physical address retrieved. 
 On x86-64, standard configurations use 4 levels of page tables, labelled levels 4 through 1, with lookups in the level 
 1 page table resulting in the actual page of physical memory holding the requested data, and the low-order 12 bits 
-being used to index into this page.\footnote{Technically levels 1--3 have designated names originating when there were 
-fewer levels. We omit those names to avoid confusion for those not already steeped in the arcana of x86 history,
- and for greater consistency with the recent addition of a 5th level 
-on the most recent processors, where levels 4 and 5 are simply known by their numbers. Our formalization
+being used to index into this page.\footnote{Technically levels 1--3 have explicit historical names,
+but for brevity and consistency, we simply number them, in keeping with the newer 5th level.
+Our formalization
 only deals with 4-level page tables, but is straightforwardly extensible to 5.}  
 The translation process or algorithm is sometimes referred to as a \emph{page-table walk}. 
 While Figure \ref{fig:pagetables} and most of our constants (how many levels, which virtual address bits index which
@@ -47,7 +46,7 @@ control a validity bit (called the \emph{present} bit), a read-write bit (which 
 and a range of additional bits which can be used to control caching, write-through, and more. This paper will only consider the present bit (0).
 
 The page tables are managed by the OS, typically by a \emph{virtual memory manager} (VMM).\footnote{Not to be confused with Virtual 
-Machine Monitor. In this paper we focus on non-hypervisor scenarios, but hardware virtualization extensions for both 
+Machine Monitor. We focus on non-hypervisor scenarios, but hardware virtualization extensions for both 
 x86-64 and ARM make use of an additional set of page tables translating what a \emph{guest} considers to be its 
 (virtualized) physical memory to actual physical memory. Our contributions should offer value in this scenario as well.}
 Typically each process has its own 

@@ -34,10 +34,11 @@ isolate assertions specific to a particular address space,
 explicitly state when an assertion is true across address spaces,
 manipulate address spaces from within other address spaces, and
 reason about change in address spaces.
-These advantages make this approach to reasoning about virtual memory more flexible than prior program logic techniques~\cite{kolanski08vstte,kolanski09tphols}, 
+This approach to reasoning about virtual memory is more flexible than prior program logic techniques~\cite{kolanski08vstte,kolanski09tphols}, 
 which were only able to work with a single address space (the current address space on the CPU) because they were unable
 to speak directly \emph{within the logic} about other address spaces, in addition to handling
 the \emph{non-local} effects of page table updates whether within the current address space or across address spaces.
+\looseness=-1
 
 \paragraph{Contributions}
 We develop these ideas in the form of a logic for working with virtual-address-space-relative assertions,

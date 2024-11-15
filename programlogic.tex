@@ -58,9 +58,9 @@ some of the most subtle and technically challenging instruction sequences in an 
 % The idea that the truth of an assertion is relative to an address space has far-reaching consequences.
 To support making assertions depend on a choice of address space, we work entirely in a pointwise lifting of Iris's base BI logic,
 essentially working with separation logic assertions indexed by a choice of page table root as a $\mathcal{W}_{64}$, which we call $\textsf{vProp }\Sigma$:\footnote{
-  \iris experts may notice our \lstinline|-b>| resembles another variety of pointwise lifting that already exists in the main \iris
-  distribution~\cite{dang2019rustbelt,dang2022compass}. This is essentially true, but the standard formalization does not work for index types which
-  are indexed in the sense of \coq's metatheory, as our \lstinline|word n| types are.
+  \iris experts may notice our \lstinline|-b>| resembles another pointwise lifting already in  \iris~\cite{dang2019rustbelt,dang2022compass}. 
+  This similarity is real, but the existing lifting does not work with indexed \coq types
+  like our \lstinline|word n| as a domain.
 }
 \lstinline[language=Coq]|Definition vProp  $\Sigma$ : bi := word 64 -b> iPropI  $\Sigma$|.
 This is the (\textsc{Coq}) type of assertions in our logic.
@@ -104,7 +104,7 @@ From this we can derive a more concise physical points-to when the split is unim
 \begin{figure*}
   \begin{lstlisting}[language=Coq]
  Definition $\vaddr\mapsto_{\textsf{t}}\{\textsf{q}\}\; \vpage$ : vProp $\Sigma$ := 
- $\exists_{\textsf{l4e l3e l2e l1e}} \ldotp$  $\ulcorner$ aligned $\vaddr \urcorner \ast$ L4_L1_PointsTo($\vaddr$ l4e l3e l2e l1e paddr) $\ast$ paddr $\mapsto_{p}\{\mathsf{q}\} \vpage$.
+  $\exists_{\textsf{l4e l3e l2e l1e}} \ldotp$  $\ulcorner$ aligned $\vaddr \urcorner \ast$ L4_L1_PointsTo($\vaddr$ l4e l3e l2e l1e paddr) $\ast$ paddr $\mapsto_{p}\{\mathsf{q}\} \vpage$.
  Definition L4_L1_PointsTo (maddr l4e l3e l2e l1e paddr :word 64) : vProp $\Sigma$ := $\lambda$ cr3val.
   $\ulcorner$ entry_present l4e $\land$ entry_present l3e $\land$ entry_present l2e $\land$ entry_present l1e$\urcorner$ $\ast$
   (l4M52 maddr cr3val) $\sim$ (l4off maddr cr3val) $\mapsto_{a}$ {q1}  l4e  $\ast$
@@ -512,10 +512,10 @@ Our Hoare doubles $\{\Phi\}_\textsf{rtv}\;\textsf{e}$ state that the expression 
 \textsf{e} are safe to execute (will not fault)
 when executed with \textsf{vProp} precondition $\Phi\ast\textsf{cr3}\mapsto_{\textsf{r}} \textsf{rtv}$.
 \textsf{WP} is Iris's own weakest precondition modality, unmodified~\cite{jung2018iris}.
-Making \textsf{rtv} an explicit parameter to the double, rather than simply using register assertions
-directly 
+Making \textsf{rtv} a parameter to the double (vs. a simple register assertion)
 makes it possible to ensure ownership of the \lstinline|cr3| register and its value is accounted for
 while avoiding some technical headaches with trying to enforce that $\Phi$ itself contains that.
+\looseness=-1
 % solves a technical problem with ensuring that the page table root used to evaluate
 % the \textsf{vProp} (i.e., evaluating the assertion in the \emph{current}) address space
 % is feasible.

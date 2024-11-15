@@ -87,6 +87,7 @@ the code also allocates a page for the level $n$ table, installs it in the level
 Figure \ref{fig:calltopteinitialize} presents the initial part of the function, which performs the allocation if necessary.
 Figure \ref{fig:p2v} (discussed in Section \ref{sec:p2v}) deals with the cases where no allocation is necessary \emph{or} the allocation has already
 been performed by the code in this figure.
+\looseness=-1
 
 Note that none of the verification for this function assumes specific page table levels --- logical parameter \textsf{v} represents the level
 of the entry passed as an argument, and this code
@@ -227,6 +228,7 @@ $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}
 \vspace{-1em}
 \caption{Ensuring \textsf{entry} points to a valid next table, allocating if necessary.}
 \label{fig:calltopteinitialize}
+\vspace{-1em}
 \end{figure}
 
 \subsubsection{Identity Mappings}
@@ -253,8 +255,10 @@ machine.
 For this reason we extend the per-address-space invariant as in Figure \ref{fig:peraspaceinvariant_with_p2v_extension}, to also track which
 addresses we can perform a P2V conversion on by a adding a constant offset.
 $\Xi$ is another ghost map, from physical addresses to the level of the page table they represent (1--4).
-\emph{Only} physical addresses in $\Xi$ can undergo P2V conversion. We describe proof of such a conversion in Section \ref{sec:p2v},
-but describe the invariant here because installing a new level 3/2/1 table requires maintaining that invariant.
+\emph{Only} physical addresses in $\Xi$ can undergo P2V conversion. 
+Section \ref{sec:p2v} describes the actual conversion,
+but we describe the invariant here 
+because adding new level 3/2/1 tables must maintain the invariant.
 
 \begin{figure*}
 \footnotesize
@@ -375,6 +379,7 @@ $\specline{\ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \begin{array}{l} \ulcorn
 \vspace{-1em}
 \caption{Allocating a physical page }
 \label{pteinitializespec}
+\vspace{-1em}
 \end{figure}
 
 Since we are using \textsf{pte\_initialize} for page-table address allocation, we must relate this newly
@@ -445,6 +450,7 @@ add    rcx,rax $\specline{ \ldots \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf
 \vspace{-1em}
 \caption{Converting a physical address of a PTE to a virtual address (w/o instruction pointer or flag updates).
  % Abreviating the other relevant resources (including the lower entries) peeled-out of the invariant as $\textsf{R}_{\textsf{children}}$
+\vspace{-1em}
 }
 \label{fig:p2v}
 \end{figure}
@@ -552,6 +558,7 @@ $\specline{\textsf{R}_{\textsf{walk}}}_{\rtv}$
 \vspace{-1em}
 \caption{Walking page-table directory via calls to \textsf{pte\_get\_next\_table} in Figure \ref{fig:calltopteinitialize}}
 \label{walkpgdir}
+\vspace{-1em}
 \end{figure}
 
 Realizing a software page-table walk amounts to calling \textsf{pte\_get\_next\_table} for each level as shown in Figure \ref{walkpgdir}. 
@@ -709,6 +716,7 @@ The code uses a helper function \lstinline{pte\_walkpgdir} (discussed again in S
 L1 entry (l1e) with the justification of higher levels of the page table exist, and for allowing access to the memory of the L1 entry via virtual address.
 A PTE points-to is defined just like the normal virtual points-to of Figure \ref{fig:virtualpointstosharing}, except the physical address (here, \textsf{pa}) is explicit in the assertion 
 rather than existentially quantified:
+\looseness=-1
  \[
 \begin{array}{l}
     \vaddr\mapsto_{\textsf{vpte,q}} \; \paddr \; \vpage : \mathsf{vProp}~\Sigma \stackrel{\triangle}{=} 
