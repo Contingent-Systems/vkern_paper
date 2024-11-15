@@ -249,6 +249,8 @@
 %% The abstract is a short summary of the work to be presented in the
 %% article.
 \begin{abstract}
+\ifPLDI
+\else
 Operating system kernels employ virtual memory subsystems, which use a CPU's memory management units (MMUs) to virtualize the addresses of memory regions:
 a logical (virtual) address is translated to a physical address in memory by the MMU based on
 kernel-controlled page tables -- a hardware-defined sparse tree-map structure -- stored in memory, which itself is 
@@ -259,6 +261,7 @@ hide memory limits from user programs,
 ensure process isolation, implement demand-paging and copy-on-write behaviors for performance
 and resource controls.
 At the same time, misuse of MMU hardware can lead to kernel crashes.
+\fi
 
 Virtual memory management (VMM) code is a critical piece of general-purpose OS kernels, but verification of this functionality
 is challenging due to the complexity of the hardware interface (the page tables are updated via writes to those
