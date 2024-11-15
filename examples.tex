@@ -68,8 +68,10 @@ the first such verification handling both old and new processes' assertions at t
 \label{sec:traversing}
 We build up to the main task of mapping a new page after traversing page tables in software.
 The mapping operation of Figure \ref{fig:mapping_code} assumes an operation \textsf{walkpgdir} which must traverse the page tables
-in order to locate the address of the L1 entry to update --- possibly allocating tables for levels 3, 2, and 1 in the process,
-installing them into levels 4, 3, and 2, along the way.
+in order to locate the address of the L1 entry to update --- 
+% possibly allocating tables for levels 3, 2, and 1 in the process,
+% installing them into levels 4, 3, and 2, along the way.
+possibly allocating new L3, L2, and L1 tables as necessary.
 Traversing the page tables is itself challenging functionality to verify: loading the current table root from \lstinline|cr3| is straightforward
 (a \lstinline|mov| instruction), however this produces the physical address of \lstinline|cr3|, not the virtual address the kernel code would use to access that memory.
 This problem repeats at each level of the page table: assuming the code has \emph{somehow} read the appropriate L4 (or L3, or L2) entry, those entries again
@@ -89,7 +91,7 @@ Figure \ref{fig:p2v} (discussed in Section \ref{sec:p2v}) deals with the cases w
 been performed by the code in this figure.
 \looseness=-1
 
-Note that none of the verification for this function assumes specific page table levels --- logical parameter \textsf{v} represents the level
+Note that the specification does \emph{not} assume a specific page table --- logical parameter \textsf{v} represents the level
 of the entry passed as an argument, and this code
 is used for all three level transitions when traversing page tables (4 to 3, 3 to 2, 2 to 1).
 This comes into play with a subtlety of the specification of \lstinline|pte_get_next_table| that we will
@@ -233,15 +235,16 @@ $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}
 
 \subsubsection{Identity Mappings}
 \label{subsec:identitymappings}
-It is typical for kernels to need to convert between physical and virtual addresses, in both directions.
+Kernels need to convert between physical and virtual addresses, in both directions.
 Traversing the page tables in software is the simplest way to convert a virtual address to a physical address; this is the context we are working up to.
 However, implementing this virtual-to-physical (V2P) translation in this way ironically requires physical-to-virtual (P2V) translation,
 because the addresses stored in page table entries are physical, but memory accesses issued by the OS code use virtual addresses.
-There is no universal way to convert physical addresses to virtual --- doing so relies on the kernel maintaining careful invariants or
-additional data structures to enable P2V translation.
+% There is no universal way to convert physical addresses to virtual --- doing so relies on the kernel maintaining careful invariants or
+% additional data structures to enable P2V translation.
+\looseness=-1
 
-In practice, VMM operations are performance-critical for many workloads, so most kernels opt for using invariants to make P2V conversion very fast,
-rather than maintaining yet another data structure.
+Because VMM operations are performance-critical for many workloads, most kernels 
+maintain invariants that enable very fast P2V conversions (rather than adding another data structure).
 Most kernels maintain an invariant on their page tables that the virtual address of any page used for a page table lives at a virtual address
 whose value is \emph{a constant offset from the physical address} --- a practice sometimes referred to as \emph{identity mapping} 
 (even though the physical-to-virtual translation
@@ -280,6 +283,7 @@ because adding new level 3/2/1 tables must maintain the invariant.
 \vspace{-1em}
 \caption{Global Address-Space Invariant in Figure \ref{fig:peraspaceinvariant} extended with a ghost map bookkeeping identity mappings }
   \label{fig:peraspaceinvariant_with_p2v_extension}
+\vspace{-1em}
 \end{figure*}
 
 For each $\paddr\mapsto \textsf{v} \in\Xi$, the invariant tracks a virtual points-to justifying that virtual address $\paddr+\textsf{KERNBASE}$ maps to physical address $\paddr$
@@ -359,9 +363,10 @@ When the bit is not set, that entails full ownership of the entry's memory ($\te
 Otherwise, the code jumps past the end of this listing, to the following code at the top of Figure \ref{fig:p2v} (which is also the
 continuation of this code).
 
-If the entry is not set, \textsf{pte\_initialize} is called (Line \ref{line:call_to_pte_initialize} in Figure \ref{fig:calltopteinitialize}) 
-for a physical page (utilizing the page-allocator's \textsf{kalloc} -- currently the only axiomatized call in the the proof of \textsf{pte\_initialize} 
-(Line \ref{line:call_to_kalloc} in Figure \ref{pteinitializespec}). 
+If the entry is not set, \textsf{pte\_initialize} (Line \ref{line:call_to_pte_initialize} in Figure \ref{fig:calltopteinitialize}) 
+allocates a physical page (internally utilizing the only axiomatized call in our case studies, the page-allocator's \textsf{kalloc}, 
+on Line \ref{line:call_to_kalloc} in Figure \ref{pteinitializespec}). 
+\looseness=-1
 \begin{figure}\footnotesize
   \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)   \ast \texttt{rbp-16} \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry+KERNBASE}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{\_} \ast \lnot(\textsf{entry\_present entry\_val} }_{\rtv}$
@@ -421,13 +426,13 @@ shared accesses when the presence bit is set.
 
 \subsubsection{Physical-to-Virtual Conversion with \textsf{P2V}}
 \label{sec:p2v}
-Once we reach to the certain knowledge of having an entry with a frame referencing to an allocated resource resides inside the identity mappings
-(which can already be known if the branch at Line \ref{line:check_entry_present_jump} is taken, or ensured by allocating and installing a new entry
+Once we know the entry refers to an allocated resource inside the identity mapping range ($\Xi$)
+% Once we reach to the certain knowledge of having an entry with a frame referencing to an allocated resource resides inside the identity mappings
+(via the branch at Line \ref{line:check_entry_present_jump}, or  by allocating and installing a new entry
 as just discussed for Lines \ref{line:check_entry_present_jump}--\ref{line:end_of_allocation_path}), 
-we can utilize this knowledge 
+we can %utilize this knowledge 
 to convert this frame address into an virtual address of the next page table through, again, identity mappings -- Line 57 in Figure \ref{fig:calltopteinitialize} 
 specified in Figure \ref{fig:p2v}.
-
 This actually constitutes a very critical piece of the full page table walk verification, and we have verified the critical step for a small x86-64 kernel, 
 which is the physical-to-virtual conversion (often appearing as a macro \texttt{P2V} in C source code). 
 In our small kernel (Line \ref{line:p2v} in Figure \ref{fig:p2v}), as in larger kernels, \texttt{P2V} is actually just addition by the
