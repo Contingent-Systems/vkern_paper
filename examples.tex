@@ -292,8 +292,10 @@ fractional ownership of the physical memory for that page table entry;
 and for valid entries (with the present bit set) above L1, ghost map tokens for every entry in the table pointed to by the entry, which can be used
 to repeat the process one level down. i
 (L1 entries point to data pages, whose physical memory ownership resides in some virtual points-to).
-The assertion on Line \ref{line:conditional_children} originates from the invariant one level up, and if this code determines the valid bit is set,
-it can return those child tokens without the conditional guard.
+The assertion on Line \ref{line:conditional_children} comes from the invariant one level up; 
+if the valid bit is set,
+the code can return those child tokens without the conditional guard.
+\looseness=-1
 
 The fractional ownership of the entry's physical memory is subtle. Recall that $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ retains some physical
 ownership of each page table entry that is traversed (proportional to how many virtual addresses share the entry).
@@ -426,14 +428,14 @@ shared accesses when the presence bit is set.
 
 \subsubsection{Physical-to-Virtual Conversion with \textsf{P2V}}
 \label{sec:p2v}
-Once we know the entry refers to an allocated resource inside the identity mapping range ($\Xi$)
+Once we know the entry refers to a physical address the identity mapping range ($\Xi$)
 % Once we reach to the certain knowledge of having an entry with a frame referencing to an allocated resource resides inside the identity mappings
 (via the branch at Line \ref{line:check_entry_present_jump}, or  by allocating and installing a new entry
 as just discussed for Lines \ref{line:check_entry_present_jump}--\ref{line:end_of_allocation_path}), 
 we can %utilize this knowledge 
-to convert this frame address into an virtual address of the next page table through, again, identity mappings -- Line 57 in Figure \ref{fig:calltopteinitialize} 
+to convert this frame address to a corresponding virtual address via identity mappings -- Line 57 in Figure \ref{fig:calltopteinitialize} 
 specified in Figure \ref{fig:p2v}.
-This actually constitutes a very critical piece of the full page table walk verification, and we have verified the critical step for a small x86-64 kernel, 
+This is a critical piece of the full page table walk verification, and we have verified the critical step for a small x86-64 kernel, 
 which is the physical-to-virtual conversion (often appearing as a macro \texttt{P2V} in C source code). 
 In our small kernel (Line \ref{line:p2v} in Figure \ref{fig:p2v}), as in larger kernels, \texttt{P2V} is actually just addition by the
 constant offset mentioned in Section \ref{subsec:identitymappings}, but the correctness 
@@ -461,7 +463,7 @@ add    rcx,rax $\specline{ \ldots \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf
 \end{figure}
 Figure \ref{fig:p2v} shows the verification of the end of \lstinline|pte_get_next_table| specialized to the case where 
 where no allocation was necessary (i.e., the conditional on Line \ref{line:check_entry_present} of Figure \ref{fig:calltopteinitialize} was taken).
-In this case, the present bit being set grants access to the child tokens from Line \ref{line:conditional_children} of Figure \ref{fig:calltopteinitialize},
+In this case, the true present bit allows access to the child tokens from Line \ref{line:conditional_children} of Figure \ref{fig:calltopteinitialize},
 which is then refined to the assertion on Line \ref{line:children} of Figure \ref{fig:p2v}.
 The code loads \lstinline|rcx| with the offset value \textsf{KERNBASE}, which gives us the value of the virtual address ($\textsf{entry}_{\textsf{pfn}}$ \textsf{+KERNBASE})
 of the \emph{base} of the next level of the page table.
@@ -470,7 +472,7 @@ While we could now convert this address to a virtual points-to, this is not nece
 The caller \lstinline|walkpgdir| (discussed next) uses \lstinline|pte_get_next_table| to retrieve just the base address,
 because only the caller knows which entry in the subsequent table will be accessed (it depends on the corresponding bits from the virtual
 address being translated). So instead we pass back the per-address-space invariant with the identity mapping resources for \lstinline|entry|
-pulled out. It is up to the caller to determine which entry in that table must actually
+pulled out. The caller determines which entry in that table must actually
 be accessed --- by selecting the appropriate index into the 512 ghost map tokens returned in the postcondition,
 and using the ghost translation and physical location portions of the invariant to assemble a vpte-pointsto.
 % in the identity map ($\Xi\setminus\{entry\}$) of the kernel invariant.
@@ -785,9 +787,10 @@ is straightforward use of iterated separating conjunction to manage collections 
 \looseness=-1
 
 Unlike the only prior work verifying analogous code for mapping a new page~\cite{kolanski08vstte,kolanski09tphols}, our proof above
-does \emph{not} need to unfold the definitions of the logic,
-but instead uses logic rules throughout to reason about the effect of the mapping. 
-This is the first proof we know of for mapping a virtual memory page that does not resort to direct reasoning over the operational semantics.
+does \emph{not} need to reason directly over the operational semantics,
+making this the first verification we know of for mapping a virtual memory page that 
+stays entirely at the program logic level.
+\looseness=-1
 % By incorporating verification of the
 % \lstinline|ensure_L1| function (see Section \ref{sec:traversing}), our verification also directly handles several subtle aspects which
 % were axiomatized in prior work.
@@ -804,12 +807,9 @@ full permission on the L1 entry could be obtained, allowing the construction of 
 full virtual PTE pointer for it, setting to 0, and reclaiming the now-unmapped physical memory.
 \fi
 
-\subsection{Change of Address Space}
-A critical piece of \emph{trusted} code in current verified OS kernels is the assembly code to change the current address space; current verified OS kernels currently 
-lack effective ways to specify and reason about this low-level operation, for reasons outlined in Section \ref{sec:relwork}.
+
 \begin{figure}\footnotesize
 \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
-;; Assume the save-space is in rdi, load-space in rsi. First, save the yielding context
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\Xi,m) \ast [\rtv'](\mathcal{I}\texttt{ASpace}(\theta',\Xi',m') \ast \texttt{Pother}) \ast \texttt{rsi}\mapsto_{\textsf{r}} new \ast \texttt{rdi}\mapsto_{\textsf{r}} old \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} }_{\rtv}$
 $\specline{\texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} \ast \texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
 $\specline{\mathsf{ContextAt}(old,\_) \ast \mathsf{ContextAt}(new,[\mathsf{rbxv}',\ldots,\rtv']) }_{\rtv}$
@@ -836,13 +836,19 @@ $\specline{ \mathcal{I}\texttt{ASpace}(\theta',\Xi',m') \ast \texttt{Pother} \as
 \label{fig:swtch}
 \end{figure}
 
+\subsection{Change of Address Space}
+A critical piece of \emph{trusted} code in current verified OS kernels is the assembly code to change the current address space; current verified OS kernels currently 
+lack effective ways to specify and reason about this low-level operation, for reasons outlined in Section \ref{sec:relwork}.
+
 Figure \ref{fig:swtch} gives simplified code for a basic task switch, the heart of an OS scheduler implementation. This is code that saves the context (registers and stack)
 of the running thread (here in a structure pointed to by \lstinline|rdi|'s value shown in Lines 5--7 and Line 11 of Figure \ref{fig:swtch}) and restores the context of 
 an existing thread (from \lstinline|rsi| shown in abbreviated Lines 14--17 and Line 22), including the corresponding change of address space for a target thread in another process.
 This code assumes the System V AMD64 ABI calling convention, where the normal registers not mentioned are caller-save, and therefore saved on the stack of the thread
 that calls this code, as well as on the new stack of the thread that is restored, thus only the callee-save registers and \texttt{cr3} must be 
-restored.\footnote{We are simplifying in a couple basic ways. First, we are ignoring non-integer registers (e.g., floating point, vector registers) entirely. Second, we are ignoring that the caller-save registers should still be initialized to 0 to avoid leaking information across processes. We focus on the core logical requirements.}
-With the addition of a return instruction, this code would satisfy the C function signature\footnote{The name comes from the UNIX 6th Edition \lstinline|swtch| function, the source of the infamous ``You are not expected to understand this'' comment~\cite{lions1996lions}.}
+restored.\footnote{We are simplifying by ignoring non-integer registers (e.g., floating point, vector registers),
+and the caller-save registers should be initialized to 0 to avoid leaking information across processes, but this captures the key challenges.}
+With the addition of a return instruction, this code would satisfy the C function signature\footnote{This is the function in UNIX 6th Edition 
+with the infamous ``You are not expected to understand this'' comment~\cite{lions1996lions}.}
 \begin{lstlisting}[language=C]
 void swtch(context_t* save, context_t* restore);
 \end{lstlisting}
@@ -850,17 +856,17 @@ A call to this code begins executing one thread (up through Line 17) in one addr
 and finishes execution executing a different thread in a different address space (whose information is initially in $new$).
 
 Because this code does not directly update the instruction pointer, it is worth explaining \emph{how} this switches threads: by switching address spaces and stacks. 
-This is meant to be called with a return address for the current thread stored on the current stack when called --- which must be reflected in the calling convention. 
-In particular, the precondition of the return address on the initial stack requires the callee-save register values at the time of the call: those stored in the first 
+This is meant to be called with a return address for the current thread stored on the current stack when called. 
+The precondition of the return address on the initial stack requires the callee-save register values at the time of the call: those stored in the first 
 half of the code.
 Likewise, part of the invariant of the stack of the second thread, the one being restored, is that the return address on \emph{that} stack requires the saved 
 callee-save registers stored in that context to be in registers as its precondition.
 
 The wrinkle, and the importance of the modal treatment of assertions, is that the target thread's precondition is \emph{relative to its address space}, 
 not the address space of the calling thread shown as 
-\[[\rtv'](\mathcal{I}\texttt{ASpace}(\theta,\Xi,m) \ast \texttt{Pother})\]
+$[\rtv'](\mathcal{I}\texttt{ASpace}(\theta,\Xi,m) \ast \texttt{Pother})$
 in the specfication. 
-Thus the precondition of this code,
+The precondition of this code,
 in context, would include that the initial stack pointer (before \lstinline|rsp| is updated)
 has a return address expecting the then-current callee-save register values and 
 suitably updated (i.e., post-return) stack in the \emph{current} (initial) address space;

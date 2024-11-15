@@ -8,12 +8,15 @@ relied on custom hardware which, among other things, always ran kernel code with
 VMM code for real hardware: at that point page tables become a basic partial map data structure to represent user program address translations,
 with an idiosyncratic format. It turns out that subsequent OS verification work also treats page tables this way, but
 unsoundly given that other projects target hardware that \emph{does} run the kernel with address translation: they \emph{trust}
-that the particular page table manipulations do not, for example, unmap kernel code (which can crash the machine even if done ``temporarily''\footnote{A bug
-one author has personally encountered in a research kernel, though not one discussed here.}).
+that the particular page table manipulations do not, for example, unmap kernel code (which can crash the machine even if done ``temporarily'').
+% \footnote{A bug
+% one author has personally encountered in a research kernel, though not one discussed here.}).
 This is true of \textsc{seL4}~\cite{Klein2009seL4,seL4TOCS,Sewell2013translation}, whose formal machine model omits address translation;
 and \textsc{CertiKOS}~\cite{gu15,gu2016certikos,gu2018certikos,chen2016interrupts}, whose refinement proofs rely on
-\textsc{CompCert}'s usermode-oriented memory model~\cite{leroy2008formal,leroy2009formally} which fundamentally assumes
-all memory addresses are totally independent, which is not the case when a single page table write can make regions of memory inaccessible.
+\textsc{CompCert}'s usermode-oriented memory model~\cite{leroy2008formal,leroy2009formally} which assumes
+updates to one memory address are independent of updates to another ---
+which is not true of page table updates.
+ % which is not the case when a single page table write can make regions of memory inaccessible.
 % \textsc{seL4}~\cite{Klein2009seL4,seL4TOCS,Sewell2013translation} is a formally verified L4 microkernel~\cite{Liedtke1995,Liedtke1996} 
 % (and the first verified OS kernel to run on real-world hardware), verified with a mix of refinement proofs and program logic reasoning down to the assembly level.
 % Because \textsc{seL4} is a microkernel, most VMM functionality actually lives in usermode and is unverified, and moreover, 
@@ -173,16 +176,18 @@ that do not affect expressivity~\cite{despeyroux2014hybrid,chaudhuri2019hybrid}.
 % Pleasantly, we sidestep most of the metatheoretical complexity of those other substructural hybrid
 % systems by building our logic within a substructural metatheory (\iris).
 
-\iris has been used to build other logics through pointwise lifting, notably logics that deal with weak
-memory models~\cite{dang2019rustbelt,dang2022compass}. Those systems build a derived logic
-whose lifting consists of functions from thread-local views of events (an operationalization of the release-acquire + nonatomic
-portion of the repaired C11 memory model~\cite{lahav2017repairing}): there modalities $\Delta_\pi(P)$ and $\nabla_\pi(P)$
-represent that $P$ held before or will hold after certain memory fence operations by thread $\pi$.
+Some logics for weak memory models~\cite{dang2019rustbelt,dang2022compass} have been formalized
+in \iris using pointwise lifting, parameterizing by thread-local views of events (an operationalization of the release-acquire + nonatomic
+portion of the repaired C11 memory model~\cite{lahav2017repairing}). 
+There modalities $\Delta_\pi(P)$ and $\nabla_\pi(P)$
+represent that $P$ held before or will hold after certain memory fences by thread $\pi$.
 The definitions of those specific modalities existentially quantify over other views, related to the ``current'' view (the one where
 the current thread's assertions are evaluated), and evaluate $P$ with respect to those other views. This approach to parameterizing
 assertion semantics by a point of evaluation, and evaluating modalized assertions at other points quanfied in the definition of a modality,
-is the classic notion of modal assertions, whereas hybrid logics expose the choice of evaluation point in assertions,
-allowing statements of more properties. In these weak memory examples this additional expressive power would not be useful,
+is the classic notion of modal assertions, 
+whereas hybrid logics expose the choice of evaluation point in assertions,
+allowing statements of more properties. 
+In these weak memory examples this additional expressive power would not be useful,
 because any relevant points of evaluation (thread views) are intimately tied to memory fences performed by the program, whereas
 for virtual memory management the kernel must be able to choose or construct arbitrary other address spaces.
 

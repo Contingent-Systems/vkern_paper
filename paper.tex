@@ -346,20 +346,21 @@ inside Coq.
 %\input{discussion.tex} % not necessary
 \input{relwork.tex}
 \section{Conclusions}
-This paper advances the state of the art in formal verification of programs subject to address translation
-on hardware using virtual memory. We proposed to treat assertions about virtual
+This paper advances the state of the art in formal verification of programs manipulating virtual memory mappings.
+We treat assertions about virtual
 memory locations explicitly as assertions in a modal logic, where the notion of context
-is the choice of current address space based on the page table root installed on the CPU.
+is a particular address space, named by the page table root.
 We improved the modularity of our virtual address translation to allow page table modifications that
 preserve mappings without collecting all affected virtual points-to assertions.
-To make specifications of code involving other address spaces cleaner, we borrowed the idea of
-modalities which explicitly name the conditions under which they are true from hybrid logics.
+To specify of code involving other address spaces, we adapt 
+hybrid logic's notion of explicitly naming alternative conditions.
 We implemented these ideas in a derived separation logic within Iris, and proved soundness of
 the rules for essential memory- and address-space-change-related x86-64 instructions 
-sound against a hardware model of 64-bit 4-level address translation.
+against a hardware model of 64-bit 4-level address translation.
 Finally, we used our rules to verify the correctness of key VMM instruction sequences,
 including giving the first assembly-level proof of correctness for a change
-of address space expressing which assertions hold in which address space, and the first physical-to-virtual translation proof.
+of address space expressing which assertions hold in which address space, 
+and the first physical-to-virtual translation proof.
 \looseness=-1
 % In the future we plan to 
 % extend our work in multiple directions, such as generalizing our assertions and proof rules
