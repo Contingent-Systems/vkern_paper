@@ -275,8 +275,10 @@ the truth of assertions relative to a specific virtual address space: [r]P indic
 virtual address space rooted at r. Such modal assertions 
 allow different address spaces to refer to each other, enabling complete verification of instruction sequences
 manipulating multiple address spaces. Using them effectively requires working with other assertions,
-such as points-to assertions in our separation logic, as relative to a given address space.
-We therefore define virtual points-to relations, which mimic hardware address translation,
+% such as points-to assertions in our separation logic,  relative to a given address space.
+such as points-to assertions about memory contents --- which implicitly depend on the address space
+they are used in. 
+We therefore define virtual points-to assertions to definitionally mimic hardware address translation,
 relative to a page table root.
 We demonstrate our approach with challenging fragments of VMM code showing that our approach
 handles examples beyond what prior work can address, including reasoning about
