@@ -56,17 +56,17 @@ some of the most subtle and technically challenging instruction sequences in an 
 % \end{enumerate}
 
 % The idea that the truth of an assertion is relative to an address space has far-reaching consequences.
-To support making assertions depend on a choice of address space, we work entirely in a pointwise lifting of Iris's base BI logic,
+To support making assertions depend on a choice of address space, we work entirely in a pointwise lifting of \iris's base BI logic,
 essentially working with separation logic assertions indexed by a choice of page table root as a $\mathcal{W}_{64}$, which we call $\textsf{vProp }\Sigma$:\footnote{
   \iris experts may notice our \lstinline|-b>| resembles another pointwise lifting already in  \iris~\cite{dang2019rustbelt,dang2022compass}. 
   This similarity is real, but the existing lifting does not appear to work with indexed \coq types
   like our \lstinline|word n| as a domain.
 }
 \lstinline[language=Coq]|Definition vProp  $\Sigma$ : bi := word 64 -b> iPropI  $\Sigma$|.
-This is the (\textsc{Coq}) type of assertions in our logic.
-Most constructs in Iris's base logic are defined with respect to any BI-algebra (of \coq type \lstinline|bi|), so automatically
+This is the (\rocq) type of assertions in our logic.
+Most constructs in \iris's base logic are defined with respect to any BI-algebra (of \coq type \lstinline|bi|), so automatically
 carry over to our derived logic.
-However, we must still build up from existing Iris primitives to provide new primitives that depend on the address space --- primarily the notion
+However, we must still build up from existing \iris primitives to provide new primitives that depend on the address space --- primarily the notion
 of virtual points-to.
 
 % \begin{figure}[t]
@@ -140,7 +140,7 @@ asserts that the physical page table walk (per Figure \ref{fig:pagetables}) succ
 % whose physical page base is added to the page offset of \textsf{va} to obtain the physical address
  % --- and there (\lstinline|addr_L1(va,l1e)|) in physical memory, is the value.
 which points to the page holding the physical memory backing the virtual address, which contains value \textsf{v}.
-Most of the definition lives directly in \textsf{vProp}, using the separation logic structure lifted from Iris's \textsf{iProp}.
+Most of the definition lives directly in \textsf{vProp}, using the separation logic structure lifted from \iris's \textsf{iProp}.
 \looseness=-1
 
 \lstinline|L4_L1_PointsTo| works by
@@ -190,7 +190,7 @@ to start the translation process.
 
 This solution is in fact very close to that of \citet{kolanski08vstte}, who define a separation logic from scratch in \textsc{Isabelle/HOL},
 where the semantics of all assertions are functions from pairs of heaps and page table root values to booleans.\footnote{
-  This was a typical explicit construction at the time; their work significantly predates Iris.
+  This was a typical explicit construction at the time; their work significantly predates \iris.
 }
 Our solution removes some restrictions in this definition by further abstracting the handling of address translation.
 
@@ -521,7 +521,7 @@ As common for assembly-level verification, we define our logic using Hoare doubl
 Our Hoare doubles $\{\Phi\}_\textsf{rtv}\;\textsf{e}$ state that the expression (i.e., sequence of instructions)
 \textsf{e} are safe to execute (will not fault)
 when executed with \textsf{vProp} precondition $\Phi\ast\textsf{cr3}\mapsto_{\textsf{r}} \textsf{rtv}$.
-\textsf{WP} is Iris's own weakest precondition modality, unmodified~\cite{jung2018iris}.
+\textsf{WP} is \iris's own weakest precondition modality, unmodified~\cite{jung2018iris}.
 Making \textsf{rtv} a parameter to the double (vs. a simple register assertion)
 makes it possible to ensure ownership of the \lstinline|cr3| register and its value is accounted for
 while avoiding some technical headaches with trying to enforce that $\Phi$ itself contains that.
