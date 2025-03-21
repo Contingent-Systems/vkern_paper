@@ -46,13 +46,13 @@ This requires a number of independently challenging substeps: dynamically traver
 the appropriate L1 entry to update; inserting additional levels of the page table if necessary (updating
 the VMM invariants along the way);
 converting the physical addresses found in intermediate entries into the corresponding virtual addresses
-that can be used for access;
+that can be used for memory access;
 installing the new mapping;
 and collecting sufficient resources to form a virtual points-to assertion.
 Of these, only the second-to-last step (installing the correct mapping into the
 current address space) has previously been formally verified with respect to a machine model with address translation.
 Second, we formally verify a switch into a new address space as part of a task switch,
-the first such verification handling both old and new processes' assertions at the time of the switch.
+the first such verification handling both old and new processes' assertions (in different address spaces) at the time of the switch.
 
 %\begin{comment}
 %\todo[inline]{Identity mappings are difficult, and our current approach won't quite work. Consider trying to have a virtual pointsto for an actual page table entry (i.e., that one could use to update a page table mapping), while also having a virtual pointsto for an address that entry mapped. With the current (let's call it v1) solution, we can't actually have both of those simultaneously!  That's because the PTE pointsto will assert full ownership of the physical memory cell holding the PTE as its data value, while the virtual pointsto for the data mapped by that entry will \emph{also} assert (fractional) ownership of all entries a page table walk would traverse.
@@ -91,36 +91,34 @@ Figure \ref{fig:p2v} (discussed in Section \ref{sec:p2v}) deals with the cases w
 been performed by the code in this figure.
 \looseness=-1
 
-Note that the specification does \emph{not} assume a specific page table --- logical parameter \textsf{v} represents the level
+Note that the specification does \emph{not} assume a specific page table level --- logical parameter \textsf{v} represents the level
 of the entry passed as an argument, and this code
 is used for all three level transitions when traversing page tables (4 to 3, 3 to 2, 2 to 1).
 This comes into play with a subtlety of the specification of \lstinline|pte_get_next_table| that we will
 revisit several times: \lstinline|pte_get_next_table|'s specification
 assumes it is given a virtual \emph{vpte-pointsto}
-% \footnote{A \emph{vpte-pointsto}
-% $\vaddr\mapsto_{\textsf{vpte,qfrac}} \textsf{\paddr~\val}$ is a virtual points-to granting
-% access to virtual address $\vaddr$, which is known to hold \textsf{\val}, but additionally exposing the physical address
-% $\paddr$ that the virtual address translates to. This is commonly used, as the name suggests, when updating PTEs,
-% where we require assurance that we are accessing the intended PTE.
-% Its definition is just like the regular virtual points-to in Figure \ref{fig:virtualpointstosharing},
-% except taking the physical address as a parameter rather than existentially quantifying it.
-% }
-(a virtual points-to exposing the underlying physical address; see Section \ref{sec:mapnew}) granting access to the specified entry,
+(a virtual points-to exposing the underlying physical address instead of existentially quantifying it;
+ see Section \ref{sec:mapnew}) granting access to the specified entry,
 but its postcondition does not yield new virtual points-to assertions!
-Instead it merely computes the base address of the next table, and returns adequate capabilities (discussed in Section \ref{subsec:identitymappings})
-for the \emph{caller} to construct a vpte-pointsto for the next table level (if this is not an L1 entry ---
+Instead it merely computes the base virtual address of the next table, and returns adequate capabilities (discussed in Section \ref{subsec:identitymappings})
+for the \emph{caller} to construct a vpte-pointsto for any entry of the next table level (if this is not an L1 entry ---
 the caller knows which level of the table this is for).
 \looseness=-1
 
 Within \textsf{get\_next\_table}, after a standard function prologue, the code 
-loads the entry \textsf{entry} pointed to by the argument.
+loads the entry pointed to by the argument (logical variable \textsf{entry} in the proof outline).
 This is a page table entry: a 64-bit word divided into bit-fields for
 the physical address of the next table, and control bits like the valid bit, as discussed in 
 Section \ref{sec:backgroundonmachinemodel}.
 
 
 
-Lines \ref{line:mask_present}--\ref{line:check_entry_present} check if the entry's ``present'' bit is set.
+\ifPLDI
+Line \ref{line:mask_present} checks % In the condensed figure, it's all on one line
+\else
+Lines \ref{line:mask_present}--\ref{line:check_entry_present} check
+\fi
+if the entry's ``present'' bit is set.
 If it is zero, a new page must be allocated for the next level of the table --- which is done by the fall-through
 from Line \ref{line:check_entry_present_jump}'s conditional jump. Otherwise the code jumps ahead to
 the case for the next level already existing, which is discussed in Section \ref{sec:p2v} and Figure \ref{fig:p2v}.
@@ -154,7 +152,7 @@ mov    -0x8[rbp],rdi $\specline{\ldots \ast \texttt{rdi}  \mapsto_{\textsf{r}} \
 mov     rdi, r8 $\specline{\ldots \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \ldots }$
 mov    [r8],rdi (*\label{line:read_entry_contents}*) $\specline{\ldots \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  \ast\ldots}$ ;; reading page table entry Justified by virtual pte-pointsto
 and    0x1,rdi;  mov    rdi,rax; cmp    0x0,rax ;;  if (!entry->present) {(* \label{line:check_entry_present} *)(* \label{line:mask_present} *)
-jne    161 <pte_get_next_table+0xa1> (* \label{line:check_entry_present_jump} *) ;; Jump if the present bit is not zero
+jne    161 <pte_get_next_table+0xa1> (* \label{line:check_entry_present_jump} *) ;; Jump if the present bit is not zero; no need to allocate next level
 $\specline{\ldots \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val \& 0x1} }_{\rtv}$
 mov    rbp,rdi; sub    0x10, rdi ;; Store the value of rbp minus 16 bytes (address of (*\textsf{next}*)) into rdi (*\label{line:pass_addrof_next}*)(*\label{line:alloc_path_start}*)
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$ (*\label{line:after_concluding_qfrac1}*)
@@ -245,8 +243,9 @@ because the addresses stored in page table entries are physical, but memory acce
 
 Because VMM operations are performance-critical for many workloads, most kernels 
 maintain invariants that enable very fast P2V conversions (rather than adding another data structure).
-Most kernels maintain an invariant on their page tables that the virtual address of any page used for a page table lives at a virtual address
-whose value is \emph{a constant offset from the physical address} --- a practice sometimes referred to as \emph{identity mapping} 
+Most kernels maintain an invariant on their page tables that the virtual address of any page used for a page table 
+% lives at a virtual address whose value 
+is \emph{a constant offset from the physical address} --- a practice sometimes referred to as \emph{identity mapping} 
 (even though the physical-to-virtual translation
 is typically not literally the identity function, but adding a non-zero constant offset).\footnote{Some kernels do this for all physical memory on the machine, simplifying interaction
 with DMA devices.
@@ -290,9 +289,9 @@ For each $\paddr\mapsto \textsf{v} \in\Xi$, the invariant tracks a virtual point
 (the ``Ghost translation'' in Figure \ref{fig:peraspaceinvariant_with_p2v_extension});
 fractional ownership of the physical memory for that page table entry;
 and for valid entries (with the present bit set) above L1, ghost map tokens for every entry in the table pointed to by the entry, which can be used
-to repeat the process one level down. i
-(L1 entries point to data pages, whose physical memory ownership resides in some virtual points-to).
-The assertion on Line \ref{line:conditional_children} comes from the invariant one level up; 
+to repeat the process one level down. 
+% (L1 entries point to data pages, whose physical memory ownership resides in some virtual points-to).
+The assertion on Line \ref{line:conditional_children} of Figure \ref{fig:calltopteinitialize} comes from the invariant one level up; 
 if the valid bit is set,
 the code can return those child tokens without the conditional guard.
 \looseness=-1
@@ -302,7 +301,7 @@ ownership of each page table entry that is traversed (proportional to how many v
 So in general the invariant cannot keep full permission to the memory in this part of the invariant, or it would overlap the page table walk for virtual points-to
 assertions. But in the case where the entry is invalid, we may need to write to it (e.g., to install a reference to a next-level table, as we do in Figure \ref{fig:calltopteinitialize}),
 which requires full permission. Fortunately, the entry can only be in use if its valid bit is set; if the valid bit is not set we know
-that no virtual points-to assertions in $\delta$/$\theta$ have any partial ownership.
+that no virtual points-to entry in $\delta$/$\theta$ holds any partial ownership.
 Thus we use the invariant portion annotated as ``Entry validity'' in Figure \ref{fig:peraspaceinvariant_with_p2v_extension} to capture this:
 if the entry is invalid the invariant holds full ownership of the entry, so it can be updated; while if the entry is valid,
 the invariant owns only a constant non-zero fragment sufficient to read the entry, but not modify it (which would invalidate some virtual points-to assertions):
@@ -316,7 +315,7 @@ as the argument to the invariant is $\Xi\setminus\{\mathsf{entry}\}$ (indexing b
 for a specific page table entry out of the invariant, and later put them back).
 Line \ref{line:check_entry_present_jump}'s conditional then determines in the fall-through case that the bit is not set, which 
 together with other facts entails $\textsf{qfrac} = 1$ at Line \ref{line:after_concluding_qfrac1},
-and permits storing a new entry (in ellided code around Line \ref{line:install_new_entry})
+and permits storing a new entry (in ellided code around Line \ref{line:install_new_entry}).
 \looseness=-1
 
 This seemingly-simple piece of code has a highly non-trivial correctness argument, which depends critically on detailed invariants on how access to page table
@@ -350,23 +349,28 @@ entries is shared between parts of the kernel. No prior work has engaged with th
 
  \subsubsection{Installing a New Table}
  After obtaining the identity mapping for \textsf{entry}, we are able to load the \textsf{entry\_val} into \textsf{rdi}, and check the presence bit through
- % \[ \begin{array}{l}
- %   \mathsf{and }\; 0x1, \;rdi \\
- %   \mathsf{mov } \;\mathsf{rdi}, \; \mathsf{rax} \\
- %   \mathsf{cmp } \; 0x0, \;\mathsf{rax}
- % \end{array}
- % \] 
-Lines \ref{line:mask_present}--\ref{line:check_entry_present} in Figure \ref{fig:calltopteinitialize}.
-Accessing the presence bit and checking the value allows us to exploit the side condition (*) when verifying the allocation
-path for when the entry is invalid (Lines \ref{line:alloc_path_start}--\ref{line:alloc_path_end} in Figure \ref{fig:calltopteinitialize}).
-This operation is subtle: the operation requires that the relevant table entry is readable, but the exact portion of ownership 
+\ifPLDI
+Line \ref{line:mask_present} % in condensed version, all on same line
+\else
+Lines \ref{line:mask_present}--\ref{line:check_entry_present} 
+\fi
+in Figure \ref{fig:calltopteinitialize}.
+Accessing the presence bit and checking the value allows us to exploit the condition (*) that was just discussed when verifying the allocation
+path (i.e., when the entry is invalid  and Lines \ref{line:alloc_path_start}--\ref{line:alloc_path_end} in Figure \ref{fig:calltopteinitialize}
+must allocate the next level of tables).
+This operation is subtle. To reiterate: the operation requires that the relevant table entry is readable, but the exact portion of ownership 
 returned must be determined by inspecting the valid bit of the value in memory --- so full ownership is returned only for unused entries.
 When the bit is not set, that entails full ownership of the entry's memory ($\textsf{qfrac} = 1$) and justifies writing to that memory.
 Otherwise, the code jumps past the end of this listing, to the following code at the top of Figure \ref{fig:p2v} (which is also the
 continuation of this code).
 
 If the entry is not set, \textsf{pte\_initialize} (Line \ref{line:call_to_pte_initialize} in Figure \ref{fig:calltopteinitialize}) 
-allocates a physical page (internally utilizing the only axiomatized call in our case studies, the page-allocator's \textsf{kalloc}, 
+allocates a physical page (internally utilizing the only unverified (trusted) code in our case studies, the page-allocator's \textsf{kalloc},\footnote{
+  This is an allocator for regions of pre-zeroed physical memory that is mapped, but not accessed by the allocator itself,
+  as is typical for slab allocators~\cite{bonwick1994slab}.
+  Its verification would be similar to verifying a usermode \textsf{malloc} verifications~\cite{Chlipala2013Bedrock,wickerson2010explicit},
+  just with additional invariants on the memory pool.
+} 
 on Line \ref{line:call_to_kalloc} in Figure \ref{pteinitializespec}). 
 \looseness=-1
 \begin{figure}\footnotesize
@@ -423,8 +427,9 @@ The soundness argument of this specification relies on the fact that these fresh
 of an entry construction that has not been completed yet: the presence bit is set 
 (Line \ref{line:install_new_entry} in Figure \ref{fig:calltopteinitialize}) after these freshly allocated resources are incorporated to the 
 entry construction via the page-frame portion of the PTE. In other words, the side condition, (*),
- formalizes that any access to the entry with these resources as \textit{invalid}, until the entry is revealed to 
-shared accesses when the presence bit is set. 
+ formalizes that any access to the entry with these resources is \textit{invalid} (in the sense of not necessarily
+having accompanying resources) until the entry is marked present (and thus the memory returned from \textsf{kalloc}
+moves into the page table invariant.
 
 \subsubsection{Physical-to-Virtual Conversion with \textsf{P2V}}
 \label{sec:p2v}
