@@ -1,5 +1,11 @@
 \section{Background}
 \label{sec:background}
+This section briefly recalls both fundamentals of page-table-based address translation in
+general-puspose OS kernels, 
+high-level background on separation logics and the \iris~\cite{jung2018iris} framework
+we build on,
+and some material on modal logic that informs our development.
+
 \subsection{Machine Model}
 \label{sec:backgroundonmachinemodel}
 
@@ -151,6 +157,54 @@ Appendix \ref{apdx:tlb} gives more details on the challenges involved for the in
 % a higher-level page table, and then to reuse that kernel mapping portion in every process's page tables. This was mostly 
 % phased out in the wake of Spectre, but remains relevant on correctly-implemented hardware.
 
+\subsection{Separation Logic}
+\label{sec:seplogic}
+\todo[inline]{Colin says: I added this b/c prior systems reviewers wanted more verification background...
+not sure how I feel about it}
+Separation logic~\cite{reynolds02} is a descendant of classic Hoare logic~\cite{hoare69},
+where in addition to pre- and postcondition assertions, assertions themselves pick up a
+\emph{separating conjunction} operator $\ast$, such that an assertion $A\ast B$ means $A$ and $B$ are true
+of disjoint pieces of state. This allows for local reasoning about updates, because it articulates
+that updates to the state backing $A$ do not affect the truth of $B$. This is classically demonstrated
+through the \emph{points-to} assertion: $l\mapsto v$ asserts that the memory cell at address $l$ holds value $v$:
+knowing $x\mapsto 3\ast y\mapsto 4$ and writing through $x$ means information about $y$ is preserved:
+$\{x\mapsto 3\ast P\}\;x\mathrel{:=}5\;\{x\mapsto 5 \ast P\}$ can be derived for any $P$.
+
+We build on the \iris~\cite{jung2018iris} separation logic framework,
+an abstract separation logic embedded in Rocq, which is useful for both metatheoretical work
+and interactive correctness proofs using the logic. Given an operational
+semantics structured a certain way (in our case, semantics for
+a fragment of x86-64 assembly including address translation),
+if a small number of ``glue'' lemmas are proven, \iris
+provides a ready-made separation logic with a number of advanced features, including
+higher-order ghost state and impredicative invariants, for no additional work.
+
+We suppress many details of \iris assertions for brevity, but briefly note
+that because \iris is an embedded framework in Rocq, proofs in \iris-derived
+logics (including ours) often encapsulate raw Rocq assertions: $\ulcorner P \urcorner$ is an embedding
+of the Rocq assertion $P$ into an \iris assertion (used for things like equality and other
+general pure logical assertions). Newly-defined \iris assertions are in fact
+Rocq terms of a particular type, rather than being drawn from a fixed vocabulary.
+We introduce other details as they arise.
+
+Of particular interest to us, \iris's machinery is largely agnostic to the particular choice of
+\emph{resource algebra}\footnote{A modern descendant of the venerable partial commutative monoid used
+to abstractly model earlier separation logics~\cite{calcagno2007local}, 
+with additions to support the step-indexing required to solve the recursive domain equations
+that arise with higher-order ghost state and impredicativity~\cite{birkedal2011step,hobor2010theory}.
+}
+used to give algebraic semantics to the connectives of the assertion language.
+This means we can drop in an alternative model that naturally supports working with respect to
+a locally-fixed context, like an address space.
+
+% Also relevant is that \textsc{Iris} naturally decomposes the traditional Hoare triple $\{P\}\;C\;\{Q\}$
+% into the precondition implying the weakest precondition of the program with respect to the postcondition ---
+% $P \wand \textsf{wp}\;C\;\{v\ldotp Q\}$.\footnote{An idea with long history~\cite{pratt1976semantical}.}
+% This is a natural fit for assembly-level verification, where the \emph{Hoare double}
+
+An important limitation here is that to date, every separation logic
+has assumed that all pointer addresses are meant for use in a single address space, which avoided the
+problem of tracking that certain points-to assertions are true only for certain address spaces, but not others.
 
 \subsection{Modal Logic}
 \label{sec:backgroundonmodallogic}
@@ -209,8 +263,9 @@ Interaction of hybrid modalities and substructural reasoning is relatively unexp
 % A relatively under-explored space of modal logics is the interaction of modal and substructural logics, 
 % in particular hybrid-style modalities in substructural logics, which has seen only minimal exploration~\cite{dovsen1992modal,restall1993modalities,d1997grafting,kamide2002kripke,licata2017fibrational} and no prior 
 % application. 
-We develop our ideas in the Iris program logic~\cite{jung2018iris}, as a result exploring additional subtleties 
-that arise where the modality itself may entail ownership of resources, as well as interactions between our hybrid-style 
+Our development atop \iris~\cite{jung2018iris} needs to explore some additional subtleties 
+that arise where the modality itself may entail ownership of resources, 
+as well as interactions between our hybrid-style 
 modality and substructural rules.  
 % For example, Iris contains a number of modalities that distribute over separating 
 % conjunction, or for which resources can freely move into the modality 

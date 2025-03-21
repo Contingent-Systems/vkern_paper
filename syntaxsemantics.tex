@@ -105,7 +105,7 @@
 \section{Machine State and Semantics}
 % \section{Machine State \& Syntax}
 \label{sec:syntax}
-To develop our core logical ideas, we instantiate \textsf{Iris} with a simple language for streams of instructions, 
+To develop our core logical ideas, we instantiate \iris with a simple language for streams of instructions, 
 and a logical machine model corresponding to execution of x86-64 assembly instructions with virtual memory enabled on the 
 CPU.
 %
@@ -217,7 +217,7 @@ Thus a store to memory is $\textsf{mov}~[r_m]~r_r$, and a load from memory is $\
 %   \end{array}
 %   \]
 Operationally, each first translates the virtual address stored in register $r_m$ to a physical address,
-then either updates the memory at that physical location with the contents of $r_r$ (for store) or
+then either updates the memory at that physical location with the contents of $r_r$ (for store)
 or updates $r_r$ with the contents of that memory (for load).
 % The semantics of each is realized by first translating the virtual-memory address of a memory location stored in $r_m$ to a physical memory location
 % per the description in Section \ref{sec:backgroundonmachinemodel},

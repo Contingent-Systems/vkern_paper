@@ -131,7 +131,7 @@
 
 \usepackage{lipsum}
 \usepackage[utf8]{inputenc}
-% \usepackage{todonotes}
+\usepackage{todonotes}
 \usepackage{blindtext}
 \usepackage{listings}
 \lstset{
@@ -284,11 +284,11 @@ We demonstrate our approach with challenging fragments of VMM code showing that 
 handles examples beyond what prior work can address, including reasoning about
 a sequence of instructions as it changes address spaces.
 \ifPLDI
-Our results are formalized for a RISC-like fragment of x86-64 assembly in Coq.
+Our results are formalized for a RISC-like fragment of x86-64 assembly in Rocq.
 \else
 All definitions and theorems mentioned in this paper including the operational model of a RISC-like fragment of x86-64, 
 a simple language run on this operational model, and a logic as an instantiation of the Iris framework are mechanized 
-inside Coq.
+inside Rocq.
 \fi
 \end{abstract}
 

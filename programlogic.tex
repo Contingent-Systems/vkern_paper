@@ -80,10 +80,11 @@ of virtual points-to.
 % \subsection{Base Points-To Assertions}
 % \label{sec:pointsto}
 % We build up our context-dependent assertions from two basic types of assertions that do not care about address spaces.
-To define and use virtual points-to assertions, we require two more basic assertions:
+To define and use virtual points-to assertions, we require two basic assertions that ignore
+the current address space:
 
 \paragraph{Register points-to} 
-The assertion $\textsf{r}\;\mapsto_{\textsf{r}}\{q\}\;\textsf{rv}$ ensures the ownership of the register $\rg$ naming the register value $\rv$. 
+The assertion $\textsf{r}\;\mapsto_{\textsf{r}}\{q\}\;\textsf{rv}$ ensures the ownership of the register $\rg$ containing the register value $\rv$. 
 The fraction $\qfrac$ with value 1 asserts the unique ownership of the register mapping, and grants update permission on it, 
 otherwise, any value $0 < \qfrac <1$ represents partial ownership granting readonly permission on the mapping.
 
@@ -146,7 +147,7 @@ Most of the definition lives directly in \textsf{vProp}, using the separation lo
 chaining together the entries for each level, using the sequence of table offsets from the address being translated to index
 each table level, and using the physical page address embedded in each entry.\footnote{
   The fractions \lstinline|q1| through \lstinline|q4| represent the fractional ownership of each entry based on how many
-  word-aligned addresses might need to share the entry.
+  word-aligned addresses might need to share the entry ---  $(\frac{1}{512})^n$ for each level $n$.
 }
 For example, 
   the first level address translation to get the L4 entry (\lstinline|l4e|) 
@@ -249,14 +250,14 @@ $}
 
   We separate the physical page-table-walk  
   from the virtual pointsto relation, replacing it with ghost state that merely guarantees the address translation would succeed.
-  Iris includes a \emph{ghost map} construction which we use to track mappings from
+  \iris includes a \emph{ghost map} construction which we use to track mappings from
   virtual addresses to the physical addresses they translate to.
   The implementation details in terms of named invariants and various resource algebras are not important to our presentation, so
   we treat the maps abstractly.
    The map includes for each key in the map (i.e.,
   each virtual address) a token $\ghostmaptoken{\gamma}{k}{v}$ whose ownership is required to update that key-value pair in the ghost map
   named $\gamma$. The existence of such a token implies that the actual map $\theta$ tracked by a corresponding $\mathsf{GhostMap}(\gamma,\theta)$
-  resource indeed maps $k$ to $v$. These properties are captured by Iris rules using the token to update or draw conclusions about the logical map:\footnote{Iris ghost maps lack established notation in the literature,
+  resource indeed maps $k$ to $v$. These properties are captured by \iris rules using the token to update or draw conclusions about the logical map:\footnote{Iris ghost maps lack established notation in the literature,
   but the syntax we use captures the details of \texttt{iris.base\_logic.lib.ghost\_map}.}
   \begin{mathpar}
   \inferrule{ }{\mathsf{GhostMap}(\gamma,\theta) \ast \ghostmaptoken{\gamma}{\mathsf{pa}}{\mathsf{va}} \vs 
