@@ -229,14 +229,14 @@ Our solution removes some restrictions in this definition by further abstracting
     \exists \paddr\ldotp
     \exists \delta\ldotp
     % \underbrace{(\lambda\mathit{cr3val}\ldotp\sumapaces{\mathit{cr3val}}\delta)}_\text{Find addr.\;space invariant} \ast 
-    \underbrace{(\lambda\mathit{cr3val}\ldotp\ghostmaptoken{\delta{}s}{cr3val}{\delta})}_\text{Find addr.\;space invariant} \ast 
+    \underbrace{(\lambda\mathit{cr3val}\ldotp\exists \epsilon\ldotp\fracghostmaptoken{\delta{}s}{cr3val}{\delta}{\epsilon})}_\text{Find addr.\;space invariant} \ast 
   % \underbrace{\sumwalkabs\vaddr\qfrac\paddr }_\text{Ghost translation}\ast 
   \underbrace{\fracghostmaptoken{\delta}{\mathsf{va}}{\mathsf{pa}}{\mathsf{q}} }_\text{Ghost translation}\ast 
   \underbrace{\paddr \mapsto_{\mathsf{p}}\{\textsf{q}\}\; \vale}_\text{Physical location}
 \end{array}
 $}
 \vspace{-1em}
-\caption{Virtual-Pointsto for Sharing Pages}
+\caption{Virtual-Points-to for Sharing Pages}
   \label{fig:virtualpointstosharing}
 \end{figure*}  
 
@@ -655,8 +655,13 @@ The soundness proofs for these rules extract
 the token ($\fracghostmaptoken{\delta}{\vaddr}{\paddr}{\qfrac}$) from the virtual points-to,
 use that to extract the physical page-table-traversal points-to collection describing
 the page table walk for the relevant address ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$)
-from the invariant ($\mathcal{I}\mathsf{ASpace}$), prove that the page table walk succeeds and
-memory or registers are updated appropriately, before re-packing the invariant and virtual points-to resources.
+from the invariant ($\mathcal{I}\mathsf{ASpace}$), prove that the page table walk succeeds
+and that memory or registers are updated appropriately, before re-packing the invariant and virtual points-to resources.
+
+The memory access rules model updates to the instruction pointer \lstinline|rip| using a metafunction \textsf{MovLen}.
+\textsf{MovLen} returns how long the instruction encoding for the corresponding \lstinline|mov| is;
+x86-64 instruction encodings are often longer for instructions using registers that are absent from the 32-bit
+x86 ISA that preceded x86-64.
 
 \paragraph{Updating \lstinline|cr3|} 
 Unlike other rules, \TirNameStyle{WriteToRegCtlFromRegModal} updates the root address of the 
@@ -673,14 +678,15 @@ address space back into the \emph{new} address space, where they may not hold. A
 % which is the (full) Hoare double version of the address space switch rule proposed in Section \ref{sec:issues}.
 
 \subsection{Soundness}
-Our rules from Figure \ref{fig:wpdamd} are proven sound in Iris against an assembly-level hardware model
+\label{sec:soundness}
+Our rules from Figure \ref{fig:wpdamd} are proven sound in \iris against an assembly-level hardware model
 implementing a fragment of x86-64 including 64-bit address translation with 4-level page tables.
 % \todo[inline]{
 Our rules for control transfers (\lstinline|jne|, \lstinline|call|, and \lstinline|ret|) are currently
 axiomatized (with completely standard specifications~\cite{ni2007contexts,Chlipala2013Bedrock}) 
-because Iris's built-in machinery does not provide
+because \iris's built-in machinery does not provide
 convenient ways to discard the current continuation; adaptation of others'
-approaches~\cite{de2023type} is ongoing work.
+approaches~\cite{de2023type} is future work.
 Our soundness proofs for all other instructions (including, critically, all memory accesses)
 are axiom-free.
 % }
