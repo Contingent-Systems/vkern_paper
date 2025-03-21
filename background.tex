@@ -159,7 +159,7 @@ Appendix \ref{apdx:tlb} gives more details on the challenges involved for the in
 
 \subsection{Separation Logic}
 \label{sec:seplogic}
-\todo[inline]{Colin says: I added this b/c prior systems reviewers wanted more verification background...
+\todo{Colin says: I added this b/c prior systems reviewers wanted more verification background...
 not sure how I feel about it}
 Separation logic~\cite{reynolds02} is a descendant of classic Hoare logic~\cite{hoare69},
 where in addition to pre- and postcondition assertions, assertions themselves pick up a
@@ -180,22 +180,35 @@ provides a ready-made separation logic with a number of advanced features, inclu
 higher-order ghost state and impredicative invariants, for no additional work.
 
 We suppress many details of \iris assertions for brevity, but briefly note
-that because \iris is an embedded framework in Rocq, proofs in \iris-derived
-logics (including ours) often encapsulate raw Rocq assertions: $\ulcorner P \urcorner$ is an embedding
-of the Rocq assertion $P$ into an \iris assertion (used for things like equality and other
+a few recurring details used heavily in \iris but not necessarily in traditional
+separation logics.
+Because \iris is an embedded framework in \rocq, proofs in \iris-derived
+logics (including ours) often encapsulate raw \rocq assertions: $\ulcorner P \urcorner$ is an embedding
+of the \rocq assertion $P$ into an \iris assertion (used for things like equality and other
 general pure logical assertions). Newly-defined \iris assertions are in fact
-Rocq terms of a particular type, rather than being drawn from a fixed vocabulary.
+\rocq terms of a particular type, rather than being drawn from a fixed vocabulary.
 We introduce other details as they arise.
 
-Of particular interest to us, \iris's machinery is largely agnostic to the particular choice of
-\emph{resource algebra}\footnote{A modern descendant of the venerable partial commutative monoid used
-to abstractly model earlier separation logics~\cite{calcagno2007local}, 
-with additions to support the step-indexing required to solve the recursive domain equations
-that arise with higher-order ghost state and impredicativity~\cite{birkedal2011step,hobor2010theory}.
+\iris includes two forms of implication. The magic wand operator $\wand$ is an affine implication:
+$A\wand B$ describes a resource which, if combined with a resource satisfying $A$, will satisfy $B$.
+Notably, this implication involves no changes to ghost state. \iris, building on the Views framework~\cite{Dinsdale-Young2013Views},
+also includes a \emph{view shift} operator $\vs$ which models updates to ghost state: $A \vs B$
+means resources satisfying $A$ may be transformed into resources satisfying $B$, intuitively by updating only ghost state.\footnote{\iris
+experts may note that this is \emph{technically} mildly misleading given how \iris's update modalities and weakest precondition
+are defined, but
+this is adequate intuition for non-experts in \iris to follow their use.
 }
-used to give algebraic semantics to the connectives of the assertion language.
-This means we can drop in an alternative model that naturally supports working with respect to
-a locally-fixed context, like an address space.
+\looseness=-1
+
+% Of particular interest to us, \iris's machinery is largely agnostic to the particular choice of
+% \emph{resource algebra}\footnote{A modern descendant of the venerable partial commutative monoid used
+% to abstractly model earlier separation logics~\cite{calcagno2007local}, 
+% with additions to support the step-indexing required to solve the recursive domain equations
+% that arise with higher-order ghost state and impredicativity~\cite{birkedal2011step,hobor2010theory}.
+% }
+% used to give algebraic semantics to the connectives of the assertion language.
+% This means we can drop in an alternative model that naturally supports working with respect to
+% a locally-fixed context, like an address space.
 
 % Also relevant is that \textsc{Iris} naturally decomposes the traditional Hoare triple $\{P\}\;C\;\{Q\}$
 % into the precondition implying the weakest precondition of the program with respect to the postcondition ---

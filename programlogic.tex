@@ -59,12 +59,12 @@ some of the most subtle and technically challenging instruction sequences in an 
 To support making assertions depend on a choice of address space, we work entirely in a pointwise lifting of Iris's base BI logic,
 essentially working with separation logic assertions indexed by a choice of page table root as a $\mathcal{W}_{64}$, which we call $\textsf{vProp }\Sigma$:\footnote{
   \iris experts may notice our \lstinline|-b>| resembles another pointwise lifting already in  \iris~\cite{dang2019rustbelt,dang2022compass}. 
-  This similarity is real, but the existing lifting does not work with indexed \coq types
+  This similarity is real, but the existing lifting does not appear to work with indexed \coq types
   like our \lstinline|word n| as a domain.
 }
 \lstinline[language=Coq]|Definition vProp  $\Sigma$ : bi := word 64 -b> iPropI  $\Sigma$|.
 This is the (\textsc{Coq}) type of assertions in our logic.
-Most constructs in Iris's base logic are defined with respect to any BI-algebra (of \textsc{Coq} type \lstinline|bi|), so automatically
+Most constructs in Iris's base logic are defined with respect to any BI-algebra (of \coq type \lstinline|bi|), so automatically
 carry over to our derived logic.
 However, we must still build up from existing Iris primitives to provide new primitives that depend on the address space --- primarily the notion
 of virtual points-to.
@@ -248,34 +248,45 @@ $}
   % In practice the decisions about which virtual addresses are valid rest not with code posessing a virtual address, but with
   % the virtual memory manager --- and its invariants.
 
+  \begin{figure}
+\footnotesize
+  \begin{mathpar}
+  \inferrule*[right=\footnotesize GhostMapUpdate]{ }{\mathsf{GhostMap}(\gamma,\theta) \ast \ghostmaptoken{\gamma}{\mathsf{pa}}{\mathsf{va}} \vs 
+  \mathsf{GhostMap}(\gamma,\theta[\mathsf{va}\mapsto\mathsf{pa'}]) \ast \ghostmaptoken{\gamma}{\mathsf{va}}{\mathsf{pa}'} 
+  }
+  \and
+  \inferrule*[right=\footnotesize GhostMapLookup]{ }{\mathsf{GhostMap}(\gamma,\theta) \ast \ghostmaptoken{\gamma}{\mathsf{va}}{\mathsf{pa}} \wand \ulcorner \theta(\mathsf{va})=\mathsf{Some}(\mathsf{pa}) \urcorner }
+  \end{mathpar}
+  \caption{\iris rules for ghost maps}
+  \label{fig:ghostmaps}
+  \end{figure}
+
   We separate the physical page-table-walk  
   from the virtual pointsto relation, replacing it with ghost state that merely guarantees the address translation would succeed.
   \iris includes a \emph{ghost map} construction which we use to track mappings from
-  virtual addresses to the physical addresses they translate to.
-  The implementation details in terms of named invariants and various resource algebras are not important to our presentation, so
-  we treat the maps abstractly.
-   The map includes for each key in the map (i.e.,
+  virtual addresses to the physical addresses they translate to as a piece of ghost state.
+  The map includes for each key in the map (i.e.,
   each virtual address) a token $\ghostmaptoken{\gamma}{k}{v}$ whose ownership is required to update that key-value pair in the ghost map
   named $\gamma$. The existence of such a token implies that the actual map $\theta$ tracked by a corresponding $\mathsf{GhostMap}(\gamma,\theta)$
-  resource indeed maps $k$ to $v$. These properties are captured by \iris rules using the token to update or draw conclusions about the logical map:\footnote{Iris ghost maps lack established notation in the literature,
+  resource indeed maps $k$ to $v$. These properties are captured by key \iris rules in Figure \ref{fig:ghostmaps}.\footnote{\iris ghost maps lack established notation in the literature,
   but the syntax we use captures the details of \texttt{iris.base\_logic.lib.ghost\_map}.}
-  \begin{mathpar}
-  \inferrule{ }{\mathsf{GhostMap}(\gamma,\theta) \ast \ghostmaptoken{\gamma}{\mathsf{pa}}{\mathsf{va}} \vs 
-  \mathsf{GhostMap}(\gamma,\theta[\mathsf{pa}\mapsto\mathsf{va'}]) \ast \ghostmaptoken{\gamma}{\mathsf{pa}}{\mathsf{va}'} 
-  }
-  \and
-  \inferrule{ }{\mathsf{GhostMap}(\gamma,\theta) \ast \ghostmaptoken{\gamma}{\mathsf{pa}}{\mathsf{va}} \wand \ulcorner \theta(\mathsf{pa})=\mathsf{Some}(\mathsf{va}) \urcorner }
-  \end{mathpar}
+  There are other rules, but these two are most important for explaining ghost maps.
+  \textsc{GhostMapUpdate} says that ownership of the actual ghost map with ghost name $\gamma$ and map contents $\theta$,
+  and a full (non-fractional) token witnessing that $\theta$ maps \textsf{pa} to \textsf{va} permits an update to the ghost map's state,
+  changing the map and replacing the token to represent the new value.
+  \textsc{GhostMapLookup} allows using the same information to simply conclude that the mapping indicated by the token is true.
   
   % Updating the virtual-to-physical (ghost) mapping for a virtual address $va$
   % requires full ownership of the token. 
-  Then the \emph{virtual memory manager's invariant} ensures that for each $\ghostmaptoken{\gamma}{va}{pa}$ mapping
-  in this map, there are \emph{physical} resources sufficient to ensure that address translation for $va$
-  will resolve in the hardware to $pa$ via --- $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$.
-  This allows modification of the page tables themselves as long as the changes do not invalidate overall virtual-to-physical
-  translation.
-  Consistency follows from replacing the page table walk with ownership of the ghost map token for the relevant ghost map
-  entry, preventing the overall translation from being changed separately from the virtual points-to.
+  The \emph{virtual memory manager's invariant} ensures that for each $\ghostmaptoken{\gamma}{\vaddr}{\paddr}$ mapping
+  in this map, there are \emph{physical} resources sufficient to ensure that address translation for $\vaddr$
+  will resolve in the hardware to $\paddr$ --- via $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$.
+  % This allows modification of the page tables themselves as long as the changes do not invalidate overall virtual-to-physical
+  % translation.
+  % Consistency follows from replacing the explicit page table walk of Figure \ref{fig:strongvirtualpointsto}'s
+  % definition with ownership of the ghost map token for the relevant ghost map
+  % entry, as in Figure \ref{fig:virtualpointstosharing}.
+  % This allows the overall translation to be updated separately from the virtual points-to.
   \looseness=-1
 
   %Thus the specification of \emph{which} physical addresses support translation is separated from the virtual points-to.
@@ -290,23 +301,16 @@ $}
   % map caching virtual-to-physical address translations, and for each entry a read only \emph{partial} ownership of that key-value pair.
   % The resource algebra itself is instantiated as:
   % \[\mathcal{A}\textsf{bsPTableWalk} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \;  ( (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \Loc,\mathord{=}) ))\]
-For clarity we refer to the ghost map summarizing virtual-to-physical translations by 
+For clarity we refer to the specific ghost map summarizing virtual-to-physical translations by \\
 \centerline{$\mathcal{A}\textsf{bsPTableWalk}(\delta,\theta) \stackrel{\triangle}{=} \mathsf{GhostMap}(\delta,\theta)$}\\
 (omitting $\delta$ for brevity when only one is in scope)
 and keep this in a per-address-space invariant described shortly.
-We then replace the physical
- $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in the virtual points-to definition
-with ownership of the token \ghostmaptoken{\delta}{\mathsf{va}}{\mathsf{paddr}}, %ghost-map ($ \sumwalkabs\vaddr\qfrac\paddr$),
-guaranteeing that ghost map contains an mapping from the virtual address ($\vaddr$) to a physical address ($\paddr$),
-and thus that the per-address-space invariant contains the physical resources that guarantee the hardware resolves the translation.
-
-We place the authorative ownership of the ghost translation $\mathcal{A}\textsf{PTableWalk}$ in a per-address-space invariant
-$\mathcal{I}$\textsf{ASpace} (Figure \ref{fig:peraspaceinvariant}). 
-$\mathcal{I}$\textsf{ASpace} alone allows changes to the page tables 
-that preserve overall virtual-to-physical translations.
-When combined with the
-fragment stored in the virtual points-to (Figure \ref{fig:virtualpointstosharing}),
-changes in the virtual-to-physical translations become possible.
+We then replace the physical traversal
+ $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}'s virtual points-to definition
+with ownership of the token \ghostmaptoken{\delta}{\vaddr}{\paddr}, %ghost-map ($ \sumwalkabs\vaddr\qfrac\paddr$),
+yielding Figure \ref{fig:virtualpointstosharing}'s definition.
+This new definition guarantees that the ghost map contains an mapping from the virtual address ($\vaddr$) to a physical address ($\paddr$),
+and thus that the per-address-space invariant will contain the physical resources that guarantee the hardware resolves the translation.
 
   \begin{figure*}
   \footnotesize
@@ -321,42 +325,47 @@ changes in the virtual-to-physical translations become possible.
 \end{array}
 $}
 \vspace{-1em}
-\caption{Global Address-Space Invariant with a fixed global map of address-space names $m$}
+\caption{Per-address-space invariant with a fixed global map of address-space names $m$}
   \label{fig:peraspaceinvariant}
 \vspace{-1em}
   \end{figure*}
 
-Our logic is the first to address the existence of multiple address spaces, so also requires
-a way to look up
-the ghost map of virtual-to-physical translations for an address space (the ghost name $\delta$ in Figure \ref{fig:virtualpointstosharing}).
-% for each address space must be locateable from a representation of the specific address space:
-% This means we also require a way to locate the map for the current address space from 
-We support lookup by the current root page table pointer stored in \lstinline|cr3|.
-\looseness=-1
 
-Figure \ref{fig:peraspaceinvariant} describes the resources for each address space.
+We place the authorative ownership of the ghost translation $\mathcal{A}\textsf{PTableWalk}$ in a per-address-space invariant
+$\mathcal{I}$\textsf{ASpace} (Figure \ref{fig:peraspaceinvariant}). 
+$\mathcal{I}$\textsf{ASpace} alone allows changes to the page tables 
+that preserve overall virtual-to-physical translations.
+When combined with the
+fragment stored in the virtual points-to (Figure \ref{fig:virtualpointstosharing}),
+changes in the virtual-to-physical translations become possible without needing to track all virtual points-to assertions.
+
+% Figure \ref{fig:peraspaceinvariant} describes the resources for each address space.
+In Figure \ref{fig:peraspaceinvariant},
 $\theta$ is the logical map from virtual addresses to the physical addresses they should translate to, 
 for the \emph{current} address space, corresponding to the currently installed page tables (the ones
 indicated by \lstinline|cr3|). In Figure \ref{fig:virtualpointstosharing}, the existentially-quantified $\delta$
 is the ghost name for this map (again, for the current address space).
-$m$ is the (full) logical map from the various page table roots to ghost names for the 
-per-address-space mappings like $\theta$.
-It is tracked by a ghost map named by the ghost name $\delta{}s$ in
-Figure \ref{fig:virtualpointstosharing}; there is only one such map in the system.
-\looseness=-1
-% This is why Figure \ref{fig:virtualpointstosharing} asserts there is some ghost name in that (global) map
-% for the current address space.
-% The global map itself is tracked by a resource algebra 
-% \[\mathcal{A}\textsf{spaces} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \;  ( (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \textsc{GhostName},\mathord{=}) )) \]
-
-
-$\mathcal{I}\textsf{ASpace}(\Theta,m)$ is then the resources for the current address space,
+Because our logic is the first to address the existence of multiple address spaces,
+it must ensure that $\theta$ actually corresponds to the intended ghost map for the current address space.
+This requires looking up the ghost name (i.e., $\delta$) for the current address space,
+which is handled by $m$ --- another logical map (tied to ghost state shortly)
+from various page table roots to ghost names for the per-address-space ghost maps discussed above.
+$\mathcal{I}\textsf{ASpace}(\theta,m)$ then stores the physical resources for the current address space mappings,
 ensuring that the current address space is valid (has an entry in $m$ whose corresponding
-authoritative map matches $\Theta$), and asserting ownership of the appropriate fractional ownership
+authoritative map matches $\theta$), and asserting ownership of the appropriate fractional ownership
 of the physical page table walk for each virtual-to-physical translation in $\Theta$ (for the current address space).
 
-
-
+Virtual points-to assertions must also ensure that they are tied to a valid address space, and because they
+use ghost map tokens to ensure the virtual-to-physical translation exists in a specific ghost map, they must also
+name that map. In Figure \ref{fig:virtualpointstosharing}, this is done with a ghost map token for \emph{another} ghost map,
+one shared across the kernel, holding $m$. Our virtual points-to assertion existentially quanfies the address-space-specific
+ghost map $\delta$ mapping virtual addresses to physical addresses, and ensures it exists with a token for the distinguished
+global (unique) ghost map named by $\delta{s}$.
+% the ghost map of virtual-to-physical translations for a particular address space (the ghost name $\delta$ in Figure \ref{fig:virtualpointstosharing}).
+% % for each address space must be locateable from a representation of the specific address space:
+% % This means we also require a way to locate the map for the current address space from 
+% We support lookup by the current root page table pointer stored in \lstinline|cr3|.
+\looseness=-1
   
 % Figure \ref{fig:logicaladdrspace} depicts the relationships between these pieces, for a single
 % address space.
