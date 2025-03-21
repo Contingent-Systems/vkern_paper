@@ -372,17 +372,21 @@ and the first physical-to-virtual translation proof.
 % This is required for OOPSLA 2025
 \section*{Data Availability Statement}
 This work is backed by a substantial \rocq development, including
-formalization of a subset of supervisor-mode x86-64 semantics,
-specification and soundness proofs for the rules discussed in Section \ref{sec:logic}
+(1) formalization of a subset of supervisor-mode x86-64 semantics;
+(2) specification and soundness proofs for the rules discussed in Section \ref{sec:logic}
 as well as additional rules covering arithmetic and bitwise operations,
-control transfers,\todo{Ismail, what are the caveats?}
-and fixed-offset variants of the memory access rules from Figure \ref{fig:wpdamd}.
-The main caveat is that our formalization does not explicitly model instruction
+and fixed-offset variants of the memory access rules from Figure \ref{fig:wpdamd};
+and (3) proofs of the examples of Section \ref{sec:experiment}.
+
+There are two main limitations.
+The first is that our formalization does not explicitly model instruction
 encoding and decoding, which is instead handled by an axiomatization of the relationship between
 byte sequences and instruction sequences, used in the definition of virtual code points-to
 assertions (i.e., assertions stating that a certain virtual address stores bytes
-encoding a valid instruction sequence, used for branches, call, and return instruction
-specifications).
+encoding a valid instruction sequence with a given precondition, used for branches, call, and return instruction
+specifications). The second, as noted in Section \ref{sec:soundness}, is that control transfer
+specifications are trusted (though again, entirely standard for assembly-level program logics~\cite{ni2007contexts,Ni2006codeptrs},
+aside from using our virtual points-to assertions in place of points-to assertions that assume flat memory).
 We intend to submit this to artifact evaluation.
 We have attached a zip as supplementary material to the submission, though it does not
 currently include
