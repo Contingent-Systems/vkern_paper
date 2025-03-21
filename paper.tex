@@ -369,6 +369,25 @@ and the first physical-to-virtual translation proof.
 % to support large-page functionality common to virtual memory subsystems (superpages, hugepages),
 % implementing 
 
+% This is required for OOPSLA 2025
+\section*{Data Availability Statement}
+This work is backed by a substantial \rocq development, including
+formalization of a subset of supervisor-mode x86-64 semantics,
+specification and soundness proofs for the rules discussed in Section \ref{sec:logic}
+as well as additional rules covering arithmetic and bitwise operations,
+control transfers,\todo{Ismail, what are the caveats?}
+and fixed-offset variants of the memory access rules from Figure \ref{fig:wpdamd}.
+The main caveat is that our formalization does not explicitly model instruction
+encoding and decoding, which is instead handled by an axiomatization of the relationship between
+byte sequences and instruction sequences, used in the definition of virtual code points-to
+assertions (i.e., assertions stating that a certain virtual address stores bytes
+encoding a valid instruction sequence, used for branches, call, and return instruction
+specifications).
+We intend to submit this to artifact evaluation.
+We have attached a zip as supplementary material to the submission, though it does not
+currently include
+a guide for artifact evaluators.
+
 %% The next two lines define the bibliography style to be used, and
 %% the bibliography file.
 \bibliographystyle{ACM-Reference-Format}
