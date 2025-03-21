@@ -101,10 +101,12 @@ In most kernels, this occurs in only a few well-known places, which is why exist
 trust that TLB flushes are handled correctly rather than actually modeling TLB hardware and verifying.
 Eventual verification of TLB handling is a worthwhile long-term goal, but it is a challenging pursuit in its
 own right. Based on others' early progress on verifying TLB operations in isolation~\cite{syeda2020formal}, we expect
-it to be possible to combine this paper's insights with that support. Even without TLB modeling,
+it to be possible to combine this paper's insights with that support. 
+Section \ref{sec:relwork} elaborates briefly on the challenges involved.
+Even without TLB modeling,
 our logic already enables verification of virtual memory management functionality that prior verified kernel work
 either trusts completely (\textsc{seL4}, \textsc{CertiKOS}) or is incapable of reasoning about.
-Appendix \ref{apdx:tlb} gives more details on the challenges involved for the interested reader.
+% Appendix \ref{apdx:tlb} gives more details on the challenges involved for the interested reader.
 \looseness=-1
 
 % \subsection{Virtual Memory Managers}

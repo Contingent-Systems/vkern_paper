@@ -398,51 +398,51 @@ a guide for artifact evaluators.
 \bibliography{vmm}
 
 \appendix
-\section{Translation Lookaside Buffers}
-\label{apdx:tlb}
-This section explains the challenges of formal reasoning about TLBs in more detail, including why
-prior verified OS work trusts the flushing operations (and we believe this is reasonable), and why
-full support for TLB reasoning is a significant, challenging problem on its own, requiring further
-development before being integrated with general virtual memory reasoning.
+% \section{Translation Lookaside Buffers}
+% \label{apdx:tlb}
+% This section explains the challenges of formal reasoning about TLBs in more detail, including why
+% prior verified OS work trusts the flushing operations (and we believe this is reasonable), and why
+% full support for TLB reasoning is a significant, challenging problem on its own, requiring further
+% development before being integrated with general virtual memory reasoning.
 
-As noted earlier,
-TLB flushes are required only when addresses are removed from a virtual address space, or when changing
-virtual address spaces. Because this occurs in few places in the kernel (in some, only 3 locations), full verified
-kernels including \textsc{seL4}~\cite{Klein2009seL4,seL4TOCS} and \textsc{CertiKOS}~\cite{gu15,gu2016certikos}
-trust TLB management. Neither of the aforementioned systems has a hardware model including a TLB, so neither is able
-to verify TLB management in any form --- they \emph{must} trust its operation.
+% As noted earlier,
+% TLB flushes are required only when addresses are removed from a virtual address space, or when changing
+% virtual address spaces. Because this occurs in few places in the kernel (in some, only 3 locations), full verified
+% kernels including \textsc{seL4}~\cite{Klein2009seL4,seL4TOCS} and \textsc{CertiKOS}~\cite{gu15,gu2016certikos}
+% trust TLB management. Neither of the aforementioned systems has a hardware model including a TLB, so neither is able
+% to verify TLB management in any form --- they \emph{must} trust its operation.
 
-The only place the code itself becomes particularly challenging is in multiprocessor kernels, where
-not only must the running CPU flush its TLB, but it must sent an inter-processor interrupt (IPI) to all
-other cores to ensure they also flush the relevant ranges of their own TLBs.
-Currently no formal hardware model exists with sufficient detail to reason about IPIs in full detail.
-Multicore extensions of \textsc{seL4}~\cite{von2013clustered} and \textsc{CertiKOS}~\cite{gu2016certikos} also trust this functionality.
+% The only place the code itself becomes particularly challenging is in multiprocessor kernels, where
+% not only must the running CPU flush its TLB, but it must sent an inter-processor interrupt (IPI) to all
+% other cores to ensure they also flush the relevant ranges of their own TLBs.
+% Currently no formal hardware model exists with sufficient detail to reason about IPIs in full detail.
+% Multicore extensions of \textsc{seL4}~\cite{von2013clustered} and \textsc{CertiKOS}~\cite{gu2016certikos} also trust this functionality.
 
-Fully grounded trust for this would require a formal model of how hardware populates ACPI tables and formal verification of ACPI
-parsing code on general-purpose desktop and server machines, or a formalized and verified
-parsing of flattened device trees (plus trust that a system was booted with a correct FDT) for (semi-)embedded systems like single-board
-ARM and RISC-V machines. Either route would also require detailed treatment of memory-mapped IO triggering
-interrupts on other CPUs. This is far beyond any formal model of computer hardware that exists today,
-and far out of scope for this paper.
+% Fully grounded trust for this would require a formal model of how hardware populates ACPI tables and formal verification of ACPI
+% parsing code on general-purpose desktop and server machines, or a formalized and verified
+% parsing of flattened device trees (plus trust that a system was booted with a correct FDT) for (semi-)embedded systems like single-board
+% ARM and RISC-V machines. Either route would also require detailed treatment of memory-mapped IO triggering
+% interrupts on other CPUs. This is far beyond any formal model of computer hardware that exists today,
+% and far out of scope for this paper.
 
 
-\citet{syeda2020formal,syeda2018program} are the only existing work to address formal verification of TLB management.
-They extend the work of \citet{kolanski08ssv,kolanski09tphols,kolanski09tphols}, and therefore inherit the limitations of that work discussed
-elsewhere in this paper. Aside from that, their logic primarily tracks a set of mapped addresses and a set of
-cached addresses, and generally preserve a global invariant (in a global Hoare logic, not a separation logic)
-that the cached addresses are a subset of the mapped addresses. When this invariant is violated, the logic provides only
-a Hoare-style backwards assignment type rule with unconstrained assertion $P$, rather than providing structure in the logic
-for reasoning about how to restore the invariant. Most technical results in the paper focus on proving
-transparency lemmas, that code that \emph{does not} modify page tables (kernel code outside the VMM, user code)
-is unaffected by its existence. The one piece of kernel code verified is a sequence of 4 pseudo-instructions for changing address spaces
-which include \emph{only} the installation of a new page table root and flushing of the old address space from the TLB.
+% \citet{syeda2020formal,syeda2018program} are the only existing work to address formal verification of TLB management.
+% They extend the work of \citet{kolanski08ssv,kolanski09tphols,kolanski09tphols}, and therefore inherit the limitations of that work discussed
+% elsewhere in this paper. Aside from that, their logic primarily tracks a set of mapped addresses and a set of
+% cached addresses, and generally preserve a global invariant (in a global Hoare logic, not a separation logic)
+% that the cached addresses are a subset of the mapped addresses. When this invariant is violated, the logic provides only
+% a Hoare-style backwards assignment type rule with unconstrained assertion $P$, rather than providing structure in the logic
+% for reasoning about how to restore the invariant. Most technical results in the paper focus on proving
+% transparency lemmas, that code that \emph{does not} modify page tables (kernel code outside the VMM, user code)
+% is unaffected by its existence. The one piece of kernel code verified is a sequence of 4 pseudo-instructions for changing address spaces
+% which include \emph{only} the installation of a new page table root and flushing of the old address space from the TLB.
 
-Adapting Syeda and Klein's global reasoning principles to a separation logic is non-trivial, even though their approach
-does capture some intuition about TLB reasoning. And as noted above, in the absence of support for significant additional
-hardware functionality in the hardware model, this would be substantial work for only very limited gains in confidence compared
-to trusting single-core TLB managment.
-Thus we leave TLB management to our future work plans, where we believe it is best addressed in tandem with substantially
-richer hardware models than any currently existing.
+% Adapting Syeda and Klein's global reasoning principles to a separation logic is non-trivial, even though their approach
+% does capture some intuition about TLB reasoning. And as noted above, in the absence of support for significant additional
+% hardware functionality in the hardware model, this would be substantial work for only very limited gains in confidence compared
+% to trusting single-core TLB managment.
+% Thus we leave TLB management to our future work plans, where we believe it is best addressed in tandem with substantially
+% richer hardware models than any currently existing.
 
 
 \section{Subtleties of Changing Address Spaces Using Modalities}

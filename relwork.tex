@@ -1,6 +1,10 @@
 \section{Related Work}
 \label{sec:relwork}
 
+We will discuss related work along two axes: work on OS verification specifically, and work on 
+program logics with modalities.
+
+\subsection{OS Kernel Verification}
 There has been relatively little prior work on formal verification of virtual memory.
 Instead, most OS verification work has focused on minimizing reasoning about virtual memory management.
 The original \textsc{Verisoft} project~\cite{alkassar2008verisoft,alkassar2010pervasive,alkassar2008formal,dalinger2005verification,hillebrand2005address,alkassar2008formal,starostin2010formal} 
@@ -42,7 +46,7 @@ which is not true of page table updates.
 Other work on OS verification either never progressed far enough to address VMM verification 
 (\textsc{Verisoft XT}~\cite{cohen2009vcc,cohen2010local,dahlweid2009vcc,cohen2013SOFSEM}), or uses memory-safe languages to enable safe co-habitation 
 of a single address space by all processes (\textsc{Singularity}~\cite{Fahndrich2006language,Hunt2007singularity,Hunt2007sealing,Barnett2011specsharp}, \textsc{Verve}~\cite{Yang2010Verve},
-and \textsc{Tock}~\cite{levy2017multiprogramming}). The latter ensures memory safety, but ignores other functional uses of virtual memory
+and \textsc{Tock}~\cite{levy2017multiprogramming}). The latter approach ensures memory safety, but ignores other functional uses of virtual memory
 hardware like swapping~\cite{Denning1970VM} or exploiting copy-on-write techniques for dynamic migration of virtual machines~\cite{clark2005live}.
 
 \citet{kolanski08vstte} are the only other researchers to study VMM verification against a realistic hardware
@@ -57,7 +61,7 @@ Due to lack of fractional permissions in their formalism, they incidentally pick
 foundational focus: by requiring
 a virtual points-to have \emph{full} ownership of the page table walk memory, they limit their system to having only as many
 virtual points-to assertions as there are entries in the top-level table (4096) because they cannot share access to entries.
-We inherit fractional permission support form Iris, and use it extensively (the overly-restrictive
+We inherit fractional permission support form \iris, and use it extensively (the overly-restrictive
 Figure \ref{fig:strongvirtualpointsto} is already an improvement in this way).
  
 % Some work has been done like ours, studying VMM verification separately from the rest of the kernel.
@@ -117,16 +121,7 @@ Figure \ref{fig:strongvirtualpointsto} is already an improvement in this way).
 % Our approach in this paper uses modalities to distinguish virtual-address-based assertions that hold only in specific 
 % address spaces, making it possible to manipulate other address spaces, and equally critically, to \emph{change} address 
 % spaces while reasoning about correctness.
-The only other attempt to verify a change of address space was by \citet{syeda2018program,syeda2020formal}, whose focus was on TLB maintenance (which we
-do not model). However, they verified only the 4 instructions to switch address spaces and update the TLB on an ARM processor, in isolation
-(i.e., not the full context switch including changing stacks with address spaces).
-The specification they proved for those instructions did not address program invariants that may be valid in one address space and not the other,
-so is not flexible enough to extend directly to a full context switching primitive as in Figure \ref{fig:swtch}.
-Of course as we do not address TLB management (see Appendix \ref{apdx:tlb}), the right eventual solution would be to combine our work
-and theirs, which we leave to future work.
 
-\ifPLDI
-\else
 Unlike our work, Kolanski and Klein prove very useful embedding theorems stating that code that does not modify page table 
 entries can be verified in a VM-ignorant program logic, and that proofs in that logic can be embedded into the VM-aware logic 
 (essentially by interpreting ``normal'' points-to relations as virtual points-to facts). While we have not proven such a result,
@@ -137,13 +132,77 @@ With our general approach to virtual points-to assertions being inspired by Kola
 disjunctions to an extended points-to definition; embedding ``regular'' separation logic into such a variant
 is the appropriate next step to extend reasoning to usermode programs running with a kernel that may demand-page the program's
 memory.
-\fi
+
+\paragraph{Translation Lookaside Buffers}
+As noted in Section \ref{sec:backgroundonmachinemodel}, we do not formally model or reason about TLBs.
+TLB flushes are required only when addresses are removed from a virtual address space, or when changing
+virtual address spaces. Because this occurs in few places in the kernel (in some, only 3 locations), full verified
+kernels including \textsc{seL4}~\cite{Klein2009seL4,seL4TOCS} and \textsc{CertiKOS}~\cite{gu15,gu2016certikos}
+trust TLB management. Neither of the aforementioned systems has a hardware model including a TLB, so neither is able
+to verify TLB management in any form --- they \emph{must} trust its operation.
+
+The only place TLB code becomes particularly challenging is in multiprocessor kernels, where
+not only must the running CPU flush its own TLB with special instructions, but it must send an inter-processor interrupt (IPI) to all
+other cores to ensure they also flush the relevant ranges of their own TLBs.
+Currently no formal hardware model exists with sufficient detail to reason about IPIs in full detail,
+which would require extensions to model interactions with ACPI tables populated by firmware on desktop and server machines,
+or flattened device trees for (semi-)embedded systems like single-board ARM and RISC-V machines, which tell the OS
+important information about how to control other CPU cores;
+plus the memory-mapped IO used to trigger those IPIs.
+As a result, multicore extensions of \textsc{seL4}~\cite{von2013clustered} and \textsc{CertiKOS}~\cite{gu2016certikos} also trust this functionality.
+
+% Fully grounded trust for this would require a formal model of how hardware populates ACPI tables and formal verification of ACPI
+% parsing code on general-purpose desktop and server machines, or a formalized and verified
+% parsing of flattened device trees (plus trust that a system was booted with a correct FDT) for (semi-)embedded systems like single-board
+% ARM and RISC-V machines. Either route would also require detailed treatment of memory-mapped IO triggering
+% interrupts on other CPUs. This is far beyond any formal model of computer hardware that exists today,
+% and far out of scope for this paper.
+
+
+% \citet{syeda2020formal,syeda2018program} are the only existing work to address formal verification of TLB management.
+% They extend the work of \citet{kolanski08ssv,kolanski09tphols,kolanski09tphols}, and therefore inherit the limitations of that work discussed
+% above. Their logic primarily tracks a set of mapped addresses and a set of
+% cached addresses, and generally preserve a global invariant (in a global Hoare logic, not a separation logic)
+% that the cached addresses are a subset of the mapped addresses. When this invariant is violated, the logic provides only
+% a Hoare-style backwards assignment type rule with unconstrained assertion $P$, rather than providing structure in the logic
+% for reasoning about how to restore the invariant. Most technical results in the paper focus on proving
+% transparency lemmas, that code that \emph{does not} modify page tables (kernel code outside the VMM, user code)
+% is unaffected by its existence. The one piece of kernel code verified is a sequence of 4 pseudo-instructions for changing address spaces
+% which include \emph{only} the installation of a new page table root and flushing of the old address space from the TLB.
+
+% Adapting Syeda and Klein's global reasoning principles to a separation logic is non-trivial, even though their approach
+% does capture some intuition about TLB reasoning. And as noted above, in the absence of support for significant additional
+% hardware functionality in the hardware model, this would be substantial work for only very limited gains in confidence compared
+% to trusting single-core TLB managment.
+% Thus we leave TLB management to our future work plans, where we believe it is best addressed in tandem with substantially
+% richer hardware models than any currently existing.
+
+The only other attempt to verify a change of address space was by \citet{syeda2018program,syeda2020formal}, whose focus was on TLB maintenance (which we
+do not model). However, they verified only the 4 instructions to switch address spaces and update the TLB on an ARM processor, in isolation
+(i.e., not the full context switch including changing stacks with address spaces).
+The specification they proved for those instructions did not address program invariants that may be valid in one address space and not the other,
+so is not flexible enough to extend directly to a full context switching primitive as in Figure \ref{fig:swtch},
+in addition to inheriting other limitations from the work they extend, discussed above~\cite{kolanski08vstte,kolanski09tphols}.
+
+The right eventual solution would be to combine our work
+and theirs, which we leave to future work, as combining both the models and reasoning principles would be highly non-trivial.
+
+\subsection{Program Logics with Modalities}
+Modalities have long been a staple of program logics, at least as far back as Dijkstra's weakest precondition calculus~\cite{dijkstra1975guarded}
+and Pratt's observation the Hoare triples
+could be decomposed using the weakest-precondition modality of dynamic logic~\cite{pratt1976semantical},
+in a form quite similar to what \iris uses today~\cite{jung2018iris}.
+Variants of Nakano's later modality~\cite{nakano2000modality} have long been used to deal with step-indexing 
+for impredicative and recursive features of logics and type systems~\cite{Appel2007,hobor2010theory,birkedal2011step,birkedal2013intensional,jung2018iris}.
 
 As noted earlier, our other-space modality derives from hybrid logic~\cite{areces2001hybrid,blackburn1995hybrid,gargov1993modal,goranko1996hierarchies},
 where modalities are indexed by \emph{nominals} which are names for specific individual states in a Kripke model.
-Little prior work combines these ideas with program logics: \citet{brotherston2014parametric} show that traditional
-nominals extends the expressive power of separation logic, and \citet{gordon2019modal}
+Little prior work combines these ideas with program logics. \citet{brotherston2014parametric} show that traditional
+nominals extends the expressive power of separation logic. \citet{gordon2019modal}
 uses nominals to refer to states of other actors in an actor language.
+In parallel with our work, \citet{wagner2024realistic} use a hybrid-logic-inspired modality
+to abstract reference-counting specifics from specifications of a low-level application binary interface (ABI)
+--- their $@_l(P)$ indicates that $l$ is the location of a reference count for resources satisfying $P$.
 % As noted throughout the paper, the inspiration for our other-space modality comes from hybrid logic~\cite{areces2001hybrid,blackburn1995hybrid,gargov1993modal,goranko1996hierarchies},
 % where modalities are indexed by \emph{nominals} which are names for specific individual states in a Kripke model.
 % We are aware of only two prior works combining hybrid logics with program logics specifically. 
@@ -155,7 +214,7 @@ uses nominals to refer to states of other actors in an actor language.
 % Gordon~\cite{gordon2019modal} described a use of hybrid logic in the verification of actor programs, 
 % where nominals named the local state of individual actors (with such assertions stabilized with a 
 % rely/guarantee approach). 
-Beyond these, there is limited work on the interaction of hybrid logic with substructural logics, in restricted forms
+Beyond these, there is limited work on the interaction of hybrid logic with general substructural logics, in restricted forms
 that do not affect expressivity~\cite{despeyroux2014hybrid,chaudhuri2019hybrid}.\looseness=-1
 % Primarily there is a line of work on hybrid linear logic (\HyLL)~\cite{despeyroux2014hybrid}, 
 % originally used as a way to more conveniently express aspects of transition systems in linear logic. 
