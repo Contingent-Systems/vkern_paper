@@ -140,6 +140,7 @@ virtual address spaces. Because this occurs in few places in the kernel (in some
 kernels including \textsc{seL4}~\cite{Klein2009seL4,seL4TOCS} and \textsc{CertiKOS}~\cite{gu15,gu2016certikos}
 trust TLB management. Neither of the aforementioned systems has a hardware model including a TLB, so neither is able
 to verify TLB management in any form --- they \emph{must} trust its operation.
+\looseness=-1
 
 The only place TLB code becomes particularly challenging is in multiprocessor kernels, where
 not only must the running CPU flush its own TLB with special instructions, but it must send an inter-processor interrupt (IPI) to all
@@ -150,6 +151,7 @@ or flattened device trees for (semi-)embedded systems like single-board ARM and 
 important information about how to control other CPU cores;
 plus the memory-mapped IO used to trigger those IPIs.
 As a result, multicore extensions of \textsc{seL4}~\cite{von2013clustered} and \textsc{CertiKOS}~\cite{gu2016certikos} also trust this functionality.
+\looseness=-1
 
 % Fully grounded trust for this would require a formal model of how hardware populates ACPI tables and formal verification of ACPI
 % parsing code on general-purpose desktop and server machines, or a formalized and verified
@@ -249,6 +251,7 @@ allowing statements of more properties.
 In these weak memory examples this additional expressive power would not be useful,
 because any relevant points of evaluation (thread views) are intimately tied to memory fences performed by the program, whereas
 for virtual memory management the kernel must be able to choose or construct arbitrary other address spaces.
+\looseness=-1
 
 %   is what it means
 % to have a modality at all.

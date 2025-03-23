@@ -364,15 +364,6 @@ When the bit is not set, that entails full ownership of the entry's memory ($\te
 Otherwise, the code jumps past the end of this listing, to the following code at the top of Figure \ref{fig:p2v} (which is also the
 continuation of this code).
 
-If the entry is not set, \textsf{pte\_initialize} (Line \ref{line:call_to_pte_initialize} in Figure \ref{fig:calltopteinitialize}) 
-allocates a physical page (internally utilizing the only unverified (trusted) code in our case studies, the page-allocator's \textsf{kalloc},\footnote{
-  This is an allocator for regions of pre-zeroed physical memory that is mapped, but not accessed by the allocator itself,
-  as is typical for slab allocators~\cite{bonwick1994slab}.
-  Its verification would be similar to verifying a usermode \textsf{malloc} verifications~\cite{Chlipala2013Bedrock,wickerson2010explicit},
-  just with additional invariants on the memory pool.
-} 
-on Line \ref{line:call_to_kalloc} in Figure \ref{pteinitializespec}). 
-\looseness=-1
 \begin{figure}\footnotesize
   \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)   \ast \texttt{rbp-16} \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry+KERNBASE}  \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{\_} \ast \lnot(\textsf{entry\_present entry\_val} }_{\rtv}$
@@ -393,6 +384,14 @@ $\specline{\ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \begin{array}{l} \ulcorn
 \vspace{-1em}
 \end{figure}
 
+If the entry is not set, \textsf{pte\_initialize} (Line \ref{line:call_to_pte_initialize} in Figure \ref{fig:calltopteinitialize}) 
+allocates a physical page (internally utilizing the only unverified (trusted) code in our case studies, the page-allocator's \textsf{kalloc},\footnote{
+  This is an allocator for regions of pre-zeroed physical memory that is mapped, but not accessed by the allocator itself,
+  as is typical for slab allocators~\cite{bonwick1994slab}.
+  Its verification would be similar to verifying a usermode \textsf{malloc} verifications~\cite{Chlipala2013Bedrock,wickerson2010explicit},
+  just with additional invariants on the memory pool.
+} 
+on Line \ref{line:call_to_kalloc} in Figure \ref{pteinitializespec}). 
 Since we are using \textsf{pte\_initialize} for page-table address allocation, we must relate this newly
 allocated physical address to the identity mapping map $\Xi$ --- 
 see Line \ref{line:page_of_caps} in Figure \ref{fig:calltopteinitialize}, where
@@ -789,8 +788,7 @@ full virtual PTE pointer for it, setting to 0, and reclaiming the now-unmapped p
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\Xi,m) \ast [\rtv'](\mathcal{I}\texttt{ASpace}(\theta',\Xi',m') \ast \texttt{Pother}) \ast \texttt{rsi}\mapsto_{\textsf{r}} new \ast \texttt{rdi}\mapsto_{\textsf{r}} old \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} }_{\rtv}$
 $\specline{\texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} \ast \texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
 $\specline{\mathsf{ContextAt}(old,\_) \ast \mathsf{ContextAt}(new,[\mathsf{rbxv}',\ldots,\rtv']) }_{\rtv}$
-mov 0[rdi], rbx
-... ;; also save rsp, rbp, r12, r13, r14, to offsets 8, 16, 24, 32, and 40 from rdi (*\label{line:start_save}*)
+mov 0[rdi], rbx ... ;; also save rsp, rbp, r12, r13, r14, to offsets 8, 16, 24, 32, and 40 from rdi (*\label{line:start_save}*)
 mov 48[rdi], r15
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\Xi,m) \ast [\rtv'](\mathcal{I}\texttt{ASpace}(\theta',\Xi',m') \ast \texttt{Pother})  \ast  \texttt{rsi}\mapsto_{\textsf{r}} new \ast \texttt{rdi}\mapsto_{\textsf{r}} old \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} }_{\rtv}$
 $\specline{ \texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} \ast \texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
@@ -879,6 +877,7 @@ that justified moving those assertions out of the other-space modality.
 While prior work has verified context switches within a single address space~\cite{ni2007contexts}, and context switches
 without any code before or after~\cite{syeda2020formal} (i.e., not reasoning about the impact of address space change
 on what data was accessible), this is the first verification handling both.
+\looseness=-1
 
 \begin{comment}
 \[  

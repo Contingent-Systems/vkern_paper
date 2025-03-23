@@ -208,7 +208,7 @@
 %% citations and references.
 %% Uncommenting
 %% the next command will enable that style.
-%%\citestyle{acmauthoryear}
+\citestyle{acmauthoryear}
 
 
 
@@ -446,86 +446,87 @@ a guide for artifact evaluators.
 % richer hardware models than any currently existing.
 
 
-\section{Subtleties of Changing Address Spaces Using Modalities}
-% \subsection{Considering Hoare Doubles in the Context of Switching Address-Space}
-% \subsubsection{Issues with Using Hoare Triples in Address-Space Specification}
-\label{sec:issues}
-Operating systems on x86-64 change address spaces by updating \lstinline|cr3|.
-Conceptually, we expect a proof rule for such an update to take move resources in and out of modalities for
-the old and new address spaces. This suggests a rule like the following, which captures the intuition of the
-address space change, but is subtly unsound under common assumptions.
-% An important subtlety arises with supporting \lstinline|mov|s into \lstinline|cr3|. Consider the hypothetical rule
-\begin{mathpar}
-\inferrule*[left=Broken]{ }{
-  \{P \ast \textsf{cr3}\mapsto_{r} \;r_1 \ast r \mapsto_{r} \;r_2 \ast [r_2](Q)\}
-  \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
-  \{[r_1](P) \ast \textsf{cr3} \mapsto_{r} r_2 \ast r \mapsto_{r} r_2 \ast Q\}
-}
-\end{mathpar}
-This rule takes all assertions not under a modality ($P$), and moves them under a modality for the old address space
-(which is where they were valid), while pulling assertions for the new, target address space out of a corresponding modality.
-(For clarity, we also omit the address space invariants, which must also be present.)
-% which is slightly simplified (by dropping per-address-space resources) for clarity in making the following point.
-% This rule captures the intuitive change of address space in a Hoare triple.
-Unfortunately, as stated, this interacts quite poorly with the traditional frame
-rule.
-If we abbreviate the pre- and post-conditions above as \textsf{Pre} and \textsf{Post}:
-\begin{mathpar}
-  \inferrule*[right=Frame]{
-    \inferrule*[right=Broken]{ }{
-    \{\textsf{Pre}\}
-    \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
-    \{\textsf{Post}\}
-    }
-  }{
-    \{a\mapsto_\mathsf{v} x \ast \textsf{Pre}\}
-    \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
-    \{a\mapsto_\mathsf{v} x \ast \textsf{Post}\}
-  }
-\end{mathpar}
-Notice that both the precondition and postcondition assert that $a\mapsto_\mathsf{v} x$ in the current address space, but we have no basis for concluding that address translation is preserved by the change of address space. So this derivation clearly leads to an unsound conclusion. 
-The essential problem is that the frame rule is motivated by local reasoning about local updates, but
-a switch of address space is a \emph{global} change that may invalidate information about virtual addresses.
-Thus framing around \lstinline|cr3| updates is unsound, which has important impacts on our formal development.
-
-Switching to Hoare doubles resolves this problem because an under-appreciated subtlety of Hoare doubles 
-is that typically \emph{there is no primitive frame rule}. 
-Instead each verification essentially includes a local frame that it passes to the next instructions
-(think continuation-passing style), giving each overall rule a \emph{global} (rather than local) precondition.
-For most rules this is not that important, but it does permit rules that have global effects on their preconditions.
-
-% This is then how we justify our actual rule for \lstinline|cr3| updates, which is \emph{almost}
-This leads to our actual rule for \lstinline|cr3| updates, which is \emph{almost}
-\begin{mathpar}
-\inferrule*[left=ChangeAddressSpace]{
-  \{[r_1](P) \ast cr3 \mapsto_{r} r_2 \ast r \mapsto_{r} r_2 \ast Q\}\;\overline{is}
-}{
-  \{P \ast cr3 \mapsto_{r} r_1 \ast r \mapsto_{r} r_2 \ast [r_2](Q)\}\;
-  \texttt{mov}~\texttt{\%cr3},~r;\;\overline{is}
-  %\lstinline|mov %cr3, r| 
-}
-\end{mathpar}
-(Again, the actual rule in Section \ref{sec:selected_rules} includes the address space invariants.)
-Because the precondition on this rule is global, we avoid issues with framing. 
-A more typical frame rule can be recovered from Hoare doubles in the typical way~\cite{Chlipala2013Bedrock} 
-with the added restriction that \lstinline|cr3| is restored to its pre-framing value before un-framing (in this case, the framed-out assertion is effectively
-stashed under an other-space assertion for the initial address space, and pulled out as part of restoring).
-
-% If we wanted to consider a frame rule that would work for this logic, we could consider:
+% \section{Subtleties of Changing Address Spaces Using Modalities}
+% % \subsection{Considering Hoare Doubles in the Context of Switching Address-Space}
+% % \subsubsection{Issues with Using Hoare Triples in Address-Space Specification}
+% \label{sec:issues}
+% Operating systems on x86-64 change address spaces by updating \lstinline|cr3|.
+% Conceptually, we expect a proof rule for such an update to take move resources in and out of modalities for
+% the old and new address spaces. This suggests a rule like the following, which captures the intuition of the
+% address space change, but is subtly unsound under common assumptions.
+% % An important subtlety arises with supporting \lstinline|mov|s into \lstinline|cr3|. Consider the hypothetical rule
 % \begin{mathpar}
-%   \inferrule*[left=Cr3Frame]{
-%     \{P\ast cr3=v\}\;C\;\{ Q \ast cr3=v\}
+% \inferrule*[left=Broken]{ }{
+%   \{P \ast \textsf{cr3}\mapsto_{r} \;r_1 \ast r \mapsto_{r} \;r_2 \ast [r_2](Q)\}
+%   \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
+%   \{[r_1](P) \ast \textsf{cr3} \mapsto_{r} r_2 \ast r \mapsto_{r} r_2 \ast Q\}
+% }
+% \end{mathpar}
+% This rule takes all assertions not under a modality ($P$), and moves them under a modality for the old address space
+% (which is where they were valid), while pulling assertions for the new, target address space out of a corresponding modality.
+% (For clarity, we also omit the address space invariants, which must also be present.)
+% % which is slightly simplified (by dropping per-address-space resources) for clarity in making the following point.
+% % This rule captures the intuitive change of address space in a Hoare triple.
+% Unfortunately, as stated, this interacts quite poorly with the traditional frame
+% rule.
+% If we abbreviate the pre- and post-conditions above as \textsf{Pre} and \textsf{Post}:
+% \begin{mathpar}
+%   \inferrule*[right=Frame]{
+%     \inferrule*[right=Broken]{ }{
+%     \{\textsf{Pre}\}
+%     \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
+%     \{\textsf{Post}\}
+%     }
 %   }{
-%     \{R\ast P\ast cr3=v\}\;C\;\{ R \ast Q \ast cr3=v\}
+%     \{a\mapsto_\mathsf{v} x \ast \textsf{Pre}\}
+%     \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
+%     \{a\mapsto_\mathsf{v} x \ast \textsf{Post}\}
 %   }
 % \end{mathpar}
-% By demanding that \lstinline|cr3| be held constant (or rather, at least restored to its original value) we could frame almost traditionally. In particular, this rule would work with framing around calls that might lead to address space switches, such as calling blocking operations in the kernel.
-% Attempting to derive a frame rule as some work using Hoare doubles does~\cite{Chlipala2013Bedrock}
-% would enforce this restriction.
+% Notice that 
+% both the precondition and postcondition assert that $a\mapsto_\mathsf{v} x$ in the current address space, but we have no basis for concluding that address translation is preserved by the change of address space. So this derivation clearly leads to an unsound conclusion. 
+% The essential problem is that the frame rule is motivated by local reasoning about local updates, but
+% a switch of address space is a \emph{global} change that may invalidate information about virtual addresses.
+% Thus framing around \lstinline|cr3| updates is unsound, which has important impacts on our formal development.
 
-% Another useful perspective on this might be the dynamic frames~\cite{parkinson2011relationship} 
-% view: virtual points-to assertions are self-stable \emph{except} for changes in \lstinline|cr3|, so framing would then naturally require other means of holding \lstinline|cr3| constant (or saving and restoring it).
-% Virtual points-to assertions could be made self-stable by also giving them partial ownership over \lstinline|cr3| assertions, but this would require explicitly plumbing that ownership from \emph{all} assertions back to any place an address space change might occur; this would seem to be a far graver loss of modularity than this extra quirk in framing discussions.
+% Switching to Hoare doubles resolves this problem because an under-appreciated subtlety of Hoare doubles 
+% is that typically \emph{there is no primitive frame rule}. 
+% Instead each verification essentially includes a local frame that it passes to the next instructions
+% (think continuation-passing style), giving each overall rule a \emph{global} (rather than local) precondition.
+% For most rules this is not that important, but it does permit rules that have global effects on their preconditions.
+
+% % This is then how we justify our actual rule for \lstinline|cr3| updates, which is \emph{almost}
+% This leads to our actual rule for \lstinline|cr3| updates, which is \emph{almost}
+% \begin{mathpar}
+% \inferrule*[left=ChangeAddressSpace]{
+%   \{[r_1](P) \ast cr3 \mapsto_{r} r_2 \ast r \mapsto_{r} r_2 \ast Q\}\;\overline{is}
+% }{
+%   \{P \ast cr3 \mapsto_{r} r_1 \ast r \mapsto_{r} r_2 \ast [r_2](Q)\}\;
+%   \texttt{mov}~\texttt{\%cr3},~r;\;\overline{is}
+%   %\lstinline|mov %cr3, r| 
+% }
+% \end{mathpar}
+% (Again, the actual rule in Section \ref{sec:selected_rules} includes the address space invariants.)
+% Because the precondition on this rule is global, we avoid issues with framing. 
+% A more typical frame rule can be recovered from Hoare doubles in the typical way~\cite{Chlipala2013Bedrock} 
+% with the added restriction that \lstinline|cr3| is restored to its pre-framing value before un-framing (in this case, the framed-out assertion is effectively
+% stashed under an other-space assertion for the initial address space, and pulled out as part of restoring).
+
+% % If we wanted to consider a frame rule that would work for this logic, we could consider:
+% % \begin{mathpar}
+% %   \inferrule*[left=Cr3Frame]{
+% %     \{P\ast cr3=v\}\;C\;\{ Q \ast cr3=v\}
+% %   }{
+% %     \{R\ast P\ast cr3=v\}\;C\;\{ R \ast Q \ast cr3=v\}
+% %   }
+% % \end{mathpar}
+% % By demanding that \lstinline|cr3| be held constant (or rather, at least restored to its original value) we could frame almost traditionally. In particular, this rule would work with framing around calls that might lead to address space switches, such as calling blocking operations in the kernel.
+% % Attempting to derive a frame rule as some work using Hoare doubles does~\cite{Chlipala2013Bedrock}
+% % would enforce this restriction.
+
+% % Another useful perspective on this might be the dynamic frames~\cite{parkinson2011relationship} 
+% % view: virtual points-to assertions are self-stable \emph{except} for changes in \lstinline|cr3|, so framing would then naturally require other means of holding \lstinline|cr3| constant (or saving and restoring it).
+% % Virtual points-to assertions could be made self-stable by also giving them partial ownership over \lstinline|cr3| assertions, but this would require explicitly plumbing that ownership from \emph{all} assertions back to any place an address space change might occur; this would seem to be a far graver loss of modularity than this extra quirk in framing discussions.
 
 
 
