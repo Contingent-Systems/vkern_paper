@@ -570,13 +570,12 @@ $\specline{ \left( \begin{array}{l} \textsf{pdp}+\textsf{PDPEX(va)} = \textsf{pd
 
 \begin{figure}\footnotesize
   \vspace{-1em}
-$\begin{array}{l}\left( \begin{array}{l} \ulcorner \textsf{pdp}+\textsf{PDPEX(va)} = \textsf{pdp\_entry} \land \textsf{table\_root(pml4\_entry}_{\textsf{pfn}})  = \textsf{pdp} \\ \land \textsf{pd}+\textsf{PDEX(va)} = \textsf{pd\_entry} \land \textsf{table\_root(pml3\_entry}_{\textsf{pfn}})  = \textsf{pd} \\ \land \textsf{pt}+\textsf{PDPEX(va)} = \textsf{pt\_entry} \land \textsf{table\_root(pml2\_entry}_{\textsf{pfn}})  = \textsf{pt} \urcorner  \ast \\  \textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{pml4\_entry},\textsf{pdp\_entry},\textsf{pd\_entry},\textsf{pt\_entry}\},m)  \\ \ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast  \\
-      \ghostmaptoken{\textsf{id}}{(\mathsf{pml4\_entry})}{\textsf{4}}\ast \ghostmaptoken{\textsf{id}}{(\mathsf{plm3\_entry})}{\textsf{3}} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{plm2\_entry})}{\textsf{2}}  \ast \\  \textsf{pml4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l4e\_val} \ast  \tcbhighmath[boxrule=1pt,drop fuzzy shadow=blue]{\ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}\;\; \ast \\  \textsf{pdp\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l3e\_val} \ast  \tcbhighmath[boxrule=1pt,drop fuzzy shadow=blue]{\ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l3e\_val})\urcorner} \;\; \ast \\  \textsf{pd\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l2e\_val} \ast \tcbhighmath[boxrule=1pt,drop fuzzy shadow=blue]{\ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l2e\_val})\urcorner }  \end{array} \right)  =\textsf{R}_{\textsf{walk?} } \\ \ast \left(\begin{array}{l} \textsf{rax} \mapsto \textsf{pte} \ast  \textsf{pte} \mapsto_{\textsf{vpte,qfrac}} \textsf{pte\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present pte\_val})\urcorner \end{array}\right) =\textsf{R}_{\textsf{l1e}}\end{array} $
-\caption{\textsf{R}$_{\textsf{walk?}}$: Resources needed for walking page-table directory via calls to \textsf{pte\_get\_next\_table} in Figure \ref{fig:calltopteinitialize}}
+$\begin{array}{l}\left( \begin{array}{l} \ulcorner \textsf{pdp}+\textsf{PDPEX(va)} = \textsf{pdp\_entry} \land \textsf{table\_root(pml4\_entry}_{\textsf{pfn}})  = \textsf{pdp} \\ \land \textsf{pd}+\textsf{PDEX(va)} = \textsf{pd\_entry} \land \textsf{table\_root(pml3\_entry}_{\textsf{pfn}})  = \textsf{pd} \\ \land \textsf{pt}+\textsf{PDPEX(va)} = \textsf{pt\_entry} \land \textsf{table\_root(pml2\_entry}_{\textsf{pfn}})  = \textsf{pt} \urcorner  \ast \\  \textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{pml4\_entry},\textsf{pdp\_entry},\textsf{pd\_entry},\textsf{pte}\},m)  \\ \ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast  \\
+      \ghostmaptoken{\textsf{id}}{(\mathsf{pml4\_entry})}{\textsf{4}}\ast \ghostmaptoken{\textsf{id}}{(\mathsf{plm3\_entry})}{\textsf{3}} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{plm2\_entry})}{\textsf{2}}  \ast \\  \textsf{pml4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l4e\_val}  \ast \\  \textsf{pdp\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l3e\_val}  \ast \\  \textsf{pd\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l2e\_val}  \end{array} \right)  =\textsf{R}_{\textsf{walk} } \\ \ast \left(\begin{array}{l} \textsf{rax} \mapsto \textsf{pte} \ast  \textsf{pt\_entry} \mapsto_{\textsf{vpte,qfrac}} \textsf{pte} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present pte\_val})\urcorner \end{array}\right) =\textsf{R}_{\textsf{l1e}}\end{array} $
+\caption{\textsf{R}$_{\textsf{walk}}$: Resources obtained from invariant for walking page-table directory with \emph{non-existing entries} via calls to \textsf{pte\_get\_next\_table} in Figure \ref{fig:calltopteinitialize}}
 \label{walkpgdir}
 \vspace{-1em}
 \end{figure}
-
 Realizing a software page-table walk amounts to calling \textsf{pte\_get\_next\_table} for each level as shown in Figure \ref{walkpgdir}. 
 The special part of the specficication for a page table walk can be considered as accumulation of memory mappings for the page-table entries 
 visited and frame addresses for page-tables. 
@@ -698,30 +697,48 @@ unmapping is the reverse of the logic we discuss here.
 %}
 \begin{figure}\footnotesize
   \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
-;;complstatus_t vaspace_mappage(pte_t *pml4, void *va,uintptr_t fpaddr, uint64_t perm ) {
+;;complstatus_t vaspace_mappage(pte_t *pml4, void *va,uintptr_t fpaddr ) {
 ... ;;setting up the stack      
  $\specline{\textsf{P} \ast \textsf{pml4} \mapsto_{\textsf{id}} \textsf{\_} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \ulcorner\theta \; !!\; \vaddr = \texttt{None}\urcorner}_{\rtv}$      
 ;; pte_t *pte = walkpgdir(pml4, a);
  mov  -0x8[rbp], rdi;
  mov  -0x16[rbp], rsi;
  mov  -0x24[rbp], rdx;
-% mov  rdx, -0x16[rbp];
- mov  rdx, (l4 + PML4EX(va) + natToWord 64 KERNBASE)))
- mov  rsi,  -0x32[rbp];
- mov  rax, 0x0;
+;; pte = walkpgdir_succ(pml4, va);
+ mov    -0x8[rbp], %rdi;
+ mov    -0x16[rbp], rsi;
+ mov    0x0, rax;
  callq  291 <walkpgdir> (*\label{line:call_walkpgdir}*)
  $\specline{ \textsf{R}_{\textsf{walk}} \ast \left(\begin{array}{l}   \textsf{rax} \mapsto \textsf{pte} \ast  \textsf{pte} \mapsto_{\textsf{vpte,qfrac}} \textsf{pte\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present pte\_val}) \end{array}\right) =\textsf{R}_{\textsf{l1e}} }$
-;;if(pte->present != 0) {
-...        
-mov    0x0,r8; mov    rax,rcx; mov    rcx,-0x30[rbp]
-... ;; Copy user access bit, writethrough, etc. (not part of our semantics) into pte from perm
-;;pte->pfn          = PTE_ADDR_TO_PFN(fpaddr);
-mov    -0x18[rbp],rcx; shr    0xc,rcx; mov    -0x30[rbp],rdx; mov    [rdx],rsi ;; Load current entry in rsi
-$\specline{\textsf{pt\_entry}_{\textsf{pfn}} \mapsto_{p} \textsf{addr\_to\_pfn}(\textsf{pa}) \ast \textsf{R}_{\textsf{walk\_acc}}}_{\rtv} \Rrightarrow \specline{\textsf{va} \mapsto_{\textsf{v,q}} \textsf{pa} \ast \textsf{P}}$
-movabs 0xffffffffff,rdi; and    rdi,rcx; shl    0xc,rcx; movabs 0xfff0000000000fff,rdi
-and    rdi,rsi; or     rcx,rsi; mov    rsi,[rdx] ;; Store updated entry back to L1 entry (*\label{line:l1entry_store}*)
+ mov  rax, rdx;
+ mov    rdx,-0x28[rbp];
+;;if (!pte->present){ 
+ mov    -0x28[rbp], rdx
+ mov    [rdx], rcx
+ and    0x1, rcx
+ mov    rcx, r8
+ cmp    0x0, r8
+ jne    3e0 <vaspace_mappage+0x190>
+ ...
+;;pte->pfn          = PTE_ADDR_TO_PFN(pa);
+ mov    -0x18[rbp], rdx;
+ shr    0xc, rdx;
+ mov    -0x28[rbp], rsi;
+ mov    [rsi], rdi;
+ movabs 0xffffffffff, rcx
+ and    rcx, rdx
+ shl    0xc, rdx
+ movabs 0xfff0000000000fff, rcx
+ and    rcx, rdi
+ or     rdx, rdi
+ mov    rdi, [rsi]
+$\specline{ \textsf{pte} \mapsto_{\textsf{vpte,1}} (\textsf{set\_pfn}(\textsf{pte\_val}, \textsf{PTE\_ADDR\_TO\_PFN}(\textsf{fpaddr}))) \ast  \ulcorner \lnot(\textsf{entry\_present pte\_val}) \urcorner \ast P}$
+ ;; Store updated entry back to L1 entry (*\label{line:l1entry_store}*)
 ;;}
-... ;; set present bit in entry, then clean up the stack and return (proof re-packs invariants)
+... ;;set present bit in entry, then clean up the stack
+... ;;and return either unaccessible pte pointsto or one with fresh page (fpaddr)
+ $\specline{ \begin{array}{l}\textsf{pte} \mapsto_{\textsf{vpte,qfrac}} \textsf{pte\_val} \ast \ulcorner (\textsf{entry\_present pte\_val}) \urcorner \ast P \\
+ \lor \; \;  \textsf{pte} \mapsto_{\textsf{vpte,1}} (\textsf{set\_pfn}(\textsf{pte\_val}, \textsf{PTE\_ADDR\_TO\_PFN}(\textsf{fpaddr}))) \ast  \ulcorner \lnot(\textsf{entry\_present pte\_val}) \urcorner \ast P \end{array} }$
 ;;}
 \end{lstlisting}
 \vspace{-1em}
