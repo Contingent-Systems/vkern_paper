@@ -713,7 +713,7 @@ unmapping is the reverse of the logic we discuss here.
  mov    -0x16[rbp], rsi;
  mov    0x0, rax;
  callq  291 <walkpgdir> (*\label{line:call_walkpgdir}*)
- $\specline{ \textsf{R}_{\textsf{walk}} \ast \left(\begin{array}{l} \textsf{rax} \mapsto \textsf{pt\_entry+KERNBASE} \ast  \textsf{pt\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{pt\_entry}\;\textsf{l1e\_val} \ast \\ \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l1e\_val})\urcorner \end{array}\right) =\textsf{R}_{\textsf{l1e}} }$
+ $\specline{ \textsf{R}_{\textsf{walk}} \ast \textsf{R}_{\textsf{l1e}} }$
  mov  rax, rdx;
  mov    rdx,-0x28[rbp];
 ;;if (!pteaddr->present){ (*\label{line:mappage_pte_present_start}*)
