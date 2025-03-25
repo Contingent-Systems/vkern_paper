@@ -1,7 +1,7 @@
 \section{Related Work}
 \label{sec:relwork}
 
-We will discuss related work along two axes: work on OS verification specifically, and work on 
+We will discuss two streams of related work: OS verification, and 
 program logics with modalities.
 
 \subsection{OS Kernel Verification}
@@ -48,6 +48,7 @@ Other work on OS verification either never progressed far enough to address VMM 
 of a single address space by all processes (\textsc{Singularity}~\cite{Fahndrich2006language,Hunt2007singularity,Hunt2007sealing,Barnett2011specsharp}, \textsc{Verve}~\cite{Yang2010Verve},
 and \textsc{Tock}~\cite{levy2017multiprogramming}). The latter approach ensures memory safety, but ignores other functional uses of virtual memory
 hardware like swapping~\cite{Denning1970VM} or exploiting copy-on-write techniques for dynamic migration of virtual machines~\cite{clark2005live}.
+\looseness=-1
 
 \citet{kolanski08vstte} are the only other researchers to study VMM verification against a realistic hardware
 model, where page table updates are performed through virtual memory accesses (later adding C-level type modeling~\cite{kolanski09tphols}).
@@ -185,6 +186,7 @@ do not model). However, they verified only the 4 instructions to switch address 
 The specification they proved for those instructions did not address program invariants that may be valid in one address space and not the other,
 so is not flexible enough to extend directly to a full context switching primitive as in Figure \ref{fig:swtch},
 in addition to inheriting other limitations from the work they extend, discussed above~\cite{kolanski08vstte,kolanski09tphols}.
+\looseness=-1
 
 The right eventual solution would be to combine our work
 and theirs, which we leave to future work, as combining both the models and reasoning principles would be highly non-trivial.
