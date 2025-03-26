@@ -709,13 +709,13 @@ unmapping is the reverse of the logic we discuss here.
 ... ;;setting up the stack      
  $\specline{\textsf{P} \ast \textsf{pml4} \mapsto_{\textsf{id}} \textsf{\_} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \ulcorner\theta \; !!\; \vaddr = \texttt{None}\urcorner}_{\rtv}$      
 ;; pte_t *pteaddr = walkpgdir(pml4, a);
- mov    -0x8[rbp], %rdi;
- mov    -0x16[rbp], rsi;
- mov    0x0, rax;
+ mov    -0x8[rbp], %rdi
+ mov    -0x16[rbp], rsi
+ mov    0x0, rax
  callq  291 <walkpgdir> (*\label{line:call_walkpgdir}*)
  $\specline{ \textsf{R}_{\textsf{walk}} \ast \textsf{R}_{\textsf{l1e}} }$
- mov  rax, rdx;
- mov    rdx,-0x28[rbp];
+ mov  rax, rdx
+ mov    rdx,-0x28[rbp]
 ;;if (!pteaddr->present){ (*\label{line:mappage_pte_present_start}*)
  mov    -0x28[rbp], rdx
  mov    [rdx], rcx
@@ -723,19 +723,19 @@ unmapping is the reverse of the logic we discuss here.
  mov    rcx, r8
  cmp    0x0, r8
  jne    3e0 <vaspace_mappage+0x190> (*\label{line:mappage_pte_present_end}*)
- ...
+ ... ;; Not present
 ;;pteaddr->pfn          = PTE_ADDR_TO_PFN(fpaddr);
- mov    -0x18[rbp], rdx;
- shr    0xc, rdx;
- mov    -0x28[rbp], rsi;
- mov    [rsi], rdi;
+ mov    -0x18[rbp], rdx
+ shr    0xc, rdx
+ mov    -0x28[rbp], rsi
+ mov    [rsi], rdi ;; Load current entry in rdi
  movabs 0xffffffffff, rcx
  and    rcx, rdx
  shl    0xc, rdx
  movabs 0xfff0000000000fff, rcx
  and    rcx, rdi
  or     rdx, rdi
- mov    rdi, [rsi] (*\label{line:updatepfn}*)
+ mov    rdi, [rsi] ;; Write back updated entry with new PFN (*\label{line:updatepfn}*)
 $\specline{ \textsf{pt\_entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{pt\_entry} \; (\textsf{set\_pfn}(\textsf{l1e\_val}, \textsf{PTE\_ADDR\_TO\_PFN}(\textsf{fpaddr}))) \ast  \ulcorner \lnot(\textsf{entry\_present l1e\_val}) \urcorner \ast \textsf{P}}$
  ;; Store updated entry back to L1 entry (*\label{line:l1entry_store}*)
 ;;}
