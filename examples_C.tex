@@ -1,5 +1,26 @@
 %$\assert{\ulcorner \mathsf{aligned maddr} \urcorner \ast \mathsf{r14} \mapsto_{\textsf{r}} \textsf{r14v} \ast \mathsf{r13} \mapsto_{\textsf{r}} \textsf{maddr} \ast \mathsf{rdi} \mapsto_{\textsf{r}} \textsf{rdiv} \ast \mathsf{rax} \mapsto_{\textsf{r}} \textsf{raxv}}$
 %$\assert{\ulcorner \ptablestore !! \textsf{maddr} = \textsf{None} \urcorner \ast \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \ast \textsf{Pf}} $
+\definecolor{main-color}{rgb}{0.6627, 0.7176, 0.7764}
+\definecolor{back-color}{rgb}{0.1686, 0.1686, 0.1686}
+\definecolor{string-color}{rgb}{0.3333, 0.5254, 0.345}
+\definecolor{key-color}{rgb}{0.8, 0.47, 0.196}
+
+\lstdefinestyle{mystyle}
+{
+    language = C,
+    basicstyle = {\footnotesize,\color{black}},
+    backgroundcolor = {\color{white}},
+    stringstyle = {\color{string-color}},
+    keywordstyle = {\color{key-color}},
+    keywordstyle = [2]{\color{lime}},
+    keywordstyle = [3]{\color{yellow}},
+    keywordstyle = [4]{\color{teal}},
+    otherkeywords = {;,<<,>>,++},
+    morekeywords = [2]{;},
+    morekeywords = [3]{<<, >>},
+    morekeywords = [4]{++},
+    escapeinside={(*}{*)},
+}
 \newcommand{\sumwalkabsent}{
   \ownGhost\gammaPred{\authfrag{\singletonMap{\texttt{entry+KERNBASE}}{(\textsf{qfrac}, \textsf{entry})}}}
 }
@@ -143,30 +164,33 @@ The code for allocating a new level of the page table must establish this extend
 %       (WordImpl.concat (WordImpl.zero 56) (natToWord 8 12 ^& WordImpl.concat (WordImpl.zero 2) WO~1~1~1~1~1~1)) 
 \begin{figure}%\footnotesize
 \ifPLDI
-\begin{lstlisting}[mathescape, basicstyle=\footnotesize,escapeinside={(*}{*)}]
-;;pte_t *pte_get_next_table(pte_t *entry) { ... // setting up the stack for a pte_t *next elided
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry}\},m)  \ast \texttt{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
-$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$ (*\label{line:get_next_vpte_precondition}*)
-$\specline{\ulcorner\textsf{entry\_present(entry\_val)}\urcorner \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(entry\_val.pfn) + i * 8}}{\textsf{v-1}} }_{\rtv} $ (*\label{line:conditional_children}*)
-mov    -0x8[rbp],rdi $\specline{\ldots \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} \ast \ldots }$
-mov     rdi, r8 $\specline{\ldots \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \ldots }$
-mov    [r8],rdi (*\label{line:read_entry_contents}*) $\specline{\ldots \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  \ast\ldots}$ ;; reading page table entry Justified by virtual pte-pointsto
-and    0x1,rdi;  mov    rdi,rax; cmp    0x0,rax ;;  if (!entry->present) {(* \label{line:check_entry_present} *)(* \label{line:mask_present} *)
-jne    161 <pte_get_next_table+0xa1> (* \label{line:check_entry_present_jump} *) ;; Jump if the present bit is not zero; no need to allocate next level
-$\specline{\ldots \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val \& 0x1} }_{\rtv}$
-mov    rbp,rdi; sub    0x10, rdi ;; Store the value of rbp minus 16 bytes (address of (*\textsf{next}*)) into rdi (*\label{line:pass_addrof_next}*)(*\label{line:alloc_path_start}*)
-$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$ (*\label{line:after_concluding_qfrac1}*)
-callq  70 <pte_initialize> ;;pte_initialize(entry);(* \label{line:call_to_pte_initialize} *)
-$\specline{ \ldots \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present (pfn\_set (entry\_val nextpaddr))}  \urcorner   }_{\rtv}$
-$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{pfn\_set(entry\_val nextpaddr)}   }_{\rtv}$
-$\specline{ \begin{array}{l}\textsf{entry\_present (pte\_initialized (pfn\_set(entryv nextpaddr)))} \wand  \\ \;\;\;\;\;\;\;\;\  \forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}} \end{array}  }$ (*\label{line:page_of_caps}*)
-... ;;entry value updates: entry->pfn = nextpaddr; entry->present = 1; (*\label{line:install_new_entry}*)
-... ;;now we know that entry is initialized, so we satisfy the condition to access children list
-$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}}  \textsf{pte\_initialized(pfn\_set(entryv nextpaddr))} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
-$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{pte\_initialized(pfn\_set(entry\_val nextpaddr))}  \ast rax \mapsto_{r} \textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}  }_{\rtv}$
-$\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:alloc_path_end}*)
-;;} (*\label{line:end_of_allocation_path}*)
-... ;; Code after conditional continued in Figure (*\ref{fig:p2v}*)
+\begin{lstlisting}[firstnumber=1, mathescape, language = C, style=mystyle]
+pte_t *pte_get_next_table(pte_t *entry) {
+  pte_t *next;
+  /*setting up the stack for a pte_t *next elided*/
+  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry}\},m)  \ast \texttt{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+  $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$ (*\label{line:get_next_vpte_precondition}*)
+  $\specline{\ulcorner\textsf{entry\_present(entry\_val)}\urcorner \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(entry\_val.pfn) + i * 8}}{\textsf{v-1}} }_{\rtv} $ (*\label{line:conditional_children}*)
+  $\specline{\ldots \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} \ast \ldots }$
+  $\specline{\ldots \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \ldots }$
+   (*\label{line:read_entry_contents}*)$\specline{\ldots \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  \ast\ldots}$
+   /*reading page table entry Justified by virtual pte-pointsto*/
+   if (!entry->present) {/* Jump if the present bit is not zero; no need to allocate next level (* \label{line:check_entry_present} *)(* \label{line:mask_present} *) */
+     $\specline{\ldots \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val \& 0x1} }_{\rtv}$
+     /*Store the value of rbp minus 16 bytes (address of (*\textsf{next}*)) into rdi (*\label{line:pass_addrof_next}*)(*\label{line:alloc_path_start}*) */
+     $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$ (*\label{line:after_concluding_qfrac1}*)
+     pte_initialize(entry);(* \label{line:call_to_pte_initialize} *)
+     $\specline{ \ldots \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present (pfn\_set (entry\_val nextpaddr))}  \urcorner   }_{\rtv}$
+     $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{pfn\_set(entry\_val nextpaddr)}   }_{\rtv}$
+     $\specline{ \begin{array}{l}\textsf{entry\_present (pte\_initialized (pfn\_set(entryv nextpaddr)))} \wand  \\ \;\;\;\;\;\;\;\;\  \forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}} \end{array}  }$ (*\label{line:page_of_caps}*)
+     /*... entry value updates:*/
+     entry->pfn = nextpaddr; entry->present = 1; (*\label{line:install_new_entry}*)
+     /*... now we know that entry is initialized, so we satisfy the condition to access children list */
+     $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}}  \textsf{pte\_initialized(pfn\_set(entryv nextpaddr))} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
+     $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{pte\_initialized(pfn\_set(entry\_val nextpaddr))}  \ast rax \mapsto_{r} \textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}  }_{\rtv}$
+     $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:alloc_path_end}*)
+    } (*\label{line:end_of_allocation_path}*)
+   /*...  Code after conditional continued in Figure (*\ref{fig:p2v}*)*/
 \end{lstlisting}
 \else
 \begin{lstlisting}[mathescape, basicstyle=\footnotesize,escapeinside={(*}{*)}]

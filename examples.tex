@@ -1,38 +1,4 @@
-%$\assert{\ulcorner \mathsf{aligned maddr} \urcorner \ast \mathsf{r14} \mapsto_{\textsf{r}} \textsf{r14v} \ast \mathsf{r13} \mapsto_{\textsf{r}} \textsf{maddr} \ast \mathsf{rdi} \mapsto_{\textsf{r}} \textsf{rdiv} \ast \mathsf{rax} \mapsto_{\textsf{r}} \textsf{raxv}}$
-%$\assert{\ulcorner \ptablestore !! \textsf{maddr} = \textsf{None} \urcorner \ast \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \ast \textsf{Pf}} $
-\newcommand{\sumwalkabsent}{
-  \ownGhost\gammaPred{\authfrag{\singletonMap{\texttt{entry+KERNBASE}}{(\textsf{qfrac}, \textsf{entry})}}}
-}
-
-
-\newcommand{\ventry}{\texttt{entry + KERNBASE}}
-\newcommand{\entry}{\texttt{entry}}
-\newcommand{\qfraczero}{\textsf{qfrac}}
-\newcommand{\true}{\textsf{true}}
-\tikzstyle{boxedassert_border} = [sharp corners,line width=0.2pt]
-\NewDocumentCommand \boxedassertpv {O{} m o}{%
-	\tikz[baseline=(m.base)]{
-		%	  \node[rectangle, draw,inner sep=0.8pt,anchor=base,#1] (m) {${#2}\mathstrut$};
-		\node[rectangle,inner sep=1.5pt,outer sep=0.2pt,anchor=base] (m) {${\,#2\,}\mathstrut$};
-		\draw[#1,boxedassert_border] ($(m.south west)$) rectangle ($(m.north east)$);
-	}\IfNoValueF{#3}{^{\,#3}}%
-}
-\newcommand*{\knowInvpv}[2]{\boxedassertpv{#2}[#1]}
-\newcommand*{\ownGhostpv}[2]{\boxedassertpv[dash dot]{#2}[#1]}
-
-\newcommand{\sumpv}[3]{
-  \ownGhostpv\gammaPred{\authfrag{\singletonMap{#1}{(#2, #3)}}}
-}
-
-\newcommand{\pvmapping}[1]{\mathcal{A}\textsf{PVMappings}(#1)}
-
-
-\newcommand{\fpaddr}{\texttt{fpaddr}}
-\newcommand{\specline}[1]{{\color{blue}\left\{#1\right\}}}
-\newcommand{\sumapacesfull}[2]{
-  \ownGhost\gammaPreds{\authfull{\singletonMap{#1}{#2}}}
-}
-\section{Experiments}
+\section{Experiments with Assembly Language}
 \label{sec:experiment}
 %To both validate and demonstrate the value of the modal approach to reasoning about virtual memory management, 
 % we study several
@@ -484,8 +450,6 @@ that justifies the caller's subsequent access to a particular entry of the retur
 % the logical update in Specification  Lines 5-10 to 10-14 for obtaining virtual-pointsto resource for the frame 
 % ($\textsf{entry}_{\textsf{pfn}}$) by removing it from the ghost map ($\Xi\setminus\{entry\}\cup \{\textsf{entry}_{\textsf{pfn}}) \}$) 
 % in Line 5 and compute the identity mapping for this physical frame address in Line 13 in Figure \ref{fig:p2v}).
-
-
 
 \subsubsection{Walking Page-Table Tree: Calling \textsf{pte\_get\_next\_table} for Each Level}
 \label{wlkpgdir}
