@@ -173,24 +173,33 @@ pte_t *pte_get_next_table(pte_t *entry) {
   $\specline{\ulcorner\textsf{entry\_present(entry\_val)}\urcorner \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(entry\_val.pfn) + i * 8}}{\textsf{v-1}} }_{\rtv} $ (*\label{line:conditional_children}*)
   $\specline{\ldots \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} \ast \ldots }$
   $\specline{\ldots \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \ldots }$
-   (*\label{line:read_entry_contents}*)$\specline{\ldots \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  \ast\ldots}$
-   /*reading page table entry Justified by virtual pte-pointsto*/
-   if (!entry->present) {/* Jump if the present bit is not zero; no need to allocate next level (* \label{line:check_entry_present} *)(* \label{line:mask_present} *) */
-     $\specline{\ldots \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val \& 0x1} }_{\rtv}$
-     /*Store the value of rbp minus 16 bytes (address of (*\textsf{next}*)) into rdi (*\label{line:pass_addrof_next}*)(*\label{line:alloc_path_start}*) */
-     $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$ (*\label{line:after_concluding_qfrac1}*)
-     pte_initialize(entry);(* \label{line:call_to_pte_initialize} *)
-     $\specline{ \ldots \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present (pfn\_set (entry\_val nextpaddr))}  \urcorner   }_{\rtv}$
-     $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{pfn\_set(entry\_val nextpaddr)}   }_{\rtv}$
-     $\specline{ \begin{array}{l}\textsf{entry\_present (pte\_initialized (pfn\_set(entryv nextpaddr)))} \wand  \\ \;\;\;\;\;\;\;\;\  \forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}} \end{array}  }$ (*\label{line:page_of_caps}*)
-     /*... entry value updates:*/
-     entry->pfn = nextpaddr; entry->present = 1; (*\label{line:install_new_entry}*)
-     /*... now we know that entry is initialized, so we satisfy the condition to access children list */
-     $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}}  \textsf{pte\_initialized(pfn\_set(entryv nextpaddr))} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
-     $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{pte\_initialized(pfn\_set(entry\_val nextpaddr))}  \ast rax \mapsto_{r} \textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}  }_{\rtv}$
-     $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:alloc_path_end}*)
-    } (*\label{line:end_of_allocation_path}*)
-   /*...  Code after conditional continued in Figure (*\ref{fig:p2v}*)*/
+  (*\label{line:read_entry_contents}*)$\specline{\ldots \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  \ast\ldots}$
+  /*reading page table entry Justified by virtual pte-pointsto*/
+  if (!entry->present) {/* Jump if the present bit is not zero; no need to allocate next level (* \label{line:check_entry_present} *)(* \label{line:mask_present} *) */
+    $\specline{\ldots \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val \& 0x1} }_{\rtv}$
+    /*Store the value of rbp minus 16 bytes (address of (*\textsf{next}*)) into rdi (*\label{line:pass_addrof_next}*)(*\label{line:alloc_path_start}*) */
+    $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$ (*\label{line:after_concluding_qfrac1}*)
+    pte_initialize(entry);(* \label{line:call_to_pte_initialize} *)
+    $\specline{ \ldots \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present (pfn\_set (entry\_val nextpaddr))}  \urcorner   }_{\rtv}$
+    $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{pfn\_set(entry\_val nextpaddr)}   }_{\rtv}$
+    $\specline{ \begin{array}{l}\textsf{entry\_present (pte\_initialized (pfn\_set(entryv nextpaddr)))} \wand  \\ \;\;\;\;\;\;\;\;\  \forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}} \end{array}  }$ (*\label{line:page_of_caps}*)
+    /*... entry value updates:*/
+    entry->pfn = nextpaddr; entry->present = 1; (*\label{line:install_new_entry}*)
+    /*... now we know that entry is initialized, so we satisfy the condition to access children list */
+    $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}}  \textsf{pte\_initialized(pfn\_set(entryv nextpaddr))} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
+    $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{pte\_initialized(pfn\_set(entry\_val nextpaddr))}  \ast rax \mapsto_{r} \textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}  }_{\rtv}$
+    $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:alloc_path_end}*)
+  } (*\label{line:end_of_allocation_path}*)
+  /*...  Code after conditional continued in Figure (*\ref{fig:p2v}*)*/
+   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \}),m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{rcx}  \mapsto_{\textsf{r}} \textsf{\_}  \ast \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+  $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{(pte\_initialized (entry\_val.pfn))} \urcorner }_{\rtv}$
+  $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{(pte\_initialized (entry\_val.pfn)))} \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{ table\_root (pte\_initialize(entry\_val.pfn))} }_{\rtv}$
+  $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (entry\_val.pfn)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:children}*)
+  uintptr_t next_phys_addr = PTE_PFN_TO_ADDR(entry->pfn)
+  uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr); (*\label{line:p2v}*) 
+  /*... clean up the stack and return the rax value*/
+  return next;
+}
 \end{lstlisting}
 \else
 \begin{lstlisting}[mathescape, basicstyle=\footnotesize,escapeinside={(*}{*)}]
@@ -470,25 +479,26 @@ But the correctness of this simple instruction is quite subtle.
 % without the extended invariant (Figure \ref{fig:peraspaceinvariant_with_p2v_extension})
 % worked out Section \ref{subsec:identitymappings}.
 
-\begin{figure}\footnotesize
-\begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
-... ;; Continued from Figure (*\ref{fig:calltopteinitialize}*); assertions below specialized to non-allocating path for clarity
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \}),m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{rcx}  \mapsto_{\textsf{r}} \textsf{\_}  \ast \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
-$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{(pte\_initialized (entry\_val.pfn))} \urcorner }_{\rtv}$
-$\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{(pte\_initialized (entry\_val.pfn)))} \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{ table\_root (pte\_initialize(entry\_val.pfn))} }_{\rtv}$
-$\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (entry\_val.pfn)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:children}*)
-;;uintptr_t next_virt_addr = (uintptr_t) P2V(entry.pfn<<12); (*\label{line:p2v}*) 
-movabs KERNBASE,rcx $\specline{\ldots \ast  \texttt{rcx}  \mapsto_{\textsf{r}} \textsf{KERNBASE}  \ast \ldots}_{\rtv}$
-add    rcx,rax $\specline{ \ldots \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{ table\_root (pte\_initialize(entry\_val.pfn)) + KERNBASE}  \ast \ldots}_{\rtv}$
-... ;;clean up the stack and return the rax value
-\end{lstlisting}
-\vspace{-1em}
-\caption{Converting a physical address of a PTE to a virtual address (w/o instruction pointer or flag updates).
- % Abreviating the other relevant resources (including the lower entries) peeled-out of the invariant as $\textsf{R}_{\textsf{children}}$
-\vspace{-1em}
-}
-\label{fig:p2v}
-\end{figure}
+%\begin{figure}\footnotesize
+%  \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
+%  /*... Continued from Figure (*\ref{fig:calltopteinitialize}*); assertions below specialized to non-allocating path for clarity */
+%  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \}),m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{rcx}  \mapsto_{\textsf{r}} \textsf{\_}  \ast \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+%  $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{(pte\_initialized (entry\_val.pfn))} \urcorner }_{\rtv}$
+%  $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{(pte\_initialized (entry\_val.pfn)))} \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{ table\_root (pte\_initialize(entry\_val.pfn))} }_{\rtv}$
+%  $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (entry\_val.pfn)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:children}*)
+%  uintptr_t next_phys_addr = PTE_PFN_TO_ADDR(entry->pfn)
+%  uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr); (*\label{line:p2v}*) 
+%  /*... clean up the stack and return the rax value*/
+%  return next
+%}
+%\end{lstlisting}
+%\vspace{-1em}
+%\caption{Converting a physical address of a PTE to a virtual address (w/o instruction pointer or flag updates).
+% % Abreviating the other relevant resources (including the lower entries) peeled-out of the invariant as $\textsf{R}_{\textsf{children}}$
+%\vspace{-1em}
+%}
+%\label{fig:p2v}
+%\end{figure}
 Figure \ref{fig:p2v} shows the verification of the end of \lstinline|pte_get_next_table| specialized to the case where 
 where no allocation was necessary (i.e., the conditional on Line \ref{line:check_entry_present} of Figure \ref{fig:calltopteinitialize} was taken).
 In this case, the true present bit allows access to the child tokens from Line \ref{line:conditional_children} of Figure \ref{fig:calltopteinitialize},
