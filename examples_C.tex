@@ -162,9 +162,9 @@ The code for allocating a new level of the page table must establish this extend
 %           ^& WordImpl.concat (WordImpl.zero 32) conste ^| wone 64)
 %          (WordImpl.concat (WordImpl.zero 56) (WordImpl.from_nat 8 12 ^& WordImpl.concat (WordImpl.zero 2) WO~1~1~1~1~1~1)) ^& constf)
 %       (WordImpl.concat (WordImpl.zero 56) (natToWord 8 12 ^& WordImpl.concat (WordImpl.zero 2) WO~1~1~1~1~1~1)) 
-\begin{figure}%\footnotesize
+\begin{figure}\footnotesize
 \ifPLDI
-\begin{lstlisting}[firstnumber=1, mathescape, language = C, style=mystyle]
+\begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
 /*
 @param entry: entry whose frame address is used to locate the a-level-lower entry in the page-tree
 @return next: return a virtual pointer to the descendant tree
@@ -402,7 +402,7 @@ continuation of this code).
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \lnot(\textsf{entry\_present entry\_val} }_{\rtv}$
 $\specline{\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{entry entryv} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{entry})}{\textsf{level}} }$
 void pte_initialize(pte_t *entry) {
-  /*allocate a full zeroed page for 512 8-byte entries(*\label{line:call_to_kalloc}*)*/
+  /*Allocate a full zeroed page for 512 8-byte entries(*\label{line:call_to_kalloc}*)*/
   pte_t *local = kalloc();
   entry->pfn = PTE_ADDR_TO_PFN((uintptr_t) local);
   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \lnot(\textsf{entry\_present entry\_val}) }$
