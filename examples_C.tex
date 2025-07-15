@@ -756,16 +756,13 @@ void vaspace_mappage(pte_t *pml4, void *va,uintptr_t fpaddr ) {
   pte_t *pteaddr = walkpgdir(pml4, a); (*\label{line:call_walkpgdir}*)
   $\specline{ \textsf{R}_{\textsf{walk}} \ast \textsf{R}_{\textsf{l1e}} }$
   if (!pteaddr->present){ (*\label{line:mappage_pte_present_start}*)
-    /*... ;; Not present(*\label{line:mappage_pte_present_end}*)*/
+    /*The entry is not present(*\label{line:mappage_pte_present_end}*)*/
     pteaddr->pfn = PTE_ADDR_TO_PFN(fpaddr); /*Store updated entry back to L1 entry (*\label{line:l1entry_store}*)*/
     $\specline{ \textsf{pt\_entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{pt\_entry} \; (\textsf{set\_pfn}(\textsf{l1e\_val}, \textsf{PTE\_ADDR\_TO\_PFN}(\textsf{fpaddr}))) \ast  \ulcorner \lnot(\textsf{entry\_present l1e\_val}) \urcorner \ast \textsf{P}}$
-    /*... set present bit in entry, then clean up the stack*/
+    /*Set present bit in entry, then clean up the stack*/
     pteaddr->present = 1;
   }
-  /*
-  ... and return either unaccessible pte pointsto or one with fresh page (fpaddr)
-  */
-  return error;
+  return;
   $\specline{ \begin{array}{l}\textsf{pt\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{pt\_entry} \; \textsf{l1e\_val} \ast \ulcorner (\textsf{entry\_present l1e\_val}) \urcorner \ast \textsf{P} \\
  \lor \; \;  \textsf{pt\_entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{pt\_entry} \; (\textsf{set\_pfn}(\textsf{l1e\_val}, \textsf{PTE\_ADDR\_TO\_PFN}(\textsf{fpaddr}))) \ast  \ulcorner \lnot(\textsf{entry\_present l1e\_val}) \urcorner \ast P \end{array} }$
 }
