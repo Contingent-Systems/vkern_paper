@@ -167,6 +167,7 @@ The code for allocating a new level of the page table must establish this extend
 \begin{lstlisting}[firstnumber=1, mathescape, language = C, style=mystyle]
 /*
 @param entry: entry whose frame address is used to locate the a-level-lower entry in the page-tree
+@return next: return a virtual pointer to the descendant tree
 */
 pte_t *pte_get_next_table(pte_t *entry) {
   pte_t *next;
@@ -181,13 +182,13 @@ pte_t *pte_get_next_table(pte_t *entry) {
     pte_initialize(entry);(* \label{line:call_to_pte_initialize} *)
     $\specline{ \ldots \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present (pfn\_set (entry\_val nextpaddr))}  \urcorner   }_{\rtv}$
     $\specline{ \begin{array}{l}\textsf{entry\_present (pte\_initialized (pfn\_set(entryv nextpaddr)))} \wand  \\ \;\;\;\;\;\;\;\;\  \forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}} \end{array}  }$ (*\label{line:page_of_caps}*)
-    /*... entry value updates:*/
+    /*Entry value updates:*/
     entry->pfn = nextpaddr; entry->present = 1; (*\label{line:install_new_entry}*)
-    /*... now we know that entry is initialized, so we satisfy the condition to access children list */
+    /*Now we know that entry is initialized, so we satisfy the condition to access children list */
     $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}}  \textsf{pte\_initialized(pfn\_set(entryv nextpaddr))} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
     $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:alloc_path_end}*)
   } (*\label{line:end_of_allocation_path}*)
-  /*...  Code after conditional continued in Figure (*\ref{fig:p2v}*)*/
+  /*Physical to virtual address mapping (*\ref{fig:p2v}*)*/
   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \}),m) \ast \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
   $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{(pte\_initialized (entry\_val.pfn))} \urcorner }_{\rtv}$
   $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (entry\_val.pfn)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:children}*)
