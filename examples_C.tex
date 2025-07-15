@@ -741,7 +741,7 @@ unmapping is the reverse of the logic we discuss here.
 %}
 \begin{figure}\footnotesize
   \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
-complstatus_t vaspace_mappage(pte_t *pml4, void *va,uintptr_t fpaddr ) {
+void vaspace_mappage(pte_t *pml4, void *va,uintptr_t fpaddr ) {
   /*... ;;setting up the stack */ 
   $\specline{\textsf{P} \ast \textsf{pml4} \mapsto_{\textsf{id}} \textsf{\_} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \ulcorner\theta \; !!\; \vaddr = \texttt{None}\urcorner}_{\rtv}$      
   pte_t *pteaddr = walkpgdir(pml4, a); (*\label{line:call_walkpgdir}*)
@@ -750,10 +750,13 @@ complstatus_t vaspace_mappage(pte_t *pml4, void *va,uintptr_t fpaddr ) {
     /*... ;; Not present(*\label{line:mappage_pte_present_end}*)*/
     pteaddr->pfn = PTE_ADDR_TO_PFN(fpaddr); /*Store updated entry back to L1 entry (*\label{line:l1entry_store}*)*/
     $\specline{ \textsf{pt\_entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{pt\_entry} \; (\textsf{set\_pfn}(\textsf{l1e\_val}, \textsf{PTE\_ADDR\_TO\_PFN}(\textsf{fpaddr}))) \ast  \ulcorner \lnot(\textsf{entry\_present l1e\_val}) \urcorner \ast \textsf{P}}$
+    /*... ;;set present bit in entry, then clean up the stack*/
+    pteaddr->presetn = 1;
   }
-  /*... ;;set present bit in entry, then clean up the stack
+  /*
   ... ;;and return either unaccessible pte pointsto or one with fresh page (fpaddr)
   */
+  return error;
   $\specline{ \begin{array}{l}\textsf{pt\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{pt\_entry} \; \textsf{l1e\_val} \ast \ulcorner (\textsf{entry\_present l1e\_val}) \urcorner \ast \textsf{P} \\
  \lor \; \;  \textsf{pt\_entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{pt\_entry} \; (\textsf{set\_pfn}(\textsf{l1e\_val}, \textsf{PTE\_ADDR\_TO\_PFN}(\textsf{fpaddr}))) \ast  \ulcorner \lnot(\textsf{entry\_present l1e\_val}) \urcorner \ast P \end{array} }$
 }
