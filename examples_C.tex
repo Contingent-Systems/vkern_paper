@@ -531,9 +531,11 @@ that justifies the caller's subsequent access to a particular entry of the retur
 pte_t *walkpgdir(pte_t *pml4, const void *va) {
   $\specline{\textsf{P} \ast \ulcorner\textsf{rtv+KERNBASE}=\textsf{pml4}\urcorner \ast \forall_{i\in\textsf{0..511}}\ghostmaptoken{\textsf{id}}{(\textsf{rtv}+i*8)}{\textsf{4}} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}}_{\rtv}$
   pte_t *pml4_entry = &pml4[PML4EX(va)]; // Virtual address of L4 entry(*\label{line:start_pml4_calc}*)
-  /*Load pml4 and va:*/
-  /*Extract 9-bit (0x1ff=511) L4 index from va, multiply by 8 (byte index), add to pml4 for entry address (*\label{line:end_pml4_calc}*) */
-  /*Store virt. addr. to local var pml4_entry; logical pml4_entry is physical!*/
+  /*At the 4th level (and other levels ignoring the level-specific indices) an access amounts to:*/
+  /*1.Load pml4 and va*/
+  /*2.Extract 9-bit (0x1ff=511) L4 index from the virtual address va*/
+  /*3.Multiply by 8 (byte index), add to pml4 for entry address (*\label{line:end_pml4_calc}*) */
+  /*4.Store virt. addr. to local var pml4_entry; logical pml4_entry is physical!*/
   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{pml4\_entry}\},m) \ast \forall_{i\in\textsf{0..511}\setminus\{\textsf{PML4EX(va)}\}}\ghostmaptoken{\textsf{id}}{(\textsf{rtv}+i*8)}{\textsf{4}}\ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
   $\specline{\textsf{entry\_present(l4e\_val)} \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(l4e\_val)+ i * 8}}{\textsf{3}} }_{\rtv} $
   $\specline{ \textsf{pml4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{pml4\_entry l4e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}_{\rtv}$    
@@ -549,7 +551,7 @@ pte_t *walkpgdir(pte_t *pml4, const void *va) {
   $\specline{ \textsf{pml4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac4}}\textsf{pml4\_entry}\; \textsf{l4e\_val'} \ast \ulcorner  \textsf{qfrac4} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val'})\urcorner}_{\rtv}$(*\label{line:ex_l4_vpte}*)
   $\specline{ \textsf{pdp\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac3}}\textsf{pdp\_entry}\; \textsf{l3e\_val} \ast \ulcorner  \textsf{qfrac3} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l3e\_val})\urcorner}_{\rtv}$(*\label{line:ex_l3_vpte}*)
   $\specline{\textsf{entry\_present(l3e\_val)} \wand \forall_{i\in\textsf{0..511}} \;\ghostmaptoken{\textsf{id}}{\textsf{table\_root(pdp\_entry.pfn) + i * 8}}{ \textsf{2}} } _{\rtv} $
-  /*... ;; Similar assembly & proofs for levels 3 and 2*/
+  /*... Similar assembly & proofs for levels 3 and 2*/
   pte_t *pd = pte_get_next_table(pdp_entry);
   pte_t pd_entry = &pd[PDEX(va)];
   pte_t *pt = pte_get_next_table(pd_entry);
@@ -755,11 +757,11 @@ void vaspace_mappage(pte_t *pml4, void *va,uintptr_t fpaddr ) {
     /*... ;; Not present(*\label{line:mappage_pte_present_end}*)*/
     pteaddr->pfn = PTE_ADDR_TO_PFN(fpaddr); /*Store updated entry back to L1 entry (*\label{line:l1entry_store}*)*/
     $\specline{ \textsf{pt\_entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{pt\_entry} \; (\textsf{set\_pfn}(\textsf{l1e\_val}, \textsf{PTE\_ADDR\_TO\_PFN}(\textsf{fpaddr}))) \ast  \ulcorner \lnot(\textsf{entry\_present l1e\_val}) \urcorner \ast \textsf{P}}$
-    /*... ;;set present bit in entry, then clean up the stack*/
+    /*... set present bit in entry, then clean up the stack*/
     pteaddr->present = 1;
   }
   /*
-  ... ;;and return either unaccessible pte pointsto or one with fresh page (fpaddr)
+  ... and return either unaccessible pte pointsto or one with fresh page (fpaddr)
   */
   return error;
   $\specline{ \begin{array}{l}\textsf{pt\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{pt\_entry} \; \textsf{l1e\_val} \ast \ulcorner (\textsf{entry\_present l1e\_val}) \urcorner \ast \textsf{P} \\
