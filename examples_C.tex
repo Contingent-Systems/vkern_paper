@@ -165,6 +165,9 @@ The code for allocating a new level of the page table must establish this extend
 \begin{figure}%\footnotesize
 \ifPLDI
 \begin{lstlisting}[firstnumber=1, mathescape, language = C, style=mystyle]
+/*
+@param entry: entry whose frame address is used to locate the a-level-lower entry in the page-tree
+*/
 pte_t *pte_get_next_table(pte_t *entry) {
   pte_t *next;
   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry}\},m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
@@ -391,6 +394,9 @@ continuation of this code).
 
 \begin{figure}\footnotesize
   \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
+/*
+@param entry: page entry whose frame is initialized with a new physical page 
+*/
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \lnot(\textsf{entry\_present entry\_val} }_{\rtv}$
 $\specline{\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{entry entryv} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{entry})}{\textsf{level}} }$
 void pte_initialize(pte_t *entry) {
@@ -736,6 +742,11 @@ unmapping is the reverse of the logic we discuss here.
 %}
 \begin{figure}\footnotesize
   \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
+/*
+@param plm4: the root address of the page-table tree
+@param va: virtual address to be translated and mapped
+@param fpaddr: physical page address 
+*/
 void vaspace_mappage(pte_t *pml4, void *va,uintptr_t fpaddr ) {
   /*... ;;setting up the stack */ 
   $\specline{\textsf{P} \ast \textsf{pml4} \mapsto_{\textsf{id}} \textsf{\_} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \ulcorner\theta \; !!\; \vaddr = \texttt{None}\urcorner}_{\rtv}$      
@@ -746,7 +757,7 @@ void vaspace_mappage(pte_t *pml4, void *va,uintptr_t fpaddr ) {
     pteaddr->pfn = PTE_ADDR_TO_PFN(fpaddr); /*Store updated entry back to L1 entry (*\label{line:l1entry_store}*)*/
     $\specline{ \textsf{pt\_entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{pt\_entry} \; (\textsf{set\_pfn}(\textsf{l1e\_val}, \textsf{PTE\_ADDR\_TO\_PFN}(\textsf{fpaddr}))) \ast  \ulcorner \lnot(\textsf{entry\_present l1e\_val}) \urcorner \ast \textsf{P}}$
     /*... ;;set present bit in entry, then clean up the stack*/
-    pteaddr->presetn = 1;
+    pteaddr->present = 1;
   }
   /*
   ... ;;and return either unaccessible pte pointsto or one with fresh page (fpaddr)
