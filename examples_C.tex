@@ -541,11 +541,11 @@ pte_t *walkpgdir(pte_t *pml4, const void *va) {
   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{pml4\_entry}\},m) \ast \forall_{i\in\textsf{0..511}\setminus\{\textsf{PML4EX(va)}\}}\ghostmaptoken{\textsf{id}}{(\textsf{rtv}+i*8)}{\textsf{4}}\ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
   $\specline{\textsf{entry\_present(l4e\_val)} \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(l4e\_val)+ i * 8}}{\textsf{3}} }_{\rtv} $
   $\specline{ \textsf{pml4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{pml4\_entry l4e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}_{\rtv}$    
-  pte_t *pdp = pte_get_next_table(pml4_entry); /*(*\label{line:first_getnext_call}*) save the physical next table address in rax*/
+  pte_t *pdp = pte_get_next_table(pml4_entry); (*\label{line:first_getnext_call}*) 
   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{pml4\_entry}\},m)  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
   $\specline{\forall_{i\in\textsf{0..511}} \ghostmaptoken{\textsf{id}}{\textsf{table\_root(l4e\_val'.pfn) + i * 8}}{\textsf{3}}  \ast \ulcorner\textsf{pdp-KERNBASE}=\textsf{table\_root(l4e\_val'.pfn)}\urcorner} $
   $\specline{ \textsf{pml4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{pml4\_entry l4e\_val'} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}_{\rtv}$(*\label{line:first_pte_pointsto}*)
-  /*pte_get_next_table may have allocated a new page, updating entry*/
+  /*pte_get_next_table may have allocated a new page which updates entry*/
   pte_t *pdp_entry = &pdp[PDPEX(va)]; /* Virtual address of L3 entry*/
   $\specline{\ulcorner\textsf{pdp}+\textsf{PDPEX(va)*8} = \textsf{pdp\_entry} \land \textsf{table\_root(l4e\_val'.pfn)}  = \textsf{pdp} \urcorner }_{\rtv}$
   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{pml4\_entry},\textsf{pdp\_entry}\},m)  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
@@ -553,11 +553,11 @@ pte_t *walkpgdir(pte_t *pml4, const void *va) {
   $\specline{ \textsf{pml4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac4}}\textsf{pml4\_entry}\; \textsf{l4e\_val'} \ast \ulcorner  \textsf{qfrac4} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val'})\urcorner}_{\rtv}$(*\label{line:ex_l4_vpte}*)
   $\specline{ \textsf{pdp\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac3}}\textsf{pdp\_entry}\; \textsf{l3e\_val} \ast \ulcorner  \textsf{qfrac3} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l3e\_val})\urcorner}_{\rtv}$(*\label{line:ex_l3_vpte}*)
   $\specline{\textsf{entry\_present(l3e\_val)} \wand \forall_{i\in\textsf{0..511}} \;\ghostmaptoken{\textsf{id}}{\textsf{table\_root(pdp\_entry.pfn) + i * 8}}{ \textsf{2}} } _{\rtv} $
-  /*... Similar assembly & proofs for levels 3 and 2*/
+  /*Similar steps & proofs for levels 3 and 2*/
   pte_t *pd = pte_get_next_table(pdp_entry);
   pte_t pd_entry = &pd[PDEX(va)];
   pte_t *pt = pte_get_next_table(pd_entry);
-  /* return address of L1 entry, similar index computation*/
+  /*Return the address of L1 entry with a similar index computation*/
   return &pt[PTEX(va)]; 
 }
 $\specline{\textsf{R}_{\textsf{walk}} \ast \textsf{R}_{\textsf{l1e}} }_{\rtv}$
