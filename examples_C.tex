@@ -167,7 +167,6 @@ The code for allocating a new level of the page table must establish this extend
 \begin{lstlisting}[firstnumber=1, mathescape, language = C, style=mystyle]
 pte_t *pte_get_next_table(pte_t *entry) {
   pte_t *next;
-  /*setting up the stack for a pte_t *next elided*/
   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry}\},m)  \ast \texttt{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
   $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$ (*\label{line:get_next_vpte_precondition}*)
   $\specline{\ulcorner\textsf{entry\_present(entry\_val)}\urcorner \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(entry\_val.pfn) + i * 8}}{\textsf{v-1}} }_{\rtv} $ (*\label{line:conditional_children}*)
@@ -197,7 +196,7 @@ pte_t *pte_get_next_table(pte_t *entry) {
   $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (entry\_val.pfn)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:children}*)
   uintptr_t next_phys_addr = PTE_PFN_TO_ADDR(entry->pfn)
   uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr); (*\label{line:p2v}*);
-  nezt = (pte_t *) next_virt_addr;
+  next = (pte_t *) next_virt_addr;
   /*... clean up the stack and return the rax value*/
   return next;
 }
@@ -527,8 +526,11 @@ that justifies the caller's subsequent access to a particular entry of the retur
 \begin{figure}\footnotesize
 \ifPLDI
 \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
+/*
+@param plm4: the root address of the page-table tree
+@param va: virtual address to be translated and mapped
+*/
 pte_t *walkpgdir(pte_t *pml4, const void *va) {
-  /*... ;; Stack setup*/
   $\specline{\textsf{P} \ast \ulcorner\textsf{rtv+KERNBASE}=\textsf{pml4}\urcorner \ast \forall_{i\in\textsf{0..511}}\ghostmaptoken{\textsf{id}}{(\textsf{rtv}+i*8)}{\textsf{4}} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}}_{\rtv}$
   pte_t *pml4_entry = &pml4[PML4EX(va)]; // Virtual address of L4 entry(*\label{line:start_pml4_calc}*)
   /*Load pml4 and va:*/
