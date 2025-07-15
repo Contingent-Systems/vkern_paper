@@ -745,10 +745,9 @@ unmapping is the reverse of the logic we discuss here.
 /*
 @param plm4: the root address of the page-table tree
 @param va: virtual address to be translated and mapped
-@param fpaddr: physical page address 
+@param fpaddr: physically allocated page's address in case the virtual address va is not backed with one
 */
 void vaspace_mappage(pte_t *pml4, void *va,uintptr_t fpaddr ) {
-  /*... ;;setting up the stack */ 
   $\specline{\textsf{P} \ast \textsf{pml4} \mapsto_{\textsf{id}} \textsf{\_} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \ulcorner\theta \; !!\; \vaddr = \texttt{None}\urcorner}_{\rtv}$      
   pte_t *pteaddr = walkpgdir(pml4, a); (*\label{line:call_walkpgdir}*)
   $\specline{ \textsf{R}_{\textsf{walk}} \ast \textsf{R}_{\textsf{l1e}} }$
