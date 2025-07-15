@@ -173,9 +173,10 @@ pte_t *pte_get_next_table(pte_t *entry) {
   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry}\},m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
   $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$ (*\label{line:get_next_vpte_precondition}*)
   $\specline{\ulcorner\textsf{entry\_present(entry\_val)}\urcorner \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(entry\_val.pfn) + i * 8}}{\textsf{v-1}} }_{\rtv} $ (*\label{line:conditional_children}*)
-  /*reading page table entry Justified by virtual pte-pointsto*/
-  if (!entry->present(*\label{line:read_entry_contents}*)) {/* Jump if the present bit is not zero; no need to allocate next level (* \label{line:check_entry_present} *)(* \label{line:mask_present} *) */
-    /*Store the value of rbp minus 16 bytes (address of (*\textsf{next}*)) into rdi (*\label{line:pass_addrof_next}*)(*\label{line:alloc_path_start}*) */
+  /*Reading page table entry justified by virtual pte-pointsto*/
+  if (!entry->present(*\label{line:read_entry_contents}*)) {
+    /* Jump if the present bit is not zero; no need to allocate next level (* \label{line:check_entry_present} *)(* \label{line:mask_present} *) */
+    /*Allocation path starts here (*\label{line:pass_addrof_next}*)(*\label{line:alloc_path_start}*)*/
     $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$ (*\label{line:after_concluding_qfrac1}*)
     pte_initialize(entry);(* \label{line:call_to_pte_initialize} *)
     $\specline{ \ldots \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present (pfn\_set (entry\_val nextpaddr))}  \urcorner   }_{\rtv}$
