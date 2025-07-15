@@ -541,7 +541,7 @@ pte_t *walkpgdir(pte_t *pml4, const void *va) {
   $\specline{ \textsf{pml4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{pml4\_entry l4e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}_{\rtv}$    
   pte_t *pdp = pte_get_next_table(pml4_entry); /*(*\label{line:first_getnext_call}*) save the physical next table address in rax*/
   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{pml4\_entry}\},m)  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
-$\specline{\forall_{i\in\textsf{0..511}} \ghostmaptoken{\textsf{id}}{\textsf{table\_root(l4e\_val'.pfn) + i * 8}}{\textsf{3}}  \ast \ulcorner\textsf{pdp-KERNBASE}=\textsf{table\_root(l4e\_val'.pfn)}\urcorner} $
+  $\specline{\forall_{i\in\textsf{0..511}} \ghostmaptoken{\textsf{id}}{\textsf{table\_root(l4e\_val'.pfn) + i * 8}}{\textsf{3}}  \ast \ulcorner\textsf{pdp-KERNBASE}=\textsf{table\_root(l4e\_val'.pfn)}\urcorner} $
   $\specline{ \textsf{pml4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{pml4\_entry l4e\_val'} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}_{\rtv}$(*\label{line:first_pte_pointsto}*)
   $\specline{\texttt{rax}  \mapsto_{\textsf{r}} \textsf{table\_root(l4e\_val'.pfn)} }_{\rtv}$
   /*pte_get_next_table may have allocated a new page, updating entry*/
@@ -554,7 +554,8 @@ $\specline{\forall_{i\in\textsf{0..511}} \ghostmaptoken{\textsf{id}}{\textsf{tab
   $\specline{\textsf{entry\_present(l3e\_val)} \wand \forall_{i\in\textsf{0..511}} \;\ghostmaptoken{\textsf{id}}{\textsf{table\_root(pdp\_entry.pfn) + i * 8}}{ \textsf{2}} } _{\rtv} $
   /*... ;; Similar assembly & proofs for levels 3 and 2*/
   return &pt[PTEX(va)]; /* return address of L1 entry, similar index computation*/
-  $\specline{\textsf{R}_{\textsf{walk}} \ast \textsf{R}_{\textsf{l1e}} }_{\rtv}$
+}
+$\specline{\textsf{R}_{\textsf{walk}} \ast \textsf{R}_{\textsf{l1e}} }_{\rtv}$
 \end{lstlisting}
 
 \else
@@ -740,45 +741,22 @@ unmapping is the reverse of the logic we discuss here.
 %}
 \begin{figure}\footnotesize
   \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
-;;complstatus_t vaspace_mappage(pte_t *pml4, void *va,uintptr_t fpaddr ) {
-... ;;setting up the stack      
- $\specline{\textsf{P} \ast \textsf{pml4} \mapsto_{\textsf{id}} \textsf{\_} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \ulcorner\theta \; !!\; \vaddr = \texttt{None}\urcorner}_{\rtv}$      
-;; pte_t *pteaddr = walkpgdir(pml4, a);
- mov    -0x8[rbp], %rdi
- mov    -0x16[rbp], rsi
- mov    0x0, rax
- callq  291 <walkpgdir> (*\label{line:call_walkpgdir}*)
- $\specline{ \textsf{R}_{\textsf{walk}} \ast \textsf{R}_{\textsf{l1e}} }$
- mov  rax, rdx
- mov    rdx,-0x28[rbp]
-;;if (!pteaddr->present){ (*\label{line:mappage_pte_present_start}*)
- mov    -0x28[rbp], rdx
- mov    [rdx], rcx
- and    0x1, rcx
- mov    rcx, r8
- cmp    0x0, r8
- jne    3e0 <vaspace_mappage+0x190> (*\label{line:mappage_pte_present_end}*)
- ... ;; Not present
-;;pteaddr->pfn          = PTE_ADDR_TO_PFN(fpaddr);
- mov    -0x18[rbp], rdx
- shr    0xc, rdx
- mov    -0x28[rbp], rsi
- mov    [rsi], rdi ;; Load current entry in rdi
- movabs 0xffffffffff, rcx
- and    rcx, rdx
- shl    0xc, rdx
- movabs 0xfff0000000000fff, rcx
- and    rcx, rdi
- or     rdx, rdi
- mov    rdi, [rsi] ;; Write back updated entry with new PFN (*\label{line:updatepfn}*)
-$\specline{ \textsf{pt\_entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{pt\_entry} \; (\textsf{set\_pfn}(\textsf{l1e\_val}, \textsf{PTE\_ADDR\_TO\_PFN}(\textsf{fpaddr}))) \ast  \ulcorner \lnot(\textsf{entry\_present l1e\_val}) \urcorner \ast \textsf{P}}$
- ;; Store updated entry back to L1 entry (*\label{line:l1entry_store}*)
-;;}
-... ;;set present bit in entry, then clean up the stack
-... ;;and return either unaccessible pte pointsto or one with fresh page (fpaddr)
- $\specline{ \begin{array}{l}\textsf{pt\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{pt\_entry} \; \textsf{l1e\_val} \ast \ulcorner (\textsf{entry\_present l1e\_val}) \urcorner \ast \textsf{P} \\
+complstatus_t vaspace_mappage(pte_t *pml4, void *va,uintptr_t fpaddr ) {
+  /*... ;;setting up the stack */ 
+  $\specline{\textsf{P} \ast \textsf{pml4} \mapsto_{\textsf{id}} \textsf{\_} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \ulcorner\theta \; !!\; \vaddr = \texttt{None}\urcorner}_{\rtv}$      
+  pte_t *pteaddr = walkpgdir(pml4, a); (*\label{line:call_walkpgdir}*)
+  $\specline{ \textsf{R}_{\textsf{walk}} \ast \textsf{R}_{\textsf{l1e}} }$
+  if (!pteaddr->present){ (*\label{line:mappage_pte_present_start}*)
+    /*... ;; Not present(*\label{line:mappage_pte_present_end}*)*/
+    pteaddr->pfn = PTE_ADDR_TO_PFN(fpaddr); /*Store updated entry back to L1 entry (*\label{line:l1entry_store}*)*/
+    $\specline{ \textsf{pt\_entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{pt\_entry} \; (\textsf{set\_pfn}(\textsf{l1e\_val}, \textsf{PTE\_ADDR\_TO\_PFN}(\textsf{fpaddr}))) \ast  \ulcorner \lnot(\textsf{entry\_present l1e\_val}) \urcorner \ast \textsf{P}}$
+  }
+  /*... ;;set present bit in entry, then clean up the stack
+  ... ;;and return either unaccessible pte pointsto or one with fresh page (fpaddr)
+  */
+  $\specline{ \begin{array}{l}\textsf{pt\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{pt\_entry} \; \textsf{l1e\_val} \ast \ulcorner (\textsf{entry\_present l1e\_val}) \urcorner \ast \textsf{P} \\
  \lor \; \;  \textsf{pt\_entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{pt\_entry} \; (\textsf{set\_pfn}(\textsf{l1e\_val}, \textsf{PTE\_ADDR\_TO\_PFN}(\textsf{fpaddr}))) \ast  \ulcorner \lnot(\textsf{entry\_present l1e\_val}) \urcorner \ast P \end{array} }$
-;;}
+}
 \end{lstlisting}
 \vspace{-1em}
   \caption{Specification of updating L1 entry (\textsf{pt\_entry}) to reference a new page (\textsf{fpaddr}).}
