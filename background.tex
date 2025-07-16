@@ -208,8 +208,7 @@ logics (including ours) often encapsulate raw \rocq assertions: $\ulcorner P \ur
 of the \rocq assertion $P$ into an \iris assertion (used for things like equality and other
 general pure logical assertions), similar to prior \rocq-embedded program logics~\cite{Chlipala2013Bedrock}. Newly-defined \iris assertions are in fact
 \rocq terms of a particular type, rather than being drawn from a fixed vocabulary.
-We introduce other details as they arise.
-
+\del{We introduce other details as they arise.}
 \iris includes two forms of implication. The magic wand operator $\wand$ is an affine implication:
 $A\wand B$ describes a resource which, if combined with a resource satisfying $A$, will satisfy $B$.
 Notably, this implication involves no changes to ghost state. \iris, building on the Views framework~\cite{Dinsdale-Young2013Views},
@@ -219,6 +218,7 @@ experts may note that this is \emph{technically} mildly misleading given how \ir
 are defined, but
 this is adequate intuition for non-experts in \iris to follow their use.
 }
+View shifts are essentially logical entailment plus ghost updates.
 \looseness=-1
 
 % Of particular interest to us, \iris's machinery is largely agnostic to the particular choice of
@@ -236,7 +236,7 @@ this is adequate intuition for non-experts in \iris to follow their use.
 % $P \wand \textsf{wp}\;C\;\{v\ldotp Q\}$.\footnote{An idea with long history~\cite{pratt1976semantical}.}
 % This is a natural fit for assembly-level verification, where the \emph{Hoare double}
 
-An important limitation here is that to date, every separation logic
+An important limitation \del{here} is that to date, every separation logic
 has assumed that all pointer addresses are meant for use in a single address space, which avoided the
 problem of tracking that certain points-to assertions are true only for certain address spaces, but not others.
 
@@ -265,7 +265,10 @@ with assertions of the form $[\ell](P)$ indicating that $P$ is true in the speci
 the points at which a modal assertion is evaluated inside the modality's definition, the choice of what world a modalized
 assertion should be true in is chosen \emph{in the assertion itself}. This allows assertions to talk about not simply whether some other assertion
 is true in some possible future or past world related in a fixed way to the current world, but to talk about \emph{arbitrary}
-other worlds. This explicit naming of alternate worlds increases the power of modal logics~\cite{blackburn1995hybrid}, and is actually
+other worlds.
+\add{This is somewhat different from the accessibility relation modalities more common in verification, but
+also well-established.}
+This explicit naming of alternate worlds increases the power of modal logics \add{over those without it}~\cite{blackburn1995hybrid}, and is actually
 necessary for completeness in classical separation logics~\cite{brotherston2014parametric}.
 %   A key distinguishing feature of
 % hybrid logic is that the logic itself does not fix the set of modalities, but is defined relative to any set of sensible worlds.
@@ -313,6 +316,7 @@ Some prior \iris-based work~\cite{dang2019rustbelt,dang2022compass} has construc
 by thread IDs. However in that setting, the intepretation of those modalities was fully fixed ahead of time (to refer to essentially buffers in operationalized versions of C11
 concurrency). In this setting, while our modalities will be indexed by page table roots, it is possible to modify the address translation for an address
 space with root $r$ --- thus changing the interpretation of a modality, and even whether a modality is valid --- \emph{while assertions with that modality are active}.
+\add{This is essential to updating page mappings for the current address space in use by a CPU.}
 %
 %
 %Work on modal logic extends back for decades with many widely-varied variations; we discuss here only the pieces most relevant to our work.
@@ -324,3 +328,4 @@ space with root $r$ --- thus changing the interpretation of a modality, and even
 %Another pillar of our work is hybrid logic, a branch of modal logic with \emph{names} (called \emph{nominals} for states in Kripke models~\cite{blackburn1995hybrid,goranko1996hierarchies,areces2001hybrid,gargov1993modal}, in contrast to the typical flavor of modality which refers to an \emph{unspecified} (in the assertion) set of alternative circumstances. 
 %
 %Our work draws on ideas from hybrid modal logics, applied in the context of Iris's higher-order separation logic~\cite{jung2018iris}. We define our modalities and prove their rules directly within Iris, so there is no model-theoretic novelty in our work. Instead, we show that targeted use of modalities combining the ideas of \emph{named resources} with the power of substructural reasoning enable clear specification of general reasoning principles for data structures. Along the way we take advantage of the fact that modalities need not be injections between the \emph{same} logics, but in fact the propositions that modal operators contextualize can come from \emph{other} logics; in our case we exploit the fact that Iris itself is parameterized by a choice of step-indexed~\cite{ahmed-appel-virga-02} \textsf{BI}-algebra~\cite{ohearn1999bunched} to allow convenient specifications in embedded data-structure-relative logics.
+

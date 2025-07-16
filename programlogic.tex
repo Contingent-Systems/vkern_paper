@@ -34,6 +34,18 @@ about change-of-address-space.
 By developing this within the \iris framework, we obtain additional features (e.g., fractional permissions) that allow us to verify
 some of the most subtle and technically challenging instruction sequences in an OS kernel (Section \ref{sec:experiment}).
 
+\add{Since \textsf{vProp}s are ``just'' \textsc{Iris} predicates on a choice of page table root,
+it may not be obvious what the gain is over simply using \textsc{Iris} directly.
+The gain is not expressive power.
+Every modal logic can be translated straitforwardly to a logic without modalities
+(nearly always a small variation on the \emph{standard translation} from propositional modal logic
+to first-order logic~\cite{blackburn2006modal}\footnote{\add{Itself similar to verification condition generation
+for weakest precondition calculi and Hoare logics.}}) that can directly address the logic's models ---
+but these translations, in addition to making specifications far more verbose,
+generally do not preserve the appealing reasoning principles of modal logics.
+This becomes most apparent when discussing our proof rules.
+}
+
 % We derive a program logic (a separation logic) supporting the following stances and constraints:
 % \begin{enumerate}
 % \item \textit{address-spaces as modal contexts}: Assertions in our logic are context-dependent,
@@ -557,6 +569,9 @@ Our rules include tracking of each instruction's memory address to track \lstinl
 for control transfer instructions. Our development also includes handling of the \lstinline|rflags| register updates from arithmetic instructions.
 Most rules are otherwise standard (e.g., \lstinline|mov| between register, etc.), with Figure \ref{fig:wpdamd} showing the rules
 most unique to our development.
+\add{As a reminder, in systems of Hoare doubles, an instruction's precondition appears in the conclusion of the rule,
+and an instruction's ``postcondition'' appears as the precondition to subsequent instructions in the
+antecedent of the rule.}
 \looseness=-1
 
 \begin{figure}
@@ -594,7 +609,7 @@ most unique to our development.
 \inferrule[\footnotesize WriteToRegFromVirtMem]{
   \left\{ \begin{array}{l}
     P \ast \mathcal{I}\textsf{ASpace}\ast \mathcal{I}\textsf{ASpace} \ast \textsf{rip} \mapsto_{\textsf{r}} {\textsf{iv} + \textsf{MovLen}(\textsf{r}_d,[\textsf{r}_a])} \ast \arcr
-    r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v}
+    r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v}
   \end{array} \right\}_{\textsf{rtv}}\;\overline{is}
 }{
   \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} \ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v} \}_{\textsf{rtv}}\;
@@ -640,37 +655,73 @@ most unique to our development.
 
 \subsubsection{Accessing Virtual Addresses}
 Figure \ref{fig:wpdamd} includes two  rules for accessing memory at an address stored in a register $r_a$. 
-Ultimately, any memory access needs to ensure the relevant address translation would succeed,
+\add{Setting aside $P$, $\mathcal{I}\textsf{ASpace}$, and the instruction pointer \lstinline|rip|,}
+\del{Ultimately, any memory access needs to ensure the relevant address translation would succeed,
 which can be ensured by what we informally call the page-table-walk points-to collection
-($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}).
+($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}). }
 \TirNameStyle{WriteToRegFromVirtMem} and \TirNameStyle{WriteToVirtMemFromReg}
-each use a virtual-pointsto assertion ($\textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v}$),
-and are nearly-standard (assembly) separation logic rules for memory accesses.
-However, because we split the physical resources for the page table walk from the
-virtual points-to itself (in order to permit the physical page tables to be freely modified
-as long as they preserve virtual-to-physical translations), the rule requires $\mathcal{I}\textsf{ASpace}$
+\del{each use a virtual-pointsto assertion ($\textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v}$),
+and }
+are nearly-standard (assembly) separation logic rules for memory accesses~\add{\cite{Chlipala2013Bedrock,ni2007contexts}}.
+\add{For example, \textsc{WriteToRegFromVirtMem}'s specification
+reflects that it reads from the (virtual) memory address \textsf{vaddr} stored in the address
+register $\textsf{r}_a$ --- and thus requires register points-to and virtual points-to assertions describing
+that relationship and the assumed value \textsf{v} in memory in its precondition (the precondition of the rule's
+conclusion). 
+It reflects the load of that memory value into the destination register $\textsf{r}_d$, with
+the updated register points-to in the precondition for $\overline{is}$.
+$P$ describes framed resources, which are passed along to the precondition of subsequent instructions,
+as in any system of Hoare doubles~\cite{Chlipala2013Bedrock,ni2007contexts}.
+\textsc{WriteToVirtMemFromReg} is analogous for writing to memory.
+}
+
+\add{There are only two changes specific to our approach.}
+\replace{However, }{First,}
+because we split the physical resources for the page table walk from the
+virtual points-to itself (\replace{in order to permit the physical page tables to be freely modified
+as long as they preserve virtual-to-physical translations}{per the discussion of Section \ref{sec:sharingpages}}), the rule requires $\mathcal{I}\textsf{ASpace}$
 for the current address space to be carried through.
 The soundness proofs for these rules extract
-% the token ($\sumwalkabs\vaddr\qfrac\paddr$) from the virtual points-to
 the token ($\fracghostmaptoken{\delta}{\vaddr}{\paddr}{\qfrac}$) from the virtual points-to,
 use that to extract the physical page-table-traversal points-to collection describing
 the page table walk for the relevant address ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$)
 from the invariant ($\mathcal{I}\mathsf{ASpace}$), prove that the page table walk succeeds
 and that memory or registers are updated appropriately, before re-packing the invariant and virtual points-to resources.
 
-The memory access rules model updates to the instruction pointer \lstinline|rip| using a metafunction \textsf{MovLen}.
+\replace{T}{Second, t}he memory access rules --- as with all rules in our logic ---
+model updates to the instruction pointer \lstinline|rip| \add{based on the length of the encoded instruction.
+These rules} \replace{using}{use} a metafunction \textsf{MovLen}.
 \textsf{MovLen} returns how long the instruction encoding for the corresponding \lstinline|mov| is;
 x86-64 instruction encodings are often longer for instructions using registers that are absent from the 32-bit
 x86 ISA that preceded x86-64.
 
+\add{Note that the use of a modal abstraction of address space simplifies these rules.
+The antecedents of \textsc{WriteToRegFromVirtMem} and \textsc{WriteToVirtMemFromReg}
+only mention the address space in the index of the 
+Hoare double --- not in $P$, or the (virtual) points-to assertions.
+There is no extra condition to discharge that the address being accessed is from
+the current address space.
+\todo[inline,color=green]{WIP: Colin is trying to clarify the value of modal approach here}
+}
+\todo[inline,color=cyan]{Colin says:
+Ismail, Figure 7 looks broken. Why are there two IAspaces in WriteToRegFromVirtMem? Shouldn't there
+only be one?
+Also in WriteToRegFromVirtMem, why can't the virtual points-to be fractional? It is in the Rocq development,
+and we use it as such in examples.
+In WriteToVirtMemFromReg, vaddr points to a value rvs both before and after the store.
+And also in WriteToVirtMemFromReg, why are all the fractions q? They should be allowed to be different fractions.
+(Also, explaining the fraction notation was one of the questions from reviewers.)
+}
 
 
 \subsubsection{Updating \lstinline|cr3|} 
 Unlike other rules, \TirNameStyle{WriteToRegCtlFromRegModal} updates the root address of the 
 address-space determining the validity of resources, from $\rtv$ before the
 \lstinline|mov| to $\textsf{rvs}$ afterwards. The global effects of this rule are reflected in moving
-bare assertions under an other-space modality for $\rtv$, and moving the new address space's assertions out of
-the corresponding modality.
+\del{bare} assertions \add{for the current address space ($P$ and $\mathcal{I}\mathsf{ASpace}$)} under an other-space modality for \add{the initial
+(outgoing) address space} $\rtv$, and moving the new address space's assertions out of
+the corresponding modality \add{(since after the \lstinline|mov|, those will hold in the
+new current address space)}.
 
 Note that the \emph{global} aspect is important, as a na\"ive frame rule would be unsound for updates to \lstinline|cr3|,
 because one could frame out assertions in one address space, switch address spaces, and bring those assertions from the \emph{old}
@@ -709,6 +760,19 @@ Thus framing around arbitrary \lstinline|cr3| updates is unsound --- hence the \
 though a variant the ensures the same \lstinline|cr3| value is installed before and after the framing
 can be recovered.
 
+\todo[inline,color=green]{Colin needs to add more of the ``why modals'' stuff here, per the response.
+But it's a little awkward: in the response we said this was hard to specify with ghost-tagged
+pointers, but now I'm wondering if that's \emph{quite} right.
+It seems like maybe you could just plumb an implicitly-tagged P through to the following
+instructions and be okay, the instantiation of P would just be horrid.
+What we said about e.g., defining
+a generic linked list is still true, and should be raised earlier (not here).
+Here, we want to make a point about packaging all resources for a specific address space
+together. But it would be stronger if we could hone the argument in the response more.
+The bit about ``how would we talk abstractly about the fact that some unspecified resources R should
+be sufficient ... in the new address space'' is the right bit to polish...
+ghost bit discussion should either go in relwork with some Dafny(?) discussion, or earlier in motivation.
+}
 
 \subsection{Soundness}
 \label{sec:soundness}
