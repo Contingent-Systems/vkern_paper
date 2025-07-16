@@ -101,14 +101,15 @@ yield physical addresses, not virtual.
 \subsubsection{Loading Page-Table Address Value}
 We will discuss access to the level 4 table later (Section \ref{wlkpgdirC}). But for subsequent levels, the base address of level $n$ must be
 fetched from the appropriate entry in the level $n+1$ table.
-This is the role of \lstinline|pte_get_next_table| (Figures \ref{fig:calltopteinitializeC} and \ref{fig:p2vC}):
+This is the role of \lstinline|pte_get_next_table| (Figures \ref{fig:calltopteinitializeC}):
+%and \ref{fig:p2vC}):
 it is passed the virtual address of the page table entry in level $n+1$, and should return the \emph{virtual} 
 address of the \emph{base} of the level $n$ table
 indicated by that entry.
 If the entry is empty (i.e., this is a sparse part of the page table representation),
 the code also allocates a page for the level $n$ table, installs it in the level $n+1$ entry, and establishes appropriate invariants.
 Figure \ref{fig:calltopteinitializeC} presents the initial part of the function, which performs the allocation if necessary.
-Figure \ref{fig:p2vC} (discussed in Section \ref{sec:p2vC}) deals with the cases where no allocation is necessary \emph{or} the allocation has already
+Lines \ref{line:finalpieceS}-\ref{line:finalpieceE} in Figure \ref{fig:calltopteinitializeC} (discussed in Section \ref{sec:p2vC}) deals with the cases where no allocation is necessary \emph{or} the allocation has already
 been performed by the code in this figure.
 \looseness=-1
 
@@ -137,12 +138,12 @@ Section \ref{sec:backgroundonmachinemodel}.
 \ifPLDI
 Line \ref{line:mask_present} checks % In the condensed figure, it's all on one line
 \else
-Lines \ref{line:mask_present}--\ref{line:check_entry_present} check
+Lines \ref{line:mask_presentC}--\ref{line:check_entry_presentC} check
 \fi
 if the entry's ``present'' bit is set.
 If it is zero, a new page must be allocated for the next level of the table --- which is done by the fall-through
 from Line \ref{line:check_entry_present_jump}'s conditional jump. Otherwise the code jumps ahead to
-the case for the next level already existing, which is discussed in Section \ref{sec:p2v} and Figure \ref{fig:p2v}.
+the case for the next level already existing, which is discussed in Section \ref{sec:p2vC} and Figure \ref{fig:p2vC}.
 First, we must discuss another refinement of the address space invariant, establishing
 enough structure on the page tables themselves to allow the traversal.
 The code for allocating a new level of the page table must establish this extended invariant.
@@ -188,13 +189,13 @@ pte_t *pte_get_next_table(pte_t *entry) {
     $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}}  \textsf{pte\_initialized(pfn\_set(entryv nextpaddr))} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
     $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:alloc_path_endC}*)
   } (*\label{line:end_of_allocation_pathC}*)
-  /*Physical to virtual address mapping code segment starts here (*\ref{fig:p2vC}*)*/
+  /*Physical to virtual address mapping code segment starts here (*\label{line:finalpieceS}*)*/
   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \}),m) \ast \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
   $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{(pte\_initialized (entry\_val.pfn))} \urcorner }_{\rtv}$
   $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (entry\_val.pfn)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:childrenC}*)
   uintptr_t next_phys_addr = PTE_PFN_TO_ADDR(entry->pfn)
   uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr); (*\label{line:p2vC}*);
-  next = (pte_t *) next_virt_addr;
+  next = (pte_t *) next_virt_addr;(*\label{line:finalpieceE}*)
   return next;
 }
 \end{lstlisting}
@@ -470,7 +471,7 @@ Once we know the entry refers to a physical address in the identity mapping rang
 as just discussed for Lines \ref{line:check_entry_present_jumpC}--\ref{line:end_of_allocation_pathC}), 
 we can convert this frame address to a corresponding virtual address via the identity mappings
 discussed in Section \ref{subsec:identitymappingsC} and Figure \ref{fig:peraspaceinvariant_with_p2v_extensionC}.
-in the last lines of \lstinline|pte_get_next_table| shown in Figure \ref{fig:p2v} (the continuation of Figure \ref{fig:calltopteinitializeC}).
+in the last lines of \lstinline|pte_get_next_table| shown in Figure \ref{fig:p2vC} (the continuation of Figure \ref{fig:calltopteinitializeC}).
 This is a critical piece of the full page table walk verification.
 In our small kernel (Line \ref{line:p2vC} in Figure \ref{fig:p2vC}), as in larger kernels, the C macro \texttt{P2V} common to many kernels
 is actually just addition by the constant offset mentioned in Section \ref{subsec:identitymappingsC}.
