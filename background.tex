@@ -90,6 +90,25 @@ process), while others are valid in all address spaces (e.g., kernel data struct
 The VMM must maintain some of these assumptions on behalf of the rest of the kernel, for example by guaranteeing that 
 a certain range of virtual addresses (corresponding to the kernel's code and data) are valid in every address space.
 
+\paragraph{\add{Mapping a New Page}}
+\add{Mapping a new page into a virtual address space is a key piece fo functionality, and also a key challenge for verification.
+This operation takes a chunk of physical memory to install, and a (page-aligned) virtual address at which to make it
+visible to the process.
+Starting from the page table root (\lstinline|cr3| in Figure \ref{fig:pagetables}), it must traverse the page tables until it locates
+the correct location of the L1 entry which should point to the physical page (installing new L3, L2, and L1 tables as needed),
+and update the L1 entry to point to the physical page. This is complicated by the fact that the kernel accesses the page
+tables through \emph{virtual} addresses, but the page table root and the addresses in the L4--L1 entries are all \emph{physical}
+addresses. So the mapping process must repeatedly perform \emph{backwards} mappings (not supported by hardware) from
+physical addresses of each level's entry to a virtual address that is then mapped back to the corresponding physical address!
+And for modularity, the translation process (and possible allocation of missing tables) is typically implemented in a function
+used for every level of translation (i.e., a level-polymorphic function).
+These compounding subtleties are one reason \textsc{CertiKOS} and \textsc{seL4} \emph{trust} their page table
+manipulations; both the reasoning to prove correctness, and the kernel invariants that ensure correctness of typical implementations,
+are remarkably subtle.
+}
+\looseness=-1
+
+
 \paragraph{Out of Scope: Translation Lookaside Buffers (TLBs)}
 CPUs with MMUs typically have an additional \emph{translation lookaside buffer}
 (TLB), to cache the (successful) results of page table walks, rather than transforming every virtual
