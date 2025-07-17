@@ -150,6 +150,22 @@
   emphstyle={[2]\color{violet}},
   morecomment=[l]{;;}
 }
+\lstdefinestyle{mystyle}
+{
+    language = C,
+    basicstyle = {\footnotesize,\color{black}},
+    backgroundcolor = {\color{white}},
+    stringstyle = {\color{string-color}},
+    keywordstyle = {\color{key-color}},
+    keywordstyle = [2]{\color{lime}},
+    keywordstyle = [3]{\color{yellow}},
+    keywordstyle = [4]{\color{teal}},
+    otherkeywords = {;,<<,>>,++},
+    morekeywords = [2]{;},
+    morekeywords = [3]{<<, >>},
+    morekeywords = [4]{++},
+    escapeinside={(*}{*)},
+}
 % Hack for Colin to edit in low light: https://tex.stackexchange.com/questions/40495/invert-background-and-text-colours-across-whole-document-with-pdflatex
 %Commands definitions
 \newcommand{\setbackgroundcolour}{\pagecolor[rgb]{0.19,0.19,0.19}}  

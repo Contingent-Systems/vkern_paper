@@ -5,22 +5,6 @@
 \definecolor{string-color}{rgb}{0.3333, 0.5254, 0.345}
 \definecolor{key-color}{rgb}{0.8, 0.47, 0.196}
 
-\lstdefinestyle{mystyle}
-{
-    language = C,
-    basicstyle = {\footnotesize,\color{black}},
-    backgroundcolor = {\color{white}},
-    stringstyle = {\color{string-color}},
-    keywordstyle = {\color{key-color}},
-    keywordstyle = [2]{\color{lime}},
-    keywordstyle = [3]{\color{yellow}},
-    keywordstyle = [4]{\color{teal}},
-    otherkeywords = {;,<<,>>,++},
-    morekeywords = [2]{;},
-    morekeywords = [3]{<<, >>},
-    morekeywords = [4]{++},
-    escapeinside={(*}{*)},
-}
 \newcommand{\sumwalkabsent}{
   \ownGhost\gammaPred{\authfrag{\singletonMap{\texttt{entry+KERNBASE}}{(\textsf{qfrac}, \textsf{entry})}}}
 }
