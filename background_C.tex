@@ -162,11 +162,6 @@ address, but tagged with the physical data addresses, so cache lookups and addre
 \begin{minipage}{.5\textwidth}
 %    \begin{figure}
 \begin{lstlisting}[mathescape,escapeinside={(*}{*)},basicstyle=\footnotesize]
-/*
-@param entry: entry whose frame address is used 
-              to locate the subsequent entry in the page-tree
-@return next: return a virtual pointer to the descendant tree
-*/
 pte_t *pte_get_next_table(pte_t *entry) {
   pte_t *next;
   /*Reading page table entry:

@@ -85,7 +85,7 @@ yield physical addresses, not virtual.
 \subsubsection{Loading Page-Table Address Value}
 We will discuss access to the level 4 table later (Section \ref{wlkpgdirC}). But for subsequent levels, the base address of level $n$ must be
 fetched from the appropriate entry in the level $n+1$ table.
-This is the role of \lstinline|pte_get_next_table| (Figures \ref{fig:calltopteinitializeC}):
+This is the role of \lstinline|pte_get_next_table| (Figure \ref{fig:calltopteinitializeC}):
 %and \ref{fig:p2vC}):
 it is passed the virtual address of the page table entry in level $n+1$, and should return the \emph{virtual} 
 address of the \emph{base} of the level $n$ table
@@ -120,14 +120,13 @@ Section \ref{sec:backgroundonmachinemodel}.
 
 
 \ifPLDI
-Line \ref{line:mask_present} checks % In the condensed figure, it's all on one line
+Line \ref{line:conditional_childrenC} checks % In the condensed figure, it's all on one line
 \else
-Lines \ref{line:mask_presentC}--\ref{line:check_entry_presentC} check
+Lines \ref{line:mask_present}--\ref{line:check_entry_present} check
 \fi
 if the entry's ``present'' bit is set.
-If it is zero, a new page must be allocated for the next level of the table --- which is done by the fall-through
-from Line \ref{line:check_entry_present_jump}'s conditional jump. Otherwise the code jumps ahead to
-the case for the next level already existing, which is discussed in Section \ref{sec:p2vC} and Figure \ref{fig:p2vC}.
+If it is zero, a new page must be allocated for the next level of the table. Otherwise the code jumps ahead to
+the case for the next level already existing (Lines \ref{line:finalpieceS}-\ref{line:finalpieceE} in Figure \ref{fig:calltopteinitializeC}), which is discussed in Section \ref{sec:p2vC}.
 First, we must discuss another refinement of the address space invariant, establishing
 enough structure on the page tables themselves to allow the traversal.
 The code for allocating a new level of the page table must establish this extended invariant.
@@ -158,13 +157,13 @@ pte_t *pte_get_next_table(pte_t *entry) {
   pte_t *next;
   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry}\},m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
   $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$ (*\label{line:get_next_vpte_preconditionC}*)
-  $\specline{\ulcorner\textsf{entry\_present(entry\_val)}\urcorner \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(entry\_val.pfn) + i * 8}}{\textsf{v-1}} }_{\rtv} $ (*\label{line:conditional_childrenC}*)
+  $\specline{\ulcorner\textsf{entry\_present(entry\_val)}\urcorner \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(entry\_val.pfn) + i * 8}}{\textsf{v-1}} }_{\rtv} $ 
   /*Reading page table entry justified by virtual pte-pointsto*/
-  if (!entry->present(*\label{line:read_entry_contentsC}*)) {
+  if (!entry->present(*\label{line:read_entry_contentsC}*)(*\label{line:conditional_childrenC}*)\label{line:check_entry_present_jumpC}) {
     /* Jump if the present bit is not zero; no need to allocate next level (* \label{line:check_entry_presentC} *)(* \label{line:mask_presentC} *) */
     /*Allocation path starts here (*\label{line:pass_addrof_nextC}*)(*\label{line:alloc_path_startC}*)*/
     $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$ (*\label{line:after_concluding_qfrac1C}*)
-    pte_initialize(entry);(* \label{line:call_to_pte_initializeC} *)
+    pte_initialize(entry);(* \label{line:call_to_pte_initializeC}(*\label{line:page_of_capsC}*) *)
     $\specline{ \ldots \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present (pfn\_set (entry\_val nextpaddr))}  \urcorner   }_{\rtv}$
     $\specline{ \begin{array}{l}\textsf{entry\_present (pte\_initialized (pfn\_set(entryv nextpaddr)))} \wand  \\ \;\;\;\;\;\;\;\;\  \forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}} \end{array}  }$ (*\label{line:page_of_capsC}*)
     /*Entry value updates:*/
@@ -630,8 +629,7 @@ satisfying the rest of the precondition for \lstinline|pte_get_next_table|.
 entry and either returns the (unconditional) tokens for the L3 entry physical addresses (if valid), or
 allocates into the entry and returns new (also unconditional) tokens for the L3 entry physical addresses.
 \lstinline|pte_get_next_table|'s first call (Line \ref{line:first_getnext_callC}) returns
-the virtual address of the base of the L3 table (a \emph{page directory pointer}, so PDP, in official
-x86-64 terminology). Then the situation to move from that pointer to the base of the L2
+the virtual address of the base of the L3 table. Then the situation to move from that pointer to the base of the L2
 is just like the process just followed: the proof calculates the address of the relevant
 L3 entry, uses the appropriate L3 identity mapping token to construct a virtual pte-pointsto to that entry,
 and passes that along with additional resources pulled out of the invariant to another call to
