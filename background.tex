@@ -19,9 +19,8 @@ address, but tagged with the physical data addresses, so cache lookups and addre
 
 \begin{figure}
 %    \begin{framed}
-\begin{multicols}{2}
 %\column{.59\textwidth}    
-    \begin{figure}
+    \begin{subfigure}
 %        \centering
 \tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
 \begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-0.5,xscale=0.5]
@@ -155,9 +154,10 @@ address, but tagged with the physical data addresses, so cache lookups and addre
 \end{tikzpicture}
           \caption{Accessing to the Page Referenced by L1 Entry}
         \label{fig:enter-label}
-    \end{figure}
-\columnbreak
-    \begin{figure}
+    \end{subfigure}
+    \vfill
+    \begin{multicols}{2}
+%    \begin{figure}
 \begin{lstlisting}%[style=CStyleNum, basicstyle=\tiny]
 static pte_t *pte_nxt_table (pte_t *entry){
  pte_t *next;
@@ -174,7 +174,10 @@ static pte_t *pte_nxt_table (pte_t *entry){
    next = (pte_t *) next_virt_addr;
   }
   return next;
-}   
+}
+\end{lstlisting}
+\columnbreak
+\begin{lstlisting}
 pte_t *walkpgdir(pte_t *l4, void *va){ 
  pte_t *l4_entry = &l4[L4I(va)];
  pte_t *l3 = pte_nxt_table(l4_entry);
@@ -188,7 +191,7 @@ pte_t *walkpgdir(pte_t *l4, void *va){
 \end{lstlisting}
 %          \caption{Walking page-table tree to locate L1 entry C-source code.}
 %        \label{fig:enter-label}
-    \end{figure}
+ %   \end{figure}
 \end{multicols}
 %\end{framed}
     \vspace{-2.5em}
