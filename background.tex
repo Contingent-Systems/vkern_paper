@@ -16,18 +16,18 @@ modern architectures, this translation is performed through cooperation of the h
 (virtual) address, the CPU's \emph{memory management unit} (\textsc{MMU}) hardware performs \emph{address translation},
 resulting in a physical address used to access the cache\footnote{Technically, for performance reasons most caches are indexed with parts of the virtual 
 address, but tagged with the physical data addresses, so cache lookups and address translations can proceed in parallel.} and/or memory-bus.
-
-\begin{figure}
+\setlength{\columnseprule}{4pt}
+\begin{figure}\footnotesize
 %    \begin{framed}
 %\column{.59\textwidth}    
-\begin{subfigure}
+\begin{subfigure}\footnotesize
 
 
 
 \tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
 
-\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-0.5,xscale=0.5]
-%uncomment if require: \path (0,430); %set diagram left start at 0, and has height of 430
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-0.75,xscale=0.75]
+%uncomment if require: \path (0,427); %set diagram left start at 0, and has height of 427
 
 %Shape: Rectangle [id:dp9406932326447903] 
 \draw   (33,141) -- (123,141) -- (123,292) -- (33,292) -- cycle ;
@@ -133,25 +133,25 @@ address, but tagged with the physical data addresses, so cache lookups and addre
 % Text Node
 \draw (67,63) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize va}};
 % Text Node
-\draw (53,203) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize L4 Entry}};
+\draw (48,203) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize L4 Entry}};
 % Text Node
-\draw (185,189) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize L3 Entry}};
+\draw (180,189) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize L3 Entry}};
 % Text Node
-\draw (316,167) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize L2 Entry}};
+\draw (311,167) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize L2 Entry}};
 % Text Node
-\draw (449,223) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize L1 Entry}};
+\draw (444,223) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize L1 Entry}};
 % Text Node
 \draw (51,347) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize root}};
 % Text Node
 \draw (465,349) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize page}};
 % Text Node
-\draw (532,346) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize 4K Data}};
+\draw (529,346) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize 4K Data}};
 % Text Node
-\draw (156,386) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize 51}};
+\draw (133,386) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize 51}};
 % Text Node
-\draw (226,386) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize 12}};
+\draw (258,386) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize 12}};
 % Text Node
-\draw (145,350) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize Base Addr}};
+\draw (163,350) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize Base Addr}};
 
 
 \end{tikzpicture}
@@ -159,24 +159,28 @@ address, but tagged with the physical data addresses, so cache lookups and addre
         \label{fig:enter-label}
     \end{subfigure}
     \vfill
-    \begin{multicols}{2}
+\begin{minipage}{.5\textwidth}
 %    \begin{figure}
-\begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
+\begin{lstlisting}[mathescape,escapeinside={(*}{*)},basicstyle=\footnotesize]
 /*
-@param entry: entry whose frame address is used to locate the a-level-lower entry in the page-tree
+@param entry: entry whose frame address is used 
+              to locate the subsequent entry in the page-tree
 @return next: return a virtual pointer to the descendant tree
 */
 pte_t *pte_get_next_table(pte_t *entry) {
   pte_t *next;
-  /*Reading page table entry justified by virtual pte-pointsto*/
+  /*Reading page table entry:
+    pointed by a virtual memory address*/
+  /* Jump if the present bit is not zero:
+     no need to allocate next level (* \label{line:check_entry_presentC} *)(* \label{line:mask_presentC} *)  (*\label{line:after_concluding_qfrac1C}*)*/
   if (!entry->present(*\label{line:read_entry_contentsC}*) (*\label{line:conditional_childrenC}*)) {
-    /* Jump if the present bit is not zero; no need to allocate next level (* \label{line:check_entry_presentC} *)(* \label{line:mask_presentC} *)  (*\label{line:after_concluding_qfrac1C}*)*/
     /*Allocation path starts here (*\label{line:pass_addrof_nextC}*)(*\label{line:alloc_path_startC}*)*/
     pte_initialize(entry);(* \label{line:call_to_pte_initializeC} *)
     /*Entry value updates:*/
     entry->pfn = nextpaddr;
     entry->present = 1; (*\label{line:install_new_entryC}*)
-    /*Now we know that entry is initialized, so we satisfy the condition to access children list */
+    /*Entry is initialized,
+      so we satisfy the condition to access children list */
   } (*\label{line:end_of_allocation_pathCB}*)
   /*Physical to virtual address mapping code segment starts here (*\label{line:finalpieceSB}*)*/
   uintptr_t next_phys_addr = PTE_PFN_TO_ADDR(entry->pfn)
@@ -185,23 +189,24 @@ pte_t *pte_get_next_table(pte_t *entry) {
   return next;
 }
 \end{lstlisting}
-\columnbreak
-\begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
+\end{minipage}
+\begin{minipage}{.4\textwidth}
+\begin{lstlisting}[mathescape,escapeinside={(*}{*)}, basicstyle=\footnotesize]
 pte_t *walkpgdir(pte_t *l4, void *va){ 
- pte_t *l4_entry = &l4[L4Offset(va)];
- pte_t *l3 = pte_nxt_table(l4_entry);
- pte_t *l3_entry = &l3[L3Offset(va)];
- pte_t *l2 = pte_nxt_table(l3_entry);
- pte_t *l2_entry = &l2[L2Offset(va)];  
- pte_t *l1 = pte_nxt_table(l2_entry);
- pte_t *l1_entry = &l1[L1Offset(va)];  
- return l1_entry
+  pte_t *l4_entry = &l4[L4Offset(va)];
+  pte_t *l3 = pte_nxt_table(l4_entry);
+  pte_t *l3_entry = &l3[L3Offset(va)];
+  pte_t *l2 = pte_nxt_table(l3_entry);
+  pte_t *l2_entry = &l2[L2Offset(va)];  
+  pte_t *l1 = pte_nxt_table(l2_entry);
+  pte_t *l1_entry = &l1[L1Offset(va)];  
+  return l1_entry
 }
 \end{lstlisting}
 %          \caption{Walking page-table tree to locate L1 entry C-source code.}
 %        \label{fig:enter-label}
  %   \end{figure}
-\end{multicols}
+\end{minipage}
 %\end{framed}
     \vspace{-2.5em}
     \caption{x86-64 page table lookups.}
