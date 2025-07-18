@@ -396,8 +396,8 @@ as well as additional rules covering arithmetic and bitwise operations,
 and fixed-offset variants of the memory access rules from Figure \ref{fig:wpdamd};
 and (3) proofs of the examples of Section \ref{sec:experiment}.
 
-The main limitation is the use of several axioms in the development, which are are currently
-in the process of removing. As noted in Section \ref{sec:soundness}, control transfer instruction
+The main limitation is \replace{the use of several axioms in the development, which are are currently
+in the process of removing. A}{that, a}s noted in Section \ref{sec:soundness}, control transfer instruction
 specifications are trusted (though again, entirely standard for assembly-level program logics~\cite{ni2007contexts,Ni2006codeptrs},
 aside from using our virtual points-to assertions in place of points-to assertions that assume flat memory).
 We also do not explicitly model instruction
@@ -406,8 +406,8 @@ byte sequences and instruction sequences, used in the definition of virtual code
 assertions (i.e., assertions stating that a certain virtual address stores bytes
 encoding a valid instruction sequence with a given precondition, used for branches, call, and return instruction
 specifications). 
-There are also a small number of axioms for a few bit-twiddling equivalences which are proving difficult to discharge
-with our XCAP-derived~\cite{Chlipala2013Bedrock} model of machine words.
+\del{There are also a small number of axioms for a few bit-twiddling equivalences which are proving difficult to discharge
+with our XCAP-derived model of machine words.}
 
 % There are two main limitations.
 % The first is that our formalization does not explicitly model instruction
@@ -419,10 +419,17 @@ with our XCAP-derived~\cite{Chlipala2013Bedrock} model of machine words.
 % The second, as noted in Section \ref{sec:soundness}, is that control transfer
 % specifications are trusted (though again, entirely standard for assembly-level program logics~\cite{ni2007contexts,Ni2006codeptrs},
 % aside from using our virtual points-to assertions in place of points-to assertions that assume flat memory).
-We intend to submit this to artifact evaluation.
+\replace{We intend to submit this to artifact evaluation.
 We have attached a zip as supplementary material to the submission, though it does not
 currently include
-a guide for artifact evaluators.
+a guide for artifact evaluators.}{
+  Unfortunately we missed the single line in the Major Revision notification that stated 
+  that we could submit an artifact this cycle; the notification also pointed to the call for papers
+  which explicity states that Major Revisions were not allowed to submit artifacts.
+  If we are able to submit to a subsequent artifact evaluation cycle we will.
+  In either case, we will upload our artifact to Zenodo to obtain a DOI and archival storage,
+  and will cite it from the final version.
+}
 
 %% The next two lines define the bibliography style to be used, and
 %% the bibliography file.
