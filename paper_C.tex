@@ -48,20 +48,6 @@
 %%
 \documentclass[acmsmall,screen,nonacm,review,anonymous]{acmart}
 
-\newif\ifShowRevisions
-\ShowRevisionstrue
-\ifShowRevisions
-\usepackage{soul}
-\newcommand{\add}[1]{\textcolor{blue}{#1}}
-\newcommand{\del}[1]{\textcolor{red}{\st{#1}}}
-\newcommand{\replace}[2]{\del{#1}\add{#2}}
-\else
-\newcommand{\add}[1]{{#1}}
-\newcommand{\del}[1]{}
-\newcommand{\replace}[2]{\del{#1}\add{#2}}
-\fi
-
-
 \newif\ifPLDI
 \PLDItrue
 
@@ -145,10 +131,11 @@
 \usepackage{xspace}
 %\usepackage{listings}
 \usepackage{graphicx}
-
+\usepackage{multicol}
+\usepackage{framed}
 \usepackage{lipsum}
 \usepackage[utf8]{inputenc}
-\usepackage{todonotes}
+% \usepackage{todonotes}
 \usepackage{blindtext}
 \usepackage{listings}
 \lstset{
@@ -163,6 +150,22 @@
   emphstyle={[2]\color{violet}},
   morecomment=[l]{;;}
 }
+\lstdefinestyle{mystyle}
+{
+    language = C,
+    basicstyle = {\footnotesize,\color{black}},
+    backgroundcolor = {\color{white}},
+    stringstyle = {\color{string-color}},
+    keywordstyle = {\color{key-color}},
+    keywordstyle = [2]{\color{lime}},
+    keywordstyle = [3]{\color{yellow}},
+    keywordstyle = [4]{\color{teal}},
+    otherkeywords = {;,<<,>>,++},
+    morekeywords = [2]{;},
+    morekeywords = [3]{<<, >>},
+    morekeywords = [4]{++},
+    escapeinside={(*}{*)},
+}
 % Hack for Colin to edit in low light: https://tex.stackexchange.com/questions/40495/invert-background-and-text-colours-across-whole-document-with-pdflatex
 %Commands definitions
 \newcommand{\setbackgroundcolour}{\pagecolor[rgb]{0.19,0.19,0.19}}  
@@ -176,7 +179,7 @@
 
 % Packages.
 \usepackage{amsmath}
-
+\usepackage{subfigure}
 % If we need multiple references to a footnote, via \cref:
 \usepackage{cleveref}
 \crefformat{footnote}{#2\footnotemark[#1]#3}
@@ -357,11 +360,11 @@ inside Rocq.
 
 \input{intro.tex}
 %\input{motivation.tex}
-\input{background.tex}
+\input{background_C.tex}
 \input{syntaxsemantics.tex}
 \input{programlogic.tex}
 %\input{soundness.tex}
-\input{examples.tex}
+\input{examples_C.tex}
 %\input{discussion.tex} % not necessary
 \input{relwork.tex}
 \section{Conclusions}
@@ -396,8 +399,7 @@ as well as additional rules covering arithmetic and bitwise operations,
 and fixed-offset variants of the memory access rules from Figure \ref{fig:wpdamd};
 and (3) proofs of the examples of Section \ref{sec:experiment}.
 
-The main limitation is \replace{the use of several axioms in the development, which are are currently
-in the process of removing. A}{that, a}s noted in Section \ref{sec:soundness}, control transfer instruction
+As noted in Section \ref{sec:soundness}, control transfer instruction
 specifications are trusted (though again, entirely standard for assembly-level program logics~\cite{ni2007contexts,Ni2006codeptrs},
 aside from using our virtual points-to assertions in place of points-to assertions that assume flat memory).
 We also do not explicitly model instruction
@@ -406,8 +408,8 @@ byte sequences and instruction sequences, used in the definition of virtual code
 assertions (i.e., assertions stating that a certain virtual address stores bytes
 encoding a valid instruction sequence with a given precondition, used for branches, call, and return instruction
 specifications). 
-\del{There are also a small number of axioms for a few bit-twiddling equivalences which are proving difficult to discharge
-with our XCAP-derived model of machine words.}
+There are also a small number of axioms for a few bit-twiddling equivalences which are proving difficult to discharge
+with our XCAP-derived~\cite{Chlipala2013Bedrock} model of machine words.
 
 % There are two main limitations.
 % The first is that our formalization does not explicitly model instruction
@@ -419,17 +421,10 @@ with our XCAP-derived model of machine words.}
 % The second, as noted in Section \ref{sec:soundness}, is that control transfer
 % specifications are trusted (though again, entirely standard for assembly-level program logics~\cite{ni2007contexts,Ni2006codeptrs},
 % aside from using our virtual points-to assertions in place of points-to assertions that assume flat memory).
-\replace{We intend to submit this to artifact evaluation.
+We intend to submit this to artifact evaluation.
 We have attached a zip as supplementary material to the submission, though it does not
 currently include
-a guide for artifact evaluators.}{
-  Unfortunately we missed the single line in the Major Revision notification that stated 
-  that we could submit an artifact this cycle; the notification also pointed to the call for papers
-  which explicity states that Major Revisions were not allowed to submit artifacts.
-  If we are able to submit to a subsequent artifact evaluation cycle we will.
-  In either case, we will upload our artifact to Zenodo to obtain a DOI and archival storage,
-  and will cite it from the final version.
-}
+a guide for artifact evaluators.
 
 %% The next two lines define the bibliography style to be used, and
 %% the bibliography file.
@@ -437,34 +432,35 @@ a guide for artifact evaluators.}{
 \bibliography{vmm}
 
 \appendix
+\input{examples.tex}
 % \section{Translation Lookaside Buffers}
 % \label{apdx:tlb}
 % This section explains the challenges of formal reasoning about TLBs in more detail, including why
 % prior verified OS work trusts the flushing operations (and we believe this is reasonable), and why
 % full support for TLB reasoning is a significant, challenging problem on its own, requiring further
 % development before being integrated with general virtual memory reasoning.
-
+%
 % As noted earlier,
 % TLB flushes are required only when addresses are removed from a virtual address space, or when changing
 % virtual address spaces. Because this occurs in few places in the kernel (in some, only 3 locations), full verified
 % kernels including \textsc{seL4}~\cite{Klein2009seL4,seL4TOCS} and \textsc{CertiKOS}~\cite{gu15,gu2016certikos}
 % trust TLB management. Neither of the aforementioned systems has a hardware model including a TLB, so neither is able
 % to verify TLB management in any form --- they \emph{must} trust its operation.
-
+%
 % The only place the code itself becomes particularly challenging is in multiprocessor kernels, where
 % not only must the running CPU flush its TLB, but it must sent an inter-processor interrupt (IPI) to all
 % other cores to ensure they also flush the relevant ranges of their own TLBs.
 % Currently no formal hardware model exists with sufficient detail to reason about IPIs in full detail.
 % Multicore extensions of \textsc{seL4}~\cite{von2013clustered} and \textsc{CertiKOS}~\cite{gu2016certikos} also trust this functionality.
-
+%
 % Fully grounded trust for this would require a formal model of how hardware populates ACPI tables and formal verification of ACPI
 % parsing code on general-purpose desktop and server machines, or a formalized and verified
 % parsing of flattened device trees (plus trust that a system was booted with a correct FDT) for (semi-)embedded systems like single-board
 % ARM and RISC-V machines. Either route would also require detailed treatment of memory-mapped IO triggering
 % interrupts on other CPUs. This is far beyond any formal model of computer hardware that exists today,
 % and far out of scope for this paper.
-
-
+%
+%
 % \citet{syeda2020formal,syeda2018program} are the only existing work to address formal verification of TLB management.
 % They extend the work of \citet{kolanski08ssv,kolanski09tphols,kolanski09tphols}, and therefore inherit the limitations of that work discussed
 % elsewhere in this paper. Aside from that, their logic primarily tracks a set of mapped addresses and a set of
@@ -475,15 +471,15 @@ a guide for artifact evaluators.}{
 % transparency lemmas, that code that \emph{does not} modify page tables (kernel code outside the VMM, user code)
 % is unaffected by its existence. The one piece of kernel code verified is a sequence of 4 pseudo-instructions for changing address spaces
 % which include \emph{only} the installation of a new page table root and flushing of the old address space from the TLB.
-
+%
 % Adapting Syeda and Klein's global reasoning principles to a separation logic is non-trivial, even though their approach
 % does capture some intuition about TLB reasoning. And as noted above, in the absence of support for significant additional
 % hardware functionality in the hardware model, this would be substantial work for only very limited gains in confidence compared
 % to trusting single-core TLB managment.
 % Thus we leave TLB management to our future work plans, where we believe it is best addressed in tandem with substantially
 % richer hardware models than any currently existing.
-
-
+%
+%
 % \section{Subtleties of Changing Address Spaces Using Modalities}
 % % \subsection{Considering Hoare Doubles in the Context of Switching Address-Space}
 % % \subsubsection{Issues with Using Hoare Triples in Address-Space Specification}
@@ -505,34 +501,34 @@ a guide for artifact evaluators.}{
 % (For clarity, we also omit the address space invariants, which must also be present.)
 % % which is slightly simplified (by dropping per-address-space resources) for clarity in making the following point.
 % % This rule captures the intuitive change of address space in a Hoare triple.
-% Unfortunately, as stated, this interacts quite poorly with the traditional frame
-% rule.
-% If we abbreviate the pre- and post-conditions above as \textsf{Pre} and \textsf{Post}:
-% \begin{mathpar}
-%   \inferrule*[right=Frame]{
-%     \inferrule*[right=Broken]{ }{
-%     \{\textsf{Pre}\}
-%     \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
-%     \{\textsf{Post}\}
-%     }
-%   }{
-%     \{a\mapsto_\mathsf{v} x \ast \textsf{Pre}\}
-%     \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
-%     \{a\mapsto_\mathsf{v} x \ast \textsf{Post}\}
-%   }
-% \end{mathpar}
-% Notice that 
-% both the precondition and postcondition assert that $a\mapsto_\mathsf{v} x$ in the current address space, but we have no basis for concluding that address translation is preserved by the change of address space. So this derivation clearly leads to an unsound conclusion. 
-% The essential problem is that the frame rule is motivated by local reasoning about local updates, but
-% a switch of address space is a \emph{global} change that may invalidate information about virtual addresses.
-% Thus framing around \lstinline|cr3| updates is unsound, which has important impacts on our formal development.
-
+ %Unfortunately, as stated, this interacts quite poorly with the traditional frame
+ %rule.
+ %If we abbreviate the pre- and post-conditions above as \textsf{Pre} and \textsf{Post}:
+ %\begin{mathpar}
+ %  \inferrule*[right=Frame]{
+ %    \inferrule*[right=Broken]{ }{
+ %    \{\textsf{Pre}\}
+ %    \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
+ %    \{\textsf{Post}\}
+ %    }
+ %  }{
+ %    \{a\mapsto_\mathsf{v} x \ast \textsf{Pre}\}
+ %    \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
+ %    \{a\mapsto_\mathsf{v} x \ast \textsf{Post}\}
+ %  }
+ %\end{mathpar}
+ %Notice that 
+ %both the precondition and postcondition assert that $a\mapsto_\mathsf{v} x$ in the current address space, but we have no basis for concluding that address translation is preserved by the change of address space. So this derivation clearly leads to an unsound conclusion. 
+ %The essential problem is that the frame rule is motivated by local reasoning about local updates, but
+ %a switch of address space is a \emph{global} change that may invalidate information about virtual addresses.
+ %Thus framing around \lstinline|cr3| updates is unsound, which has important impacts on our formal development.
+%
 % Switching to Hoare doubles resolves this problem because an under-appreciated subtlety of Hoare doubles 
 % is that typically \emph{there is no primitive frame rule}. 
 % Instead each verification essentially includes a local frame that it passes to the next instructions
 % (think continuation-passing style), giving each overall rule a \emph{global} (rather than local) precondition.
 % For most rules this is not that important, but it does permit rules that have global effects on their preconditions.
-
+%
 % % This is then how we justify our actual rule for \lstinline|cr3| updates, which is \emph{almost}
 % This leads to our actual rule for \lstinline|cr3| updates, which is \emph{almost}
 % \begin{mathpar}
@@ -549,7 +545,7 @@ a guide for artifact evaluators.}{
 % A more typical frame rule can be recovered from Hoare doubles in the typical way~\cite{Chlipala2013Bedrock} 
 % with the added restriction that \lstinline|cr3| is restored to its pre-framing value before un-framing (in this case, the framed-out assertion is effectively
 % stashed under an other-space assertion for the initial address space, and pulled out as part of restoring).
-
+%
 % % If we wanted to consider a frame rule that would work for this logic, we could consider:
 % % \begin{mathpar}
 % %   \inferrule*[left=Cr3Frame]{
@@ -565,9 +561,6 @@ a guide for artifact evaluators.}{
 % % Another useful perspective on this might be the dynamic frames~\cite{parkinson2011relationship} 
 % % view: virtual points-to assertions are self-stable \emph{except} for changes in \lstinline|cr3|, so framing would then naturally require other means of holding \lstinline|cr3| constant (or saving and restoring it).
 % % Virtual points-to assertions could be made self-stable by also giving them partial ownership over \lstinline|cr3| assertions, but this would require explicitly plumbing that ownership from \emph{all} assertions back to any place an address space change might occur; this would seem to be a far graver loss of modularity than this extra quirk in framing discussions.
-
-
-
 
 \end{document}
 %%
