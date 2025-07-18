@@ -454,9 +454,9 @@ Once we know the entry refers to a physical address in the identity mapping rang
 as just discussed for Lines \ref{line:check_entry_present_jumpC}--\ref{line:end_of_allocation_pathC}), 
 we can convert this frame address to a corresponding virtual address via the identity mappings
 discussed in Section \ref{subsec:identitymappingsC} and Figure \ref{fig:peraspaceinvariant_with_p2v_extensionC}.
-in the last lines of \lstinline|pte_get_next_table| shown in Figure \ref{fig:p2vC} (the continuation of Figure \ref{fig:calltopteinitializeC}).
+in the last lines of \lstinline|pte_get_next_table| shown in Line \ref{line:p2vC} in Figure \ref{fig:calltopteinitializeC} (the continuation of Figure \ref{fig:calltopteinitializeC}).
 This is a critical piece of the full page table walk verification.
-In our small kernel (Line \ref{line:p2vC} in Figure \ref{fig:p2vC}), as in larger kernels, the C macro \texttt{P2V} common to many kernels
+In our small kernel (Line \ref{line:p2vC} in Figure \ref{fig:calltopteinitializeC}), as in larger kernels, the C macro \texttt{P2V} common to many kernels
 is actually just addition by the constant offset mentioned in Section \ref{subsec:identitymappingsC}.
 But the correctness of this simple instruction is quite subtle.
 %  and cannot be proven 
@@ -483,11 +483,11 @@ But the correctness of this simple instruction is quite subtle.
 %}
 %\label{fig:p2v}
 %\end{figure}
-Lines \ref{childrenC}-\ref{line:p2vC} in Figure \ref{fig:calltopteinitializeC} show the verification of the end of \lstinline|pte_get_next_table| specialized to the case where 
+Lines \ref{line:childrenC}-\ref{line:p2vC} in Figure \ref{fig:calltopteinitializeC} show the verification of the end of \lstinline|pte_get_next_table| specialized to the case where 
 where no allocation was necessary (i.e., the conditional on Line \ref{line:check_entry_presentC} of Figure \ref{fig:calltopteinitializeC} was taken).
 In this case, the true present bit allows access to the child tokens from Line \ref{line:conditional_childrenC} of Figure \ref{fig:calltopteinitializeC},
-which is then refined to the assertion on Line \ref{line:childrenC} of Figure \ref{fig:p2vC}.
-The code loads \lstinline|rcx| with the offset value \textsf{KERNBASE}, which gives us the value of the virtual address ($\textsf{entry}_{\textsf{pfn}}$ \textsf{+KERNBASE})
+which is then refined to the assertion on Line \ref{line:childrenC} of Figure \ref{fig:calltopteinitializeC}.
+The code loads the value at the offseted (\textsf{KERNBASE}) virtual memory address ($\textsf{entry}_{\textsf{pfn}}$ \textsf{+KERNBASE})
 of the \emph{base} of the next level of the page table.
 % \todo[inline]{the next sentence depends on having figure 10 updated to reflect the page-worth of tokens}
 While we could now convert this address to a virtual points-to, this is not necessarily the correct thing to do.
