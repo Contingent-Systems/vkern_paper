@@ -105,13 +105,13 @@
 \section{Machine State and Semantics}
 % \section{Machine State \& Syntax}
 \label{sec:syntax}
-To develop our core logical ideas, we instantiate \iris with a simple language for streams of instructions, 
-and a logical machine model corresponding to execution of x86-64 assembly instructions with virtual memory enabled on the 
+To develop our core logical ideas, we instantiate \iris with a simple language for a stream of instructions
+and a logical machine model corresponding to the execution of x86-64 assembly instructions with virtual memory enabled on the
 CPU.
 %
 % \subsection{Registers and Memory}
 % Programs we demonstrate in this paper requires accessing two types of computer resource: registers and memory.
-A register identifier, $\reg$, is chosen from a fixed finite set of register identifiers, $\regset$.\footnote{\add{$\reg$ abbreviates \emph{general register}, which includes integer registers (e.g., \lstinline|rax|),
+A register identifier, $\reg$, is chosen from a fixed finite set of register identifiers, $\regset$. \footnote{\add{$\reg$ abbreviates \emph{general register}, which includes integer registers (e.g., \lstinline|rax|),
 control registers (e.g., \lstinline|cr3|), and segmentation registers (which we do not discuss in detail,
 but are still used in a limited way in 64-bit mode on modern x86-64 processors).
 }} 
@@ -209,9 +209,9 @@ The latter require page table walks.
 % concluded with alignment of the returned address for each \textit{successful} page-table-walk traversal which is what our reasoning principles 
 % only consider.
 
-The most important instructions we model are memory-accessing variants of the x86-64 \lstinline|mov| instruction, which we format in Intel syntax
+The most important instructions that we model are memory-accessing variants of the x86-64 \lstinline|mov| instruction, which we format in Intel syntax
 (destination on the left, source on the right).
-Thus a store to memory is $\textsf{mov}~[r_m]~r_r$, and a load from memory is $\textsf{mov}~r_r~[r_m]$.
+Thus, a store to the memory is $\textsf{mov}~[r_m]~r_r$, and a load from memory is $\textsf{mov}~r_r~[r_m]$.
 % \[
 % \begin{array}{l}
 %   \hbox{(\TirNameStyle{WriteToMemFromReg})} \qquad
@@ -220,7 +220,7 @@ Thus a store to memory is $\textsf{mov}~[r_m]~r_r$, and a load from memory is $\
 %   \textsf{mov}~r_r~[r_m]
 %   \end{array}
 %   \]
-Operationally, each first translates the virtual address stored in register $r_m$ to a physical address \add{(a page table walk)},
+Operationally, each first translates the virtual address stored in the register $r_m$ to a physical address \add{(a page table walk)},
 then either updates the memory at that physical location with the contents of $r_r$ (for store)
 or updates $r_r$ with the contents of that memory (for load).
 % The semantics of each is realized by first translating the virtual-memory address of a memory location stored in $r_m$ to a physical memory location
