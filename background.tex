@@ -16,7 +16,6 @@ modern architectures, this translation is performed through cooperation of the h
 (virtual) address, the CPU's \emph{memory management unit} (\textsc{MMU}) hardware performs \emph{address translation},
 resulting in a physical address used to access the cache\footnote{Technically, for performance reasons most caches are indexed with parts of the virtual 
 address, but tagged with the physical data addresses, so cache lookups and address translations can proceed in parallel.} and/or memory-bus.
-
 \setlength{\columnseprule}{4pt}
 \begin{figure}\footnotesize
 %    \begin{framed}
@@ -186,6 +185,7 @@ pte_t *pte_get_next_table(pte_t *entry) {
 }
 \end{lstlisting}
 \end{minipage}
+\hfill\hfill
 \begin{minipage}{.4\textwidth}
 \begin{lstlisting}[mathescape,escapeinside={(*}{*)}, basicstyle=\footnotesize]
 pte_t *walkpgdir(pte_t *root, void *va){ 
@@ -274,25 +274,6 @@ Some virtual addresses are valid in only a single address space (e.g., a code ad
 process), while others are valid in all address spaces (e.g., kernel data structure pointers). 
 The VMM must maintain some of these assumptions on behalf of the rest of the kernel, for example by guaranteeing that 
 a certain range of virtual addresses (corresponding to the kernel's code and data) are valid in every address space.
-
-\paragraph{\add{Mapping a New Page}}
-\add{Mapping a new page into a virtual address space is a key piece fo functionality, and also a key challenge for verification.
-This operation takes a chunk of physical memory to install, and a (page-aligned) virtual address at which to make it
-visible to the process.
-Starting from the page table root (\lstinline|cr3| in Figure \ref{fig:pagetables}), it must traverse the page tables until it locates
-the correct location of the L1 entry which should point to the physical page (installing new L3, L2, and L1 tables as needed),
-and update the L1 entry to point to the physical page. This is complicated by the fact that the kernel accesses the page
-tables through \emph{virtual} addresses, but the page table root and the addresses in the L4--L1 entries are all \emph{physical}
-addresses. So the mapping process must repeatedly perform \emph{backwards} mappings (not supported by hardware) from
-physical addresses of each level's entry to a virtual address that is then mapped back to the corresponding physical address!
-And for modularity, the translation process (and possible allocation of missing tables) is typically implemented in a function
-used for every level of translation (i.e., a level-polymorphic function).
-These compounding subtleties are one reason \textsc{CertiKOS} and \textsc{seL4} \emph{trust} their page table
-manipulations; both the reasoning to prove correctness, and the kernel invariants that ensure correctness of typical implementations,
-are remarkably subtle.
-}
-\looseness=-1
-
 
 \paragraph{Out of Scope: Translation Lookaside Buffers (TLBs)}
 CPUs with MMUs typically have an additional \emph{translation lookaside buffer}
@@ -393,7 +374,8 @@ logics (including ours) often encapsulate raw \rocq assertions: $\ulcorner P \ur
 of the \rocq assertion $P$ into an \iris assertion (used for things like equality and other
 general pure logical assertions), similar to prior \rocq-embedded program logics~\cite{Chlipala2013Bedrock}. Newly-defined \iris assertions are in fact
 \rocq terms of a particular type, rather than being drawn from a fixed vocabulary.
-\del{We introduce other details as they arise.}
+We introduce other details as they arise.
+
 \iris includes two forms of implication. The magic wand operator $\wand$ is an affine implication:
 $A\wand B$ describes a resource which, if combined with a resource satisfying $A$, will satisfy $B$.
 Notably, this implication involves no changes to ghost state. \iris, building on the Views framework~\cite{Dinsdale-Young2013Views},
@@ -403,7 +385,6 @@ experts may note that this is \emph{technically} mildly misleading given how \ir
 are defined, but
 this is adequate intuition for non-experts in \iris to follow their use.
 }
-View shifts are essentially logical entailment plus ghost updates.
 \looseness=-1
 
 % Of particular interest to us, \iris's machinery is largely agnostic to the particular choice of
@@ -421,7 +402,7 @@ View shifts are essentially logical entailment plus ghost updates.
 % $P \wand \textsf{wp}\;C\;\{v\ldotp Q\}$.\footnote{An idea with long history~\cite{pratt1976semantical}.}
 % This is a natural fit for assembly-level verification, where the \emph{Hoare double}
 
-An important limitation \del{here} is that to date, every separation logic
+An important limitation here is that to date, every separation logic
 has assumed that all pointer addresses are meant for use in a single address space, which avoided the
 problem of tracking that certain points-to assertions are true only for certain address spaces, but not others.
 
@@ -450,10 +431,7 @@ with assertions of the form $[\ell](P)$ indicating that $P$ is true in the speci
 the points at which a modal assertion is evaluated inside the modality's definition, the choice of what world a modalized
 assertion should be true in is chosen \emph{in the assertion itself}. This allows assertions to talk about not simply whether some other assertion
 is true in some possible future or past world related in a fixed way to the current world, but to talk about \emph{arbitrary}
-other worlds.
-\add{This is somewhat different from the accessibility relation modalities more common in verification, but
-also well-established.}
-This explicit naming of alternate worlds increases the power of modal logics \add{over those without it}~\cite{blackburn1995hybrid}, and is actually
+other worlds. This explicit naming of alternate worlds increases the power of modal logics~\cite{blackburn1995hybrid}, and is actually
 necessary for completeness in classical separation logics~\cite{brotherston2014parametric}.
 %   A key distinguishing feature of
 % hybrid logic is that the logic itself does not fix the set of modalities, but is defined relative to any set of sensible worlds.
@@ -501,7 +479,6 @@ Some prior \iris-based work~\cite{dang2019rustbelt,dang2022compass} has construc
 by thread IDs. However in that setting, the intepretation of those modalities was fully fixed ahead of time (to refer to essentially buffers in operationalized versions of C11
 concurrency). In this setting, while our modalities will be indexed by page table roots, it is possible to modify the address translation for an address
 space with root $r$ --- thus changing the interpretation of a modality, and even whether a modality is valid --- \emph{while assertions with that modality are active}.
-\add{This is essential to updating page mappings for the current address space in use by a CPU.}
 %
 %
 %Work on modal logic extends back for decades with many widely-varied variations; we discuss here only the pieces most relevant to our work.
@@ -513,4 +490,3 @@ space with root $r$ --- thus changing the interpretation of a modality, and even
 %Another pillar of our work is hybrid logic, a branch of modal logic with \emph{names} (called \emph{nominals} for states in Kripke models~\cite{blackburn1995hybrid,goranko1996hierarchies,areces2001hybrid,gargov1993modal}, in contrast to the typical flavor of modality which refers to an \emph{unspecified} (in the assertion) set of alternative circumstances. 
 %
 %Our work draws on ideas from hybrid modal logics, applied in the context of Iris's higher-order separation logic~\cite{jung2018iris}. We define our modalities and prove their rules directly within Iris, so there is no model-theoretic novelty in our work. Instead, we show that targeted use of modalities combining the ideas of \emph{named resources} with the power of substructural reasoning enable clear specification of general reasoning principles for data structures. Along the way we take advantage of the fact that modalities need not be injections between the \emph{same} logics, but in fact the propositions that modal operators contextualize can come from \emph{other} logics; in our case we exploit the fact that Iris itself is parameterized by a choice of step-indexed~\cite{ahmed-appel-virga-02} \textsf{BI}-algebra~\cite{ohearn1999bunched} to allow convenient specifications in embedded data-structure-relative logics.
-
