@@ -17,8 +17,193 @@ modern architectures, this translation is performed through cooperation of the h
 resulting in a physical address used to access the cache\footnote{Technically, for performance reasons most caches are indexed with parts of the virtual 
 address, but tagged with the physical data addresses, so cache lookups and address translations can proceed in parallel.} and/or memory-bus.
 
-\begin{figure}
-    \includegraphics[width=\columnwidth]{pagetables2.png}
+\setlength{\columnseprule}{4pt}
+\begin{figure}\footnotesize
+%    \begin{framed}
+%\column{.59\textwidth}    
+\begin{subfigure}\footnotesize
+
+
+
+\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
+
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-0.75,xscale=0.75]
+%uncomment if require: \path (0,427); %set diagram left start at 0, and has height of 427
+
+%Shape: Rectangle [id:dp9406932326447903] 
+\draw   (33,141) -- (123,141) -- (123,292) -- (33,292) -- cycle ;
+%Shape: Rectangle [id:dp7682116051394419] 
+\draw   (166,141) -- (256,141) -- (256,292) -- (166,292) -- cycle ;
+%Shape: Rectangle [id:dp07376733516930423] 
+\draw   (295,141) -- (385,141) -- (385,292) -- (295,292) -- cycle ;
+%Shape: Rectangle [id:dp7106629147891306] 
+\draw   (427,141) -- (517,141) -- (517,292) -- (427,292) -- cycle ;
+%Shape: Rectangle [id:dp1342906826203598] 
+\draw   (115,54) -- (185,54) -- (185,94) -- (115,94) -- cycle ;
+%Shape: Rectangle [id:dp08072439007207399] 
+\draw   (185,54) -- (255,54) -- (255,94) -- (185,94) -- cycle ;
+%Shape: Rectangle [id:dp8282933603833216] 
+\draw   (255,54) -- (325,54) -- (325,94) -- (255,94) -- cycle ;
+%Shape: Rectangle [id:dp8416255090865326] 
+\draw   (325,54) -- (395,54) -- (395,94) -- (325,94) -- cycle ;
+%Shape: Rectangle [id:dp22911958218529804] 
+\draw   (395,54) -- (465,54) -- (465,94) -- (395,94) -- cycle ;
+%Shape: Rectangle [id:dp33732955213990756] 
+\draw   (465,54) -- (535,54) -- (535,94) -- (465,94) -- cycle ;
+%Curve Lines [id:da6688730321284677] 
+\draw    (211.5,96) .. controls (-36.44,98.94) and (15.75,190.24) .. (30.17,213.65) ;
+\draw [shift={(31,215)}, rotate = 238.24] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Shape: Rectangle [id:dp6044747978986409] 
+\draw   (33,191) -- (123,191) -- (123,231) -- (33,231) -- cycle ;
+%Curve Lines [id:da8867562998134584] 
+\draw    (289.5,95) .. controls (115.15,110.76) and (137.77,175.03) .. (163.33,197.98) ;
+\draw [shift={(164.5,199)}, rotate = 220.24] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Shape: Rectangle [id:dp8861153167245819] 
+\draw   (166,177) -- (256,177) -- (256,217) -- (166,217) -- cycle ;
+%Shape: Rectangle [id:dp05979844200848894] 
+\draw  [dash pattern={on 4.5pt off 4.5pt}] (295,156) -- (385,156) -- (385,196) -- (295,196) -- cycle ;
+%Shape: Rectangle [id:dp17403733244247843] 
+\draw   (427,212) -- (517,212) -- (517,252) -- (427,252) -- cycle ;
+%Curve Lines [id:da20581124900573955] 
+\draw [color={rgb, 255:red, 0; green, 0; blue, 0 }  ,draw opacity=1 ] [dash pattern={on 4.5pt off 4.5pt}]  (357,97) .. controls (262.92,110.72) and (272.56,148.45) .. (291.81,173.48) ;
+\draw [shift={(293,175)}, rotate = 231.34] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ,draw opacity=1 ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Curve Lines [id:da07589611603635316] 
+\draw    (425.5,95) .. controls (380.42,119.5) and (406.41,202.58) .. (422.53,224.72) ;
+\draw [shift={(423.5,226)}, rotate = 231.34] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Curve Lines [id:da6852167546673456] 
+\draw    (497.5,95) .. controls (564.48,91.06) and (565,230.71) .. (567.87,269.31) ;
+\draw [shift={(568,271)}, rotate = 265.24] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Curve Lines [id:da017521077423665377] 
+\draw    (39.5,359) .. controls (-12.71,369.84) and (17.07,323.43) .. (32.31,293.36) ;
+\draw [shift={(33,292)}, rotate = 116.57] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Curve Lines [id:da6750042432035159] 
+\draw    (122,215) .. controls (128.9,254.4) and (131.91,269.54) .. (159.71,289.1) ;
+\draw [shift={(161,290)}, rotate = 214.59] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Curve Lines [id:da14788158682113428] 
+\draw    (257,197) .. controls (258.95,236) and (277.06,270.25) .. (293.72,290.47) ;
+\draw [shift={(295,292)}, rotate = 229.64] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Curve Lines [id:da3297977595767969] 
+\draw    (386,177) .. controls (392.86,226) and (408.36,270.2) .. (425.92,290.77) ;
+\draw [shift={(427,292)}, rotate = 228.01] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Curve Lines [id:da7710391961792686] 
+\draw    (517,229) .. controls (524.76,253.25) and (540.05,269.03) .. (552.82,282.73) ;
+\draw [shift={(554,284)}, rotate = 227.12] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Shape: Rectangle [id:dp1535611125971872] 
+\draw   (514,336) -- (584,336) -- (584,376) -- (514,376) -- cycle ;
+%Shape: Rectangle [id:dp05427947476226991] 
+\draw   (95,338) -- (136.5,338) -- (136.5,378) -- (95,378) -- cycle ;
+%Shape: Rectangle [id:dp10511138743752002] 
+\draw   (136.5,338) -- (265.5,338) -- (265.5,378) -- (136.5,378) -- cycle ;
+%Shape: Rectangle [id:dp8917680919534263] 
+\draw   (265.5,338) -- (305,338) -- (305,378) -- (265.5,378) -- cycle ;
+\draw   (558,284.5) .. controls (558,279.25) and (562.25,275) .. (567.5,275) .. controls (572.75,275) and (577,279.25) .. (577,284.5) .. controls (577,289.75) and (572.75,294) .. (567.5,294) .. controls (562.25,294) and (558,289.75) .. (558,284.5) -- cycle ; \draw   (558,284.5) -- (577,284.5) ; \draw   (567.5,275) -- (567.5,294) ;
+%Curve Lines [id:da9312068388962929] 
+\draw    (568,298) .. controls (584.66,309.76) and (586.91,318.64) .. (565.35,335.93) ;
+\draw [shift={(564,337)}, rotate = 321.95] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+% Text Node
+\draw (11,14) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize Virtual}};
+% Text Node
+\draw (570,395) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize Physical}};
+% Text Node
+\draw (104,28) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize 63}};
+% Text Node
+\draw (175,28) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize 48}};
+% Text Node
+\draw (245,28) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize 39}};
+% Text Node
+\draw (314,28) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize 30}};
+% Text Node
+\draw (385,28) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize 21}};
+% Text Node
+\draw (454,28) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize 12}};
+% Text Node
+\draw (523,28) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize 0}};
+% Text Node
+\draw (132,65) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize Sign}};
+% Text Node
+\draw (195,65) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize L4 Offset}};
+% Text Node
+\draw (264,65) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize L3 Offset}};
+% Text Node
+\draw (336,65) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize L2 Offset}};
+% Text Node
+\draw (406,65) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize L1 Offset}};
+% Text Node
+\draw (472,65) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize Page Offset}};
+% Text Node
+\draw (67,63) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize va}};
+% Text Node
+\draw (48,203) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize L4 Entry}};
+% Text Node
+\draw (180,189) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize L3 Entry}};
+% Text Node
+\draw (311,167) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize L2 Entry}};
+% Text Node
+\draw (444,223) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize L1 Entry}};
+% Text Node
+\draw (51,347) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize root}};
+% Text Node
+\draw (465,349) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize page}};
+% Text Node
+\draw (529,346) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize 4K Data}};
+% Text Node
+\draw (133,386) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize 51}};
+% Text Node
+\draw (258,386) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize 12}};
+% Text Node
+\draw (163,350) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\scriptsize Base Addr}};
+
+
+\end{tikzpicture}
+          \caption{Accessing to the Page Referenced by L1 Entry}
+        \label{fig:enter-label}
+    \end{subfigure}
+    \vfill
+\begin{minipage}{.5\textwidth}
+%    \begin{figure}
+\begin{lstlisting}[mathescape,escapeinside={(*}{*)},basicstyle=\footnotesize]
+pte_t *pte_get_next_table(pte_t *entry) {
+  pte_t *next;
+  /*Reading page table entry:
+    pointed by a virtual memory address*/
+  /* Jump if the present bit is not zero:
+     no need to allocate next level (* \label{line:check_entry_presentC} *)(* \label{line:mask_presentC} *)  (*\label{line:after_concluding_qfrac1C}*)*/
+  if (!entry->present(*\label{line:read_entry_contentsC}*) (*\label{line:conditional_childrenC}*)) {
+    /*Allocation path starts here (*\label{line:pass_addrof_nextC}*)(*\label{line:alloc_path_startC}*)*/
+    pte_initialize(entry);(* \label{line:call_to_pte_initializeC} *)
+    /*Entry value updates:*/
+    entry->pfn = nextpaddr;
+    entry->present = 1; (*\label{line:install_new_entryC}*)
+    /*Entry is initialized,
+      so we satisfy the condition to access children list */
+  } (*\label{line:end_of_allocation_pathCB}*)
+  /*Physical to virtual address mapping code segment starts here (*\label{line:finalpieceSB}*)*/
+  uintptr_t next_phys_addr = PTE_PFN_TO_ADDR(entry->pfn)
+  uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr); (*\label{line:p2vCB}*);
+  next = (pte_t *) next_virt_addr;(*\label{line:finalpieceEB}*)
+  return next;
+}
+\end{lstlisting}
+\end{minipage}
+\begin{minipage}{.4\textwidth}
+\begin{lstlisting}[mathescape,escapeinside={(*}{*)}, basicstyle=\footnotesize]
+pte_t *walkpgdir(pte_t *root, void *va){ 
+  pte_t *l4_entry = &root[L4Offset(va)];
+  pte_t *l3 = pte_next_table(l4_entry);
+  pte_t *l3_entry = &l3[L3Offset(va)];
+  pte_t *l2 = pte_next_table(l3_entry);
+  pte_t *l2_entry = &l2[L2Offset(va)];  
+  pte_t *l1 = pte_next_table(l2_entry);
+  pte_t *l1_entry = &l1[L1Offset(va)];  
+  return l1_entry
+}
+\end{lstlisting}
+%          \caption{Walking page-table tree to locate L1 entry C-source code.}
+%        \label{fig:enter-label}
+ %   \end{figure}
+\end{minipage}
+%\end{framed}
     \vspace{-2.5em}
     \caption{x86-64 page table lookups.}
     \label{fig:pagetables}
