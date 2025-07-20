@@ -22,15 +22,15 @@
 We describe a program logic (a separation logic) along the lines suggested earlier, where every assertion is relative
 to an address space in which it is interpreted, allowing us to define \emph{virtual points-to} assertions that make claims
 about memory locations in a particular address space. Virtual addresses, and even virtual points-to assertions, 
-are not tagged with their address spaces in any way. Memory access in this logic is validated through the use 
-of virtual points-to assertions in pre-conditions, which guarantee that address translations succeed.
-This supports rules for updating not only typical data in memory that happens to be subject to address translation, but
-manipulation of the page tables themselves via virtual addresses (as demanded by all modern hardware), also
+are not tagged with their address spaces in any way. Memory access in this logic is validated through the use
+of virtual points-to assertions in preconditions, which guarantee that address translations succeed.
+This supports rules for updating not only typical data in memory that happens to be subject to address translation but also
+manipulation of the page tables themselves via virtual addresses (as demanded by all modern hardware) and also
 via virtual points-to assertions.
 To support specifications that deal with multiple address spaces, our logic incorporates a hybrid-style modality
-$[r](P)$ to state that an assertion is true in another (assertion-specified) address space rather than the address space
-currently active in hardware, which is not only useful for virtual memory manager invariants but critical to reasoning
-about change-of-address-space.
+$[r](P)$ to state that an assertion is true in another address space (assertion-specified) rather than the address space
+currently active in hardware, which is not only useful for virtual memory manager invariants, but also critical to reasoning
+about change of address space.
 By developing this within the \iris framework, we obtain additional features (e.g., fractional permissions) that allow us to verify
 some of the most subtle and technically challenging instruction sequences in an OS kernel (Section \ref{sec:experiment}).
 
@@ -60,23 +60,22 @@ some of the most subtle and technically challenging instruction sequences in an 
 To support making assertions depend on a choice of address space, we work entirely in a pointwise lifting of \iris's base BI logic,
 essentially working with separation logic assertions indexed by a choice of page table root as a $\mathcal{W}_{64}$, which we call $\textsf{vProp }\Sigma$:\footnote{
   \iris experts may notice our \lstinline|-b>| resembles another pointwise lifting already in  \iris~\cite{dang2019rustbelt,dang2022compass}. 
-  This similarity is real, but the existing lifting does not appear to work with indexed \coq types
-  like our \lstinline|word n| as a domain.
+  This similarity is real, but the existing lifting does not appear to work with indexed \coq types like our \lstinline|word n| as a domain.
 }
 \lstinline[language=Coq]|Definition vProp  $\Sigma$ : bi := word 64 -b> iPropI  $\Sigma$|.
 This is the (\rocq) type of assertions in our logic.
-Most constructs in \iris's base logic are defined with respect to any BI-algebra (of \coq type \lstinline|bi|), so automatically
+Most constructs in \iris's base logic are defined with respect to any BI-algebra (of \coq type \lstinline|bi|), so they automatically
 carry over to our derived logic.
 \add{Since \textsf{vProp}s are ``just'' \textsc{Iris} predicates on a choice of page table root,
 it may not be obvious what the gain is over simply using \textsc{Iris} directly.
 The gain is not expressive power.
-Every modal logic can be translated straitforwardly to a logic without modalities
+Every modal logic can be translated straightforwardly to a logic without modalities
 (nearly always a small variation on the \emph{standard translation} from propositional modal logic
 to first-order logic~\cite{blackburn2006modal}\footnote{\add{Itself similar to verification condition generation
 for weakest precondition calculi and Hoare logics.}}) that can directly address the logic's models ---
 but these translations, in addition to making specifications far more verbose,
 generally do not preserve the appealing reasoning principles of modal logics.
-This becomes most apparent when discussing our proof rules.
+This becomes more apparent when discussing our proof rules.
 }
 
 However, we must still build up from existing \iris primitives to provide new primitives that depend on the address space --- primarily the notion
@@ -85,11 +84,11 @@ To define and use virtual points-to assertions, we require two basic assertions 
 the current address space:
 
 \paragraph{Register points-to} 
-The assertion $\textsf{r}\;\mapsto_{\textsf{r}}\{q\}\;\textsf{rv}$ ensures the ownership of the register $\rg$ containing the register value $\rv$. 
-The fraction $\qfrac$ with value 1 asserts the unique ownership of the register mapping, and grants update permission on it, 
-otherwise, any value $0 < \qfrac <1$ represents partial ownership granting readonly permission on the mapping.
+The assertion $\textsf{r}\;\mapsto_{\textsf{r}}\{q\}\;\textsf{rv}$ ensures the ownership of the register $\rg$ containing the value of the register $\rv$. 
+The fraction $\qfrac$ with value 1 asserts the unique ownership of the register mapping and grants update permission to it;
+otherwise, any value $0 < \qfrac <1$ represents partial ownership, granting read-only permission on the mapping.
 
-\paragraph{Physical memory  points-to} The soundness proofs for our logic's rules largely center around 
+\paragraph{Physical memory  points-to} The soundness proofs for our logic's rules largely center around
 proving that page-table-walk accesses as in Figure \ref{fig:pagetables} succeed, which requires assertions
 dealing with physical memory locations.
 We have two notions of physical points-to facts. The primitive notion closest to our machine model is captured by an assertion
@@ -134,7 +133,7 @@ contain
 partial ownership of the physical memory involved in the page table walk that would translate \textsf{va} to
 its backing physical location --- with locations existentially quantified since a virtual points-to should not assert
 \emph{which} locations are accessed in a page table walk, as in Figure \ref{fig:strongvirtualpointsto}.
-It asserts the existence of four page table entries, one at each translation level, and via \lstinline|L4_L1_PointsTo|
+It asserts the existence of four page-table entries, one at each translation level, and via \lstinline|L4_L1_PointsTo|
 asserts that the physical page table walk (per Figure \ref{fig:pagetables}) succeeds in reaching the L1 entry,
 which points to the page holding the physical memory backing the virtual address, which contains value \textsf{v}.
 Most of the definition lives directly in \textsf{vProp}, using the separation logic structure lifted from \iris's \textsf{iProp}.
@@ -148,21 +147,18 @@ with a tag matching a new tag on the corresponding offset chunk of the translate
 }
 \lstinline|L4_L1_PointsTo| works by
 chaining together the entries for each level, using the sequence of table offsets from the address being translated to index
-each table level, and using the physical page address embedded in each entry.\footnote{
+each table level, and using the physical page address embedded in each entry. \footnote{
   The fractions \lstinline|q1| through \lstinline|q4| represent the fractional ownership of each entry based on how many
   word-aligned addresses might need to share the entry ---  $(\frac{1}{512})^n$ for each level $n$.
 }
-For example, 
-  the first level address translation to get the L4 entry (\lstinline|l4e|) 
-  uses the masks \textsf{l4M52} with the current \lstinline|cr3| to get the 
-  physical address of the start of the L4 table,
+For example, the first-level address translation to get the L4 entry (\lstinline|l4e|) 
+  uses the masks \textsf{l4M52} with the current \lstinline|cr3| to get the physical address of the start of the L4 table
   and \textsf{l4off} with the virtual address being translated to compute the correct offset within that table.
-  Then at that physical location is the appropriate entry in the L4 table \textsf{l4e}.
+  Then, that physical location is the appropriate entry in the L4 table \textsf{l4e}.
   Subsequent levels of the page table walk work similarly.
 The statement of these assertions is simplified by the use of our split physical points-to assertions, since
-each level of tables is page-sized.\footnote{We do not address superpages and hugepages in this paper.}
-This helper definition is also a more explicit \textsf{vProp}, explicitly binding a value for \lstinline|cr3| and using it
-to start the translation process.
+each level of tables is page-sized. \footnote{We do not address superpages and hugepages in this paper.}
+This helper definition is also more explicit in \textsf{vProp} which binds a value to \lstinline|cr3| and uses it to start the translation process.
 \looseness=-1
 
 
@@ -200,23 +196,18 @@ Our solution \replace{removes}{in the next subsection improves on theirs by remo
 \subsection{Aliasing/Sharing Physical Pages}
   \label{sec:sharingpages}  
   The virtual points-to definition shown in Figure \ref{fig:strongvirtualpointsto} 
-  is too strong to specify some operations a virtual memory manager may need to do, such as
-  move one level of the page table to a different physical location while preserving all virtual-to-physical mappings. %\footnote{
+  is too strong to specify some operations that a virtual memory manager may need to do, such as move one level of the page table to a different physical location while preserving all virtual-to-physical mappings. %\footnote{
   %   x86-64 hardware, like other architectures, includes a feature (which we do not formalize assertions for) to
   %   replace an L1 page table address in an L2 entry with a pointer to a \emph{larger} 2MB page (called super-pages), 
   %   or replace an L2 page table address in an L3 entry with a pointer to a 1GB page (called huge-pages).
   % }
   The use of $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}'s
-  virtual points-to definition'
-   stores knowledge of the page table walk's details with ownership of the backing physical
-  memory.
-  Updating any of these mappings (e.g., moving the page tables in physical memory, as in coallescing for
-  superpages or hugepages)
+  virtual points-to definition stores knowledge of the page table walk details with ownership of the backing physical memory.
+  Updating any of these mappings (e.g., moving the page tables in physical memory, as in coalescing for superpages or hugepages)
   would require explicitly collecting all virtual points-to facts that traverse affected entries.
   It is preferable to permit the page tables themselves to be updated independently of the virtual points-to assertions,
   so long as those updates preserve the same virtual-to-physical translations.
-  But this is not possible with Figure \ref{fig:strongvirtualpointsto}'s definition, which ties ownership of particular
-  pieces of page table memory to the virtual points-to.
+  But this is not possible with Figure \ref{fig:strongvirtualpointsto}'s definition, which ties ownership of particular pieces of page table memory to the virtual points-to.
 
 
   % iris.sty lacks nice syntax for the ghost maps
@@ -264,28 +255,23 @@ $}
   \label{fig:ghostmaps}
   \end{figure}
 
-  We separate the physical page-table-walk  
-  from the virtual pointsto relation, replacing it with ghost state that merely guarantees the address translation would succeed.
-  \iris includes a \emph{ghost map} construction which we use to track mappings from
-  virtual addresses to the physical addresses they translate to as a piece of ghost state.
-  The map includes for each key in the map (i.e.,
-  each virtual address) a token $\ghostmaptoken{\gamma}{k}{v}$ whose ownership is required to update that key-value pair in the ghost map
-  named $\gamma$. The existence of such a token implies that the actual map $\theta$ tracked by a corresponding $\mathsf{GhostMap}(\gamma,\theta)$
+  We separate the physical page-table walk from the virtual points-to relation, replacing it with a ghost state that merely guarantees that the address translation would succeed.
+  \iris includes a \emph{ghost map} construction, which we use to track mappings from virtual addresses to the physical addresses they translate to as a piece of ghost state.
+  The map includes, for each key in the map (i.e.,
+  each virtual address), a token $\ghostmaptoken{\gamma}{k}{v}$ whose ownership is required to update that key-value pair in the ghost map named $\gamma$. The existence of such a token implies that the actual map $\theta$ tracked by a corresponding $\mathsf{GhostMap}(\gamma,\theta)$
   resource indeed maps $k$ to $v$. These properties are captured by key \iris rules in Figure \ref{fig:ghostmaps}.\footnote{\iris ghost maps lack established notation in the literature,
   but the syntax we use captures the details of \texttt{iris.base\_logic.lib.ghost\_map}.}
   There are other rules, but these two are most important for explaining ghost maps.
   \textsc{GhostMapUpdate} says that ownership of the actual ghost map with ghost name $\gamma$ and map contents $\theta$,
-  and a full (non-fractional) token witnessing that $\theta$ maps \textsf{pa} to \textsf{va} permits an update to the ghost map's state,
+  and a full (nonfractional) token witnessing that $\theta$ maps \textsf{pa} to \textsf{va} permits an update to the ghost map's state,
   changing the map and replacing the token to represent the new value.
   \textsc{GhostMapLookup} allows using the same information to simply conclude that the mapping indicated by the token is true.
   
-  The \emph{virtual memory manager's invariant} ensures that for each $\ghostmaptoken{\gamma}{\vaddr}{\paddr}$ mapping
-  in this map, there are \emph{physical} resources sufficient to ensure that address translation for $\vaddr$
-  will resolve in the hardware to $\paddr$ --- via $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$.
+  The \emph{virtual memory manager's invariant} ensures that for each $\ghostmaptoken{\gamma}{\vaddr}{\paddr}$ mapping in this map, there are \emph{physical} resources sufficient to ensure that the address translation for $\vaddr$
+will resolve on the hardware to $\paddr$ --- via $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$.
   \add{This kernel invariant turns out to be a key ingredient in supporting proofs of VMM functionality:
   in Section \ref{sec:experiment} we will see that separating the logical and physical virtual-to-physical mappings
-  is what allows stating the global kernel invariants needed for software page traversals, which prior work did not
-  (and could not) pursue.}
+  is what allows stating the global kernel invariants needed for software page traversals, which prior work did not (and could not) pursue.}
   \looseness=-1
 
   %Thus the specification of \emph{which} physical addresses support translation is separated from the virtual points-to.
@@ -300,16 +286,15 @@ $}
   % map caching virtual-to-physical address translations, and for each entry a read only \emph{partial} ownership of that key-value pair.
   % The resource algebra itself is instantiated as:
   % \[\mathcal{A}\textsf{bsPTableWalk} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \;  ( (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \Loc,\mathord{=}) ))\]
-For clarity we refer to the specific ghost map summarizing virtual-to-physical translations by \\
+For clarity, we refer to the specific ghost map summarizing virtual-to-physical translations by \\
 \centerline{$\mathcal{A}\textsf{bsPTableWalk}(\delta,\theta) \stackrel{\triangle}{=} \mathsf{GhostMap}(\delta,\theta)$}\\
 (omitting $\delta$ for brevity when only one is in scope)
 and keep this in a per-address-space invariant described shortly.
-We then replace the physical traversal
- $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}'s virtual points-to definition
+We then replace the physical traversal $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}'s virtual points-to definition
 with ownership of the token \ghostmaptoken{\delta}{\vaddr}{\paddr}, %ghost-map ($ \sumwalkabs\vaddr\qfrac\paddr$),
 yielding Figure \ref{fig:virtualpointstosharing}'s definition.
 This new definition guarantees that the ghost map contains an mapping from the virtual address ($\vaddr$) to a physical address ($\paddr$),
-and thus that the per-address-space invariant will contain the physical resources that guarantee the hardware resolves the translation.
+and thus that the per-address-space invariant will contain the physical resources that guarantee that the hardware resolves the translation.
 
   \begin{figure*}
   \footnotesize
@@ -329,26 +314,25 @@ $}
 \vspace{-1em}
   \end{figure*}
 
-
 We place the authorative ownership of the ghost translation $\mathcal{A}\textsf{PTableWalk}$ in a per-address-space invariant
 $\mathcal{I}$\textsf{ASpace} (Figure \ref{fig:peraspaceinvariant}). 
-$\mathcal{I}$\textsf{ASpace} alone allows changes to the page tables 
+$\mathcal{I}$\textsf{ASpace} alone allows changes to the page tables
 that preserve overall virtual-to-physical translations.
 When combined with the
-fragment stored in the virtual points-to (Figure \ref{fig:virtualpointstosharing}),
-changes in the virtual-to-physical translations become possible without needing to track all virtual points-to assertions.
+fragment stored in virtual points-to (Figure \ref{fig:virtualpointstosharing}),
+changes in the virtual-to-physical translations become possible without the need to track all virtual points-to assertions.
 
 \todo[inline]{This next paragraph below explains details, but should first explain the big picture: the current address space
 is identified by a paddr, so to state the invariant for the address space named by that paddr we need to look up
 what invariants should hold, then assert that those invariants do hold.}
 In Figure \ref{fig:peraspaceinvariant},
 $\theta$ is the logical map from virtual addresses to the physical addresses they should translate to, 
-for the \emph{current} address space, corresponding to the currently installed page tables (the ones
-indicated by \lstinline|cr3|). In Figure \ref{fig:virtualpointstosharing}, the existentially-quantified $\delta$
+for the \emph{current} address space, corresponding to the page tables currently installed (the ones
+indicated by \lstinline|cr3|). In Figure \ref{fig:virtualpointstosharing}, the existentially quantified $\delta$
 is the ghost name for this map (again, for the current address space).
 Because our logic is the first to address the existence of multiple address spaces,
 it must ensure that $\theta$ actually corresponds to the intended ghost map for the current address space.
-This requires looking up the ghost name (i.e., $\delta$) for the current address space,
+This requires looking up the ghost name (i.e. $\delta$) for the current address space,
 which is handled by $m$ --- another logical map (tied to ghost state shortly)
 from various page table roots to ghost names for the per-address-space ghost maps discussed above.
 $\mathcal{I}\textsf{ASpace}(\theta,m)$ then stores the physical resources for the current address space mappings,
@@ -357,13 +341,13 @@ authoritative map matches $\theta$), and asserting ownership of the appropriate 
 of the physical page table walk for each virtual-to-physical translation in $\Theta$ (for the current address space).
 
 \todo[inline]{What's not clear in this next paragraph is the relationship between ASpaceLookup in Figure 5 and the lookup part of Figure 3.
-I think Figure 5's $m$ and Figure 3's $\delta{s}$ are the same, aren't they? If so we should say so and use the same name.
+I think Figure 5's $m$ and Figure 3's $\delta{s}$ are the same, aren't they? If so, we should say so and use the same name.
 If not we should explain why they're different.
 }
 Virtual points-to assertions must also ensure that they are tied to a valid address space, and because they
 use ghost map tokens to ensure the virtual-to-physical translation exists in a specific ghost map, they must also
 name that map. In Figure \ref{fig:virtualpointstosharing}, this is done with a ghost map token for \emph{another} ghost map,
-one shared across the kernel, holding $m$. Our virtual points-to assertion existentially quanfies the address-space-specific
+one shared across the kernel, holding $m$. Our virtual points-to assertion existentially quantifies the address-space-specific
 ghost map $\delta$ mapping virtual addresses to physical addresses, and ensures it exists with a token for the distinguished
 global (unique) ghost map named by $\delta{s}$.
 % the ghost map of virtual-to-physical translations for a particular address space (the ghost name $\delta$ in Figure \ref{fig:virtualpointstosharing}).
@@ -442,11 +426,11 @@ Doing so requires a way to talk about other address spaces, and means to switch 
   \label{fig:modaldef}
 \vspace{-1em}
   \end{figure}
-Figure \ref{fig:modaldef} gives the definition of our modal operator for asserting truth of a modal
+Figure \ref{fig:modaldef} gives the definition of our modal operator for asserting the truth of a modal
 (address-space-contingent) assertion \emph{in another address space}, which we call
 the \emph{other-space} modality. The definition itself is not
-particularly surprising --- as our modal assertions are semantically predicates on a page table root (physical)
-address, the assertion $[r](P)$ is a modal assertion which ignores the (implicit) current page table root,
+particularly surprising --- as our modal assertions are semantic predicates on a page table root (physical)
+address, the assertion $[r](P)$ is a modal assertion that ignores the (implicit) current page table root,
 and evaluates the truth of $P$ as if $r$ were the page table root. 
 The novelty here is not in the details of the definition, but in recognizing that this is the right way to deal with
 multiple address spaces, and working out how to support interaction of multiple address spaces (discussed in the next section).
@@ -456,18 +440,18 @@ about their own address space. In fact, \emph{only} assertions that explicitly d
 spaces need to mention address spaces at all (via the other-space modality).
 }
 
-We can prove that this modality follows certain basic laws: that its truth is independent of the address
-space in which it is considered,  it distributes over various logical connectives, and it follows the rule of
+We can prove that this modality follows certain basic laws, showing that its truth is independent of the address
+space in which it is considered, that it is distributed over various logical connectives, and that it follows the rule of
 consequence.
 We call \textsf{vProp} assertions whose truth is independent of the current address space
-\textsf{Fact}s; these include other-space assertions, physical memory points-tos, and register assertions.
-\textsf{Fact}s can move in and out of other-space modalities freely.
+\textsf{Fact}s; these include other address-space assertions, physical memory points-tos, and register assertions.
+\textsf{Fact}s can freely move in and out of other address-space modalities.
 \looseness=-1
 
 In general, per-address-space invariants should be collected in a larger
 VMM invariant, with individual address spaces' invariants pulled out as needed, such as when proving
 soundness of an individual virtual memory access.
-But such larger invariants would contain many kernel-specific properties that are orthogonal
+However, such larger invariants would contain many kernel-specific properties that are orthogonal
 to the fundamental reasoning principles that are the focus of this paper.
 We leave such kernel-specific reasoning to future work, but our verification of task switching
 (Section \ref{sec:experiment}) demonstrates support for managing multiple address spaces.
@@ -524,7 +508,7 @@ Our Hoare doubles $\{\Phi\}_\textsf{rtv}\;\textsf{e}$ state that the expression 
 \textsf{e} are safe to execute (will not fault)
 when executed with \textsf{vProp} precondition $\Phi\ast\textsf{cr3}\mapsto_{\textsf{r}} \textsf{rtv}$.
 \textsf{WP} is \iris's own weakest precondition modality, unmodified~\cite{jung2018iris}.
-Making \textsf{rtv} a parameter to the double (vs. a simple register assertion)
+Making \textsf{rtv} a parameter to the double (versus a simple registration assertion)
 makes it possible to ensure ownership of the \lstinline|cr3| register and its value is accounted for
 while avoiding some technical headaches with trying to enforce that $\Phi$ itself contains that.
 \looseness=-1
@@ -557,7 +541,7 @@ Standard for Hoare doubles, there is a frame resource $P$ in each rule for passi
 not used by the first instruction in sequence through to subsequent instructions.
 Our rules include tracking of each instruction's memory address to track \lstinline|rip| updates, which is critical
 for control transfer instructions. Our development also includes handling of the \lstinline|rflags| register updates from arithmetic instructions.
-Most rules are otherwise standard (e.g., \lstinline|mov| between register, etc.), with Figure \ref{fig:wpdamd} showing the rules
+Most rules are otherwise standard (e.g., \lstinline|mov| between registers, etc.), with Figure \ref{fig:wpdamd} showing the rules
 most unique to our development.
 \add{As a reminder, in systems of Hoare doubles, an instruction's precondition appears in the conclusion of the rule,
 and an instruction's ``postcondition'' appears as the precondition to subsequent instructions in the
@@ -661,7 +645,7 @@ reflects that it reads from the (virtual) memory address \textsf{vaddr} stored i
 register $\textsf{r}_a$ --- and thus requires register points-to and virtual points-to assertions describing
 that relationship and the assumed value \textsf{v} in memory in its precondition (the precondition of the rule's
 conclusion). 
-It reflects the load of that memory value into the destination register $\textsf{r}_d$, with
+It reflects the loading of that memory value into the destination register $\textsf{r}_d$, with
 the updated register points-to in the precondition for $\overline{is}$.
 $P$ describes framed resources, which are passed along to the precondition of subsequent instructions,
 as in any system of Hoare doubles~\cite{Chlipala2013Bedrock,ni2007contexts}.
@@ -690,11 +674,11 @@ x86 ISA that preceded x86-64.
 
 \add{Note that the use of a modal abstraction of address space simplifies these rules.
 The antecedents of \textsc{WriteToRegFromVirtMem} and \textsc{WriteToVirtMemFromReg}
-only mention the address space in the index of the 
+only mention the address space in the index of the
 Hoare double --- not in $P$, or the (virtual) points-to assertions.
 There is no extra condition to discharge that the address being accessed is from
 the current address space.
-\todo[inline,color=green]{WIP: Colin is trying to clarify the value of modal approach here}
+\todo[inline,color=green]{WIP: Colin is trying to clarify the value of the modal approach here}
 }
 \todo[inline,color=cyan]{Colin says:
 Ismail, Figure 7 looks broken. Why are there two IAspaces in WriteToRegFromVirtMem? Shouldn't there
@@ -706,12 +690,11 @@ And also in WriteToVirtMemFromReg, why are all the fractions q? They should be a
 (Also, explaining the fraction notation was one of the questions from reviewers.)
 }
 
-
 \subsubsection{Updating \lstinline|cr3|} 
 Unlike other rules, \TirNameStyle{WriteToRegCtlFromRegModal} updates the root address of the 
 address-space determining the validity of resources, from $\rtv$ before the
 \lstinline|mov| to $\textsf{rvs}$ afterwards. The global effects of this rule are reflected in moving
-\del{bare} assertions \add{for the current address space ($P$ and $\mathcal{I}\mathsf{ASpace}$)} under an other-space modality for \add{the initial
+\del{bare} assertions \add{for the current address space ($P$ and $\mathcal{I}\mathsf{ASpace}$)} under an other address-space modality for \add{the initial
 (outgoing) address space} $\rtv$, and moving the new address space's assertions out of
 the corresponding modality \add{(since after the \lstinline|mov|, those will hold in the
 new current address space)}.
@@ -730,7 +713,7 @@ It is often said that the frame rule (below) is one of the key pieces of separat
   \qquad\textrm{(unsound with address space changes)}
 \]
 Such a rule is normally recoverable from Hoare doubles (see, e.g., \citet{Chlipala2011Bedrock,Chlipala2013Bedrock}).
-However, in the presence of address space changes the traditional frame rule is unsound.
+However, in the presence of address space changes, the traditional frame rule is unsound.
 Consider:
 \begin{mathpar}
   \inferrule*[right=Frame]{
@@ -746,10 +729,10 @@ Consider:
   }
 \end{mathpar}
 In this (broken!) hypothetical example,
-both the precondition and postcondition assert that $a\mapsto_\mathsf{v} x$ in the current address space, but we have no basis for concluding that address translation is preserved by the change of address space. So this derivation clearly leads to an unsound conclusion. 
+both the precondition and the postcondition assert that $a\mapsto_\mathsf{v} x$ in the current address space, but we have no basis for concluding that address translation is preserved by the change of address space. So, this derivation clearly leads to an unsound conclusion. 
 The essential problem is that the frame rule is motivated by local reasoning about local updates, but
-a switch of address space is a \emph{global} change that may invalidate information about virtual addresses.
-Thus framing around arbitrary \lstinline|cr3| updates is unsound --- hence the \emph{global} nature of \textsc{WriteToRegCtlFromRegModal} ---
+a switch of address-space is a \emph{global} change that may invalidate information about virtual addresses.
+Thus, framing around arbitrary \lstinline|cr3| updates is unsound --- hence the \emph{global} nature of \textsc{WriteToRegCtlFromRegModal} ---
 though a variant the ensures the same \lstinline|cr3| value is installed before and after the framing
 can be recovered.
 
@@ -769,8 +752,8 @@ ghost bit discussion should either go in relwork with some Dafny(?) discussion, 
 
 \subsection{Soundness}
 \label{sec:soundness}
-Our rules from Figure \ref{fig:wpdamd} are proven sound in \iris against an assembly-level hardware model
-implementing a fragment of x86-64 including 64-bit address translation with 4-level page tables.
+Our rules from Figure \ref{fig:wpdamd} are proven to be sound in \iris against an assembly-level hardware model
+implementing a fragment of x86-64, including 64-bit address translation with 4-level page tables.
 % \todo[inline]{
 Our rules for control transfers (\lstinline|jne|, \lstinline|call|, and \lstinline|ret|) are currently
 axiomatized (with completely standard specifications~\cite{ni2007contexts,Chlipala2013Bedrock})\footnote{
