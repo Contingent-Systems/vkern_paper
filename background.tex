@@ -155,8 +155,8 @@ address, but tagged with the physical data addresses, so cache lookups and addre
 
 
 \end{tikzpicture}
-          \caption{Accessing to the Page Referenced by L1 Entry}
-        \label{fig:enter-label}
+          \caption{x86-64 page table lookups.}
+        \label{fig:pagetables}
     \end{subfigure}
     \vfill
 \begin{minipage}{.5\textwidth}
@@ -205,25 +205,36 @@ pte_t *walkpgdir(pte_t *root, void *va){
 \end{minipage}
 %\end{framed}
     \vspace{-2.5em}
-    \caption{x86-64 page table lookups.}
-    \label{fig:pagetables}
+    \caption{A kernel implementing x86-64 page table lookups.}
+    \label{fig:pagetablescode}
     \vspace{-1em}
 \end{figure}
 
 On the x86-64 architecture, the \textsc{MMU}'s address translation uses a sparse hierarchical set of tables:
 \emph{page tables} (referring to pages of memory). As Figure \ref{fig:pagetables} (based on Figure 5-17 of the 
 AMD64 architecture manual~\cite{amd64_manual_vol2}\footnote{While x86 up through its 32-bit incarnation were due to Intel,
-the x86-64 architecture as a 64-bit extension to x86 was originally due to AMD. As a result, it is sometimes also referred to as the \texttt{amd64} architecture.}) shows, 
-address translation proceeds by repeatedly taking designated slices of the virtual address and indexing into a table.
-The final lookup in the page tables gives the base physical address of a 4KB page of physical memory, to which the low-order
-bits of the accessed virtual address are added to determine the actual physical address retrieved. 
-On x86-64, standard configurations use 4 levels of page tables, labelled levels 4 through 1, with lookups in the level 
+the x86-64 architecture as a 64-bit extension to x86 was originally due to AMD. As a result, it is sometimes also referred to as the \texttt{amd64} architecture.}) shows a \emph{page-table walk} for a virtual address. The page tables are managed by the OS, typically by a \emph{virtual memory manager} (VMM).\footnote{Not to be confused with Virtual 
+Machine Monitor. We focus on non-hypervisor scenarios, but hardware virtualization extensions for both 
+x86-64 and ARM make use of an additional set of page tables translating what a \emph{guest} considers to be its 
+(virtualized) physical memory to actual physical memory. Our contributions should offer value in this scenario as well.}
+Typically each process has its own 
+page table, which the OS registers with the CPU by storing the (page-aligned)
+physical address of the root of the page table tree (the start of the L4 table shown as \mathsf{root} in Figure \ref{fig:pagetables}) in a specific register (\texttt{cr3}) as part of switching to a new process. 
+Using different mappings, which map only disjoint portions of physical memory (with some exceptions in the next section) 
+is how the OS ensures memory isolation between processes.
+
+In Figure \ref{fig:pagetablescode}, we see a simplified kernel code, \lstinline|walkpgdir|, implementing this page-table walk for translating the virtual address $\vaddr$ over the page-table tree with unique root address $\mathsf{root}$ shown in Figure \ref{fig:pagetables}.
+As shown in Figure at the top of Figure \ref{fig:pagetables}, on x86-64, standard configurations use 4 levels of page tables, labelled levels 4 through 1, with lookups in the level 
 1 page table resulting in the actual page of physical memory holding the requested data, and the low-order 12 bits 
 being used to index into this page.\footnote{Technically levels 1--3 have explicit historical names,
-but for brevity and consistency, we simply number them, in keeping with the newer 5th level.
-Our formalization
-only deals with 4-level page tables, but is straightforwardly extensible to 5.}  
-The translation process or algorithm is sometimes referred to as a \emph{page-table walk}. 
+but for brevity and consistency, we simply number them, in keeping with the newer 5th level. Our formalization only deals with 4-level page tables, but is straightforwardly extensible to 5.} 
+As depicted at the top of Figure \ref{fig:pagetables}, for each level of translation, address-translation implementation repeatedly takes designated slices of the virtual address and indexing into a table --- e.g., L4Offset(va) at Line 2 of \lstlinline|walkpgdir| in Figure \ref{fig:pagetablescode}. 
+The final lookup in the page tables gives the base physical address of a 4KB page of physical memory, to which the low-order
+bits of the accessed virtual address are added to determine the actual physical address retrieved. The entries of each table are 64 bits wide, but each points to a physical address aligned to 4KB (4096 byte) boundaries, which leaves 12 bits to spare to 
+control a validity bit (called the \emph{present} bit), a read-write bit (which permits write access through the entry if and only if it is set), and a range of additional bits which can be used to control caching, write-through, and more. This paper will only consider the present bit (0).
+
+
+ 
 While Figure \ref{fig:pagetables} and most of our constants (how many levels, which virtual address bits index which
 table levels) are specific to the x86-64 architecture, ARMv8 (a.k.a.\ 
 \texttt{aarch64}), RISC-V, and PowerPC use similar hierarchical page tables for address translation.
@@ -232,20 +243,8 @@ both split 64-bit virtual addresses at the same points to index into the respect
 is equally applicable to those architectures (the only difference is that page table entries place control bits of write access, etc.,
 in different orders).
 
-The entries of each table are 64 bits wide, but each points to a physical address aligned to 4KB (4096 byte) boundaries, which leaves 12 bits to spare to 
-control a validity bit (called the \emph{present} bit), a read-write bit (which permits write access through the entry if and only if it is set), 
-and a range of additional bits which can be used to control caching, write-through, and more. This paper will only consider the present bit (0).
 
-The page tables are managed by the OS, typically by a \emph{virtual memory manager} (VMM).\footnote{Not to be confused with Virtual 
-Machine Monitor. We focus on non-hypervisor scenarios, but hardware virtualization extensions for both 
-x86-64 and ARM make use of an additional set of page tables translating what a \emph{guest} considers to be its 
-(virtualized) physical memory to actual physical memory. Our contributions should offer value in this scenario as well.}
-Typically each process has its own 
-page table, which the OS registers with the CPU by storing the (page-aligned)
-physical address of the root of the page table treethe start of the L4 table) in a 
-specific register (\texttt{cr3}) as part of switching to a new process. 
-Using different mappings, which map only disjoint portions of physical memory (with some exceptions in the next section) 
-is how the OS ensures memory isolation between processes.
+
 
 If an instruction is executed that accesses a virtual address that either has no mapping, or does not have a mapping permitting 
 the kind of access that was performed (e.g., the instruction was a memory write, but the relevant address range was marked read-only in
