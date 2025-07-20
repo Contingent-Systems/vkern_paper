@@ -45,7 +45,7 @@
 % distillations of key VMM functionality.
 % real concerns of virtual memory managers.
 % Recall from Section \ref{sec:logic} that virtual points-to assertions work just like regular points-to assertions, by design.
-In this section we verify several critical and challenging pieces of VMM code.
+In this section, we verify several critical and challenging pieces of VMM code.
 First, in several stages, we work up to mapping a new page in the current address space.
 This requires a number of independently challenging substeps: dynamically traversing a page table to find
 the appropriate L1 entry to update; inserting additional levels of the page table if necessary (updating
@@ -71,20 +71,20 @@ the first such verification handling both old and new processes' assertions (in 
 %\end{comment}
 \subsection{Traversing Live Page Tables}
 \label{sec:traversing}
-We build up to the main task of mapping a new page after traversing page tables in software.
+We build up to the main task of mapping a new page after traversing the page tables in the software.
 The mapping operation of Figure \ref{fig:mapping_codeC} assumes an operation \textsf{walkpgdir} which must traverse the page tables
 in order to locate the address of the L1 entry to update --- 
 % possibly allocating tables for levels 3, 2, and 1 in the process,
 % installing them into levels 4, 3, and 2, along the way.
 possibly allocating new L3, L2, and L1 tables as necessary.
 Traversing the page tables is itself challenging functionality to verify: loading the current table root from \lstinline|cr3| is straightforward
-(a \lstinline|mov| instruction), however this produces the physical address of \lstinline|cr3|, not the virtual address the kernel code would use to access that memory.
-This problem repeats at each level of the page table: assuming the code has \emph{somehow} read the appropriate L4 (or L3, or L2) entry, those entries again
+(a \lstinline|mov| instruction); however, this produces the physical address of \lstinline|cr3|, not the virtual address the kernel code would use to access that memory.
+This problem repeats at each level of the page table: assuming that the code has \emph{somehow} read the appropriate L4 (or L3, or L2) entry, those entries again
 yield physical addresses, not virtual.
 
 \subsubsection{Loading Page-Table Address Value}
-We will discuss access to the level 4 table later (Section \ref{wlkpgdirC}). But for subsequent levels, the base address of level $n$ must be
-fetched from the appropriate entry in the level $n+1$ table.
+We will discuss access to the level 4 table later (Section \ref{wlkpgdirC}). However, for subsequent levels, the base address of level $n$ must be
+fetched from the appropriate entry in the table of level $n+1$.
 This is the role of \lstinline|pte_get_next_table| (Figure \ref{fig:calltopteinitializeC}):
 %and \ref{fig:p2vC}):
 it is passed the virtual address of the page table entry in level $n+1$, and should return the \emph{virtual} 
@@ -93,11 +93,11 @@ indicated by that entry.
 If the entry is empty (i.e., this is a sparse part of the page table representation),
 the code also allocates a page for the level $n$ table, installs it in the level $n+1$ entry, and establishes appropriate invariants.
 Figure \ref{fig:calltopteinitializeC} presents the initial part of the function, which performs the allocation if necessary.
-Lines \ref{line:finalpieceS}-\ref{line:finalpieceE} in Figure \ref{fig:calltopteinitializeC} (discussed in Section \ref{sec:p2vC}) deals with the cases where no allocation is necessary \emph{or} the allocation has already
+Lines \ref{line:finalpieceS}-\ref{line:finalpieceE} in Figure \ref{fig:calltopteinitializeC} (discussed in Section \ref{sec:p2vC}) deal with the cases where no allocation is necessary \emph{or} the allocation has already
 been performed by the code in this figure.
 \looseness=-1
 
-Note that the specification does \emph{not} assume a specific page table level --- logical parameter \textsf{v} represents the level
+Note that the specification does \emph{not} assume a specific page table level --- the logical parameter \textsf{v} represents the level
 of the entry passed as an argument, and this code
 is used for all three level transitions when traversing page tables (4 to 3, 3 to 2, 2 to 1).
 This comes into play with a subtlety of the specification of \lstinline|pte_get_next_table| that we will
@@ -111,7 +111,7 @@ for the \emph{caller} to construct a vpte-pointsto for any entry of the next tab
 the caller knows which level of the table this is for).
 \looseness=-1
 
-Within \textsf{get\_next\_table}, after a standard function prologue, the code 
+Within \textsf{get\_next\_table}, after a standard function prologue, the code
 loads the entry pointed to by the argument (logical variable \textsf{entry} in the proof outline).
 This is a page table entry: a 64-bit word divided into bit-fields for
 the physical address of the next table, and control bits like the valid bit, as discussed in 
@@ -127,7 +127,7 @@ Lines \ref{line:mask_present}--\ref{line:check_entry_present} check
 if the entry's ``present'' bit is set.
 If it is zero, a new page must be allocated for the next level of the table. Otherwise the code jumps ahead to
 the case for the next level already existing (Lines \ref{line:finalpieceS}-\ref{line:finalpieceE} in Figure \ref{fig:calltopteinitializeC}), which is discussed in Section \ref{sec:p2vC}.
-First, we must discuss another refinement of the address space invariant, establishing
+First, we must discuss another refinement of the address-space invariant, establishing
 enough structure on the page tables themselves to allow the traversal.
 The code for allocating a new level of the page table must establish this extended invariant.
 
@@ -255,26 +255,25 @@ because the addresses stored in page table entries are physical, but memory acce
 % additional data structures to enable P2V translation.
 \looseness=-1
 
-Because VMM operations are performance-critical for many workloads, most kernels 
+Because VMM operations are performance-critical for many workloads, most kernels
 maintain invariants that enable very fast P2V conversions (rather than adding another data structure).
 Most kernels maintain an invariant on their page tables that the virtual address of any page used for a page table 
 % lives at a virtual address whose value 
 is \emph{a constant offset from the physical address} --- a practice sometimes referred to as \emph{identity mapping} 
 (even though the physical-to-virtual translation
-is typically not literally the identity function, but adding a non-zero constant offset).\footnote{Some kernels do this for all physical memory on the machine, simplifying interaction
+is typically not literally the identity function, but adding a nonzero constant offset).\footnote{Some kernels do this for all physical memory on the machine, simplifying interaction
 with DMA devices.
 On newer platforms like RISC-V, this sometimes truly is an identity mapping ---
-x86-64 machines are forced into offsets by backwards compatibility with bootloaders that cannot access the full memory space of the
+x86-64 machines are forced into offsets by backward compatibility with bootloaders that cannot access the full memory space of the
 machine.
 }
 
-For this reason we extend the per-address-space invariant as in Figure \ref{fig:peraspaceinvariant_with_p2v_extensionC}, to also track which
-addresses we can perform a P2V conversion on by a adding a constant offset.
+For this reason, we extend the per-address-space invariant as in Figure \ref{fig:peraspaceinvariant_with_p2v_extensionC}, to also track which
+addresses we can perform a P2V conversion on by adding a constant offset.
 $\Xi$ is another ghost map, from physical addresses to the level of the page table they represent (1--4).
 \emph{Only} physical addresses in $\Xi$ can undergo P2V conversion. 
 Section \ref{sec:p2vC} describes the actual conversion,
-but we describe the invariant here 
-because adding new level 3/2/1 tables must maintain the invariant.
+but we describe the invariant here because adding new level 3/2/1 tables must maintain the invariant.
 
 \begin{figure*}
 \footnotesize
@@ -299,7 +298,7 @@ because adding new level 3/2/1 tables must maintain the invariant.
 \vspace{-1em}
 \end{figure*}
 
-For each $\paddr\mapsto \textsf{v} \in\Xi$, the invariant tracks a virtual points-to justifying that virtual address $\paddr+\textsf{KERNBASE}$ maps to physical address $\paddr$
+For each $\paddr\mapsto \textsf{v} \in\Xi$, the invariant tracks virtual points-to justifying that virtual address $\paddr+\textsf{KERNBASE}$ maps to physical address $\paddr$
 (the ``Ghost translation'' in Figure \ref{fig:peraspaceinvariant_with_p2v_extensionC});
 fractional ownership of the physical memory for that page table entry;
 and for valid entries (with the present bit set) above L1, ghost map tokens for every entry in the table pointed to by the entry, which can be used
@@ -314,11 +313,11 @@ The fractional ownership of the entry's physical memory is subtle. Recall that $
 ownership of each page table entry that is traversed (proportional to how many virtual addresses share the entry).
 So in general the invariant cannot keep full permission to the memory in this part of the invariant, or it would overlap the page table walk for virtual points-to
 assertions. But in the case where the entry is invalid, we may need to write to it (e.g., to install a reference to a next-level table, as we do in Figure \ref{fig:calltopteinitializeC}),
-which requires full permission. Fortunately, the entry can only be in use if its valid bit is set; if the valid bit is not set we know
+which requires full permission. Fortunately, the entry can only be in use if its valid bit is set; if the valid bit is not set, we know
 that no virtual points-to entry in $\delta$/$\theta$ holds any partial ownership.
 Thus we use the invariant portion annotated as ``Entry validity'' in Figure \ref{fig:peraspaceinvariant_with_p2v_extensionC} to capture this:
 if the entry is invalid the invariant holds full ownership of the entry, so it can be updated; while if the entry is valid,
-the invariant owns only a constant non-zero fragment sufficient to read the entry, but not modify it (which would invalidate some virtual points-to assertions):
+the invariant owns only a constant nonzero fragment sufficient to read the entry, but not modify it (which would invalidate some virtual points-to assertions):
 \begin{equation*}
  \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner \tag{*}
 \end{equation*}
@@ -327,12 +326,12 @@ the caller has pulled that piece of information out of the invariant and passed 
 This removal appears explicitly in assertions,
 as the argument to the invariant is $\Xi\setminus\{\mathsf{entry}\}$ (indexing by the set $\Xi$ allows us to borrow the physical resources
 for a specific page table entry out of the invariant, and later put them back).
-Line \ref{line:check_entry_present_jumpC}'s conditional then determines in the fall-through case that the bit is not set, which 
+Line \ref{line:check_entry_present_jumpC}'s conditional then determines in the fall-through case that the bit is not set, which
 together with other facts entails $\textsf{qfrac} = 1$ at Line \ref{line:after_concluding_qfrac1C},
-and permits storing a new entry (in ellided code around Line \ref{line:install_new_entryC}).
+and permits storing a new entry (in the elided code around Line \ref{line:install_new_entryC}).
 \looseness=-1
 
-This seemingly-simple piece of code has a highly non-trivial correctness argument, which depends critically on detailed invariants on how access to page table
+This seemingly simple piece of code has a highly nontrivial correctness argument, which depends critically on detailed invariants on how access to page table
 entries is shared between parts of the kernel. No prior work has engaged with this problem.
 
 % Concretely speaking, going back to Line 15 in Figure \ref{fig:calltopteinitialize}, to read the value referenced by physical address \textsf{entry} while preserving the soundness of memory mappings, our extended invariant introduces the side condition (*)
@@ -370,9 +369,9 @@ Lines \ref{line:mask_present}--\ref{line:check_entry_present}
 \fi
 in Figure \ref{fig:calltopteinitializeC}.
 Accessing the presence bit and checking the value allows us to exploit the condition (*) that was just discussed when verifying the allocation
-path (i.e., when the entry is invalid  and Lines \ref{line:alloc_path_startC}--\ref{line:alloc_path_endC} in Figure \ref{fig:calltopteinitializeC}
+path (i.e., when the entry is invalid and Lines \ref{line:alloc_path_startC}--\ref{line:alloc_path_endC} in Figure \ref{fig:calltopteinitializeC}
 must allocate the next level of tables).
-This operation is subtle. To reiterate: the operation requires that the relevant table entry is readable, but the exact portion of ownership 
+This operation is subtle. To reiterate: the operation requires that the relevant table entry is readable, but the exact portion of ownership
 returned must be determined by inspecting the valid bit of the value in memory --- so full ownership is returned only for unused entries.
 When the bit is not set, that entails full ownership of the entry's memory ($\textsf{qfrac} = 1$) and justifies writing to that memory.
 Otherwise, the code jumps past the end of this listing, to the following code at the top of Figure \ref{fig:p2v} (which is also the
@@ -405,7 +404,7 @@ If the entry is not set, \textsf{pte\_initialize} (Line \ref{line:call_to_pte_in
 allocates a physical page (internally utilizing the only unverified (trusted) code in our case studies, the page-allocator's \textsf{kalloc},\footnote{
   This is an allocator for regions of pre-zeroed physical memory that is mapped, but not accessed by the allocator itself,
   as is typical for slab allocators~\cite{bonwick1994slab}.
-  Its verification would be similar to verifying a usermode \textsf{malloc} verifications~\cite{Chlipala2013Bedrock,wickerson2010explicit},
+  Its verification would be similar to verifying a usermode \textsf{malloc} verification ~\cite{Chlipala2013Bedrock,wickerson2010explicit},
   just with additional invariants on the memory pool.
 } 
 on Line \ref{line:call_to_kallocC} in Figure \ref{pteinitializespecC}). 
@@ -417,7 +416,7 @@ pool that is already mapped
 \ifPLDI
 \else
 \footnote{A reasonable reader might wonder where this pool
-initially comes from, and how it might grow when needed. Typically an initial mapping subject to this identity mapping
+initially comes from and how it might grow when needed. Typically an initial mapping subject to this identity mapping
 constraint is set up prior to transition to 64-bit kernel code (notably,
 a page table must exist \emph{before} virtual memory is enabled during boot, as part of enabling it is setting
 a page table root).
@@ -439,18 +438,17 @@ and satisfies the offset invariants.
 % (e.g. $\mathsf{nextpaddr} \mapsto_{\mathsf{p}} \mathsf{w64\_0}$) deliberately in the post-conditoin in Lines 15-16,
 %  we observe a full-ownership token representing the knowledge that a frame and all the entries indexed from this 
 % frame are freshly allocated with full-ownership to be a part of the identity map, $\Xi$. 
-The soundness argument of this specification relies on the fact that these freshly allocated resources are part 
-of an entry construction that has not been completed yet: the presence bit is set 
-(Line \ref{line:install_new_entryC} in Figure \ref{fig:calltopteinitializeC}) after these freshly allocated resources are incorporated to the 
-entry construction via the page-frame portion of the PTE. In other words, the side condition, (*),
+The soundness argument of this specification relies on the fact that these freshly allocated resources are part
+of an entry construction that has not been completed yet: the presence bit is set (line \ref{line:install_new_entryC} in Figure \ref{fig:calltopteinitializeC}) after these freshly allocated resources are incorporated into the
+entry construction via the page frame portion of the PTE. In other words, the side condition, (*),
  formalizes that any access to the entry with these resources is \textit{invalid} (in the sense of not necessarily
 having accompanying resources) until the entry is marked present (and thus the memory returned from \textsf{kalloc}
-moves into the page table invariant.
+moves into the page table invariant).
 
 \subsubsection{Physical-to-Virtual Conversion with \textsf{P2V}}
 \label{sec:p2vC}
-Once we know the entry refers to a physical address in the identity mapping range ($\Xi$)
-(via the branch at Line \ref{line:check_entry_present_jumpC}, or  by allocating and installing a new entry
+Once we know that the entry refers to a physical address in the identity mapping range ($\Xi$)
+(via the branch at Line \ref{line:check_entry_present_jumpC}, or by allocating and installing a new entry
 as just discussed for Lines \ref{line:check_entry_present_jumpC}--\ref{line:end_of_allocation_pathC}), 
 we can convert this frame address to a corresponding virtual address via the identity mappings
 discussed in Section \ref{subsec:identitymappingsC} and Figure \ref{fig:peraspaceinvariant_with_p2v_extensionC}.
@@ -483,8 +481,7 @@ But the correctness of this simple instruction is quite subtle.
 %}
 %\label{fig:p2v}
 %\end{figure}
-Lines \ref{line:childrenC}-\ref{line:p2vC} in Figure \ref{fig:calltopteinitializeC} show the verification of the end of \lstinline|pte_get_next_table| specialized to the case where 
-where no allocation was necessary (i.e., the conditional on Line \ref{line:check_entry_presentC} of Figure \ref{fig:calltopteinitializeC} was taken).
+Lines \ref{line:childrenC}-\ref{line:p2vC} in Figure \ref{fig:calltopteinitializeC} show the verification of the end of \lstinline|pte_get_next_table| specialized to the case where no allocation was necessary (i.e., the conditional on Line \ref{line:check_entry_presentC} of Figure \ref{fig:calltopteinitializeC} was taken).
 In this case, the true present bit allows access to the child tokens from Line \ref{line:conditional_childrenC} of Figure \ref{fig:calltopteinitializeC},
 which is then refined to the assertion on Line \ref{line:childrenC} of Figure \ref{fig:calltopteinitializeC}.
 The code loads the value at the offseted (\textsf{KERNBASE}) virtual memory address ($\textsf{entry}_{\textsf{pfn}}$ \textsf{+KERNBASE})
@@ -617,15 +614,15 @@ This is the code which performs most actual physical-to-virtual conversions usin
 \lstinline|walkpgdir| accepts a \emph{virtual} pointer to the base of the L4 table, and the address to translate.
 The precondition provides knowledge that the virtual base of the L4 is at the appropriate offset from the current \lstinline|cr3| value,
 but does not provide a virtual points-to assertion --- because the function must calculate (Lines \ref{line:start_l4_calcC}--\ref{line:end_l4_calcC})
-which entry it needs access to.
-Instead the precondition has 512 identity map tokens, guaranteeing that every entry on the page is subject to the identity mapping invariant.
+which entry it needs access.
+Instead, the precondition has 512 identity map tokens, guaranteeing that every entry on the page is subject to the identity mapping invariant.
 Line \ref{line:end_l4_calcC} calculates the virtual address of the relevant entry, and the subsequent view shift
 pulls that entry out of the identity mapping ($\Xi$) and fetches its corresponding resources as
 described by Figure \ref{fig:peraspaceinvariant_with_p2v_extensionC} and Section \ref{subsec:identitymappingsC}.
 The ghost translation and physical location are used to form the virtual pte-pointsto for the L4 entry
-(Line \ref{line:first_pte_pointstoC}), with the entry validity and next-level indexing
+(Line \ref{line:first_pte_pointstoC}), with entry validity and next-level indexing
 satisfying the rest of the precondition for \lstinline|pte_get_next_table|.
-\lstinline|pte_get_next_table| then, as described earlier, checks the valid bit in the indicated
+Then, as described earlier, checks the valid bit in the indicated
 entry and either returns the (unconditional) tokens for the L3 entry physical addresses (if valid), or
 allocates into the entry and returns new (also unconditional) tokens for the L3 entry physical addresses.
 \lstinline|pte_get_next_table|'s first call (Line \ref{line:first_getnext_callC}) returns
@@ -704,11 +701,11 @@ to install a new mapping.
 \subsection{Mapping a New Page}
 \label{sec:mapnewC}
 One of the key tasks of a page fault handler in a general-purpose OS kernel is
-to map new pages into an address space by writing into an existing page table via a call\\
+to map new pages to an address space by writing into an existing page table via a call.\\
 \centerline{\textsf{vaspace\_mappage(pte\_t *l4, void *va,uintptr\_t fpaddr)}}\\
 in Figure \ref{fig:mapping_codeC}.
-To do so, with a given allocated a fresh page (\textsf{fpaddr}), then calculate the appropriate
-known-valid page table walks (via \textsf{walkpgdir} Line \ref{line:call_walkpgdirC} in Figure \ref{fig:mapping_codeC})  and update 
+To do so, with a given allocated fresh page (\textsf{fpaddr}), then calculate the appropriate
+known-valid page table walks (via \textsf{walkpgdir} Line \ref{line:call_walkpgdirC} in Figure \ref{fig:mapping_codeC}) and update
 the appropriate L1 page table entry (Line 35 in Figure \ref{fig:mapping_codeC});
 unmapping is the reverse of the logic we discuss here.
 \looseness=-1
@@ -758,12 +755,12 @@ mapped to a page ($\theta \; !!\; \vaddr = \texttt{None}$). Mapping a fresh
 physical page to back the desired virtual page first requires ensuring
 the existence of a memory location for an appropriate L1 table entry.
 The code uses a helper function \lstinline{walkpgdir} (discussed again in Section \ref{wlkpgdirC}).
-\textsf{walkpgdir}'s postcondition contains virtual \emph{PTE} pointsto assertions ($\mapsto_{\textsf{vpte}}$)
+\textsf{walkpgdir}'s postcondition contains virtual \emph{PTE} points-to assertions ($\mapsto_{\textsf{vpte}}$)
 both for ensuring partial page table walk reaching the
 L1 entry (l1e) by asserting that higher levels of the page table exist (R$_{\textsf{walk}}$ in Figure \ref{fig:rwalkC}), 
 and for allowing access to the memory of the L1 entry via virtual address (R$_{\textsf{l1e}}$ in Figure \ref{fig:rwalkC}).
 
-A PTE points-to, as we already brifly mentioned, is defined just like the normal virtual points-to of Figure \ref{fig:virtualpointstosharingC}, except the physical address (here, \textsf{pa}) is explicit in the assertion 
+A PTE points-to, as we already have briefly mentioned, is defined just like the normal virtual points-to of Figure \ref{fig:virtualpointstosharingC}, except the physical address (here, \textsf{pa}) is explicit in the assertion
 rather than existentially quantified:\\
 \centerline{$
     \vaddr\mapsto_{\textsf{vpte,q}} \; \paddr \; \vpage : \mathsf{vProp}~\Sigma \stackrel{\triangle}{=} 
@@ -787,11 +784,11 @@ the modified data is at the specific physical location that will be used as the 
 % allocated physical page address (\textsf{fpaddr}) in Line X.
 
 We already discussed for the upper level page-tables how the entry-present checks are handled.
-However, for L1 entries this check is left to the caller of the 
-traversal function \textsf{walkpgdir}. In other words, unlike what we see in R$_{\textsf{walk}}$ for the upper levels where all entry-present
-checks have already been performed, the specification in R$_{\textsf{l1e}}$ ensures that page table entry for L1 needs to be checked at the caller site. 
-By doing so, as we see in Figure \ref{fig:mapping_codeC}, the page reference \textsf{fpaddr} is linked to back the virtual address \textsf{va} 
-only if it is not already referring to a physical resource (Lines \ref{line:mappage_pte_present_startC}--\ref{line:mappage_pte_present_endC} in Figure \ref{fig:mapping_codeC}). 
+However, for L1 entries this check is left to the caller of the
+traversal function \textsf{walkpgdir}. In other words, unlike what we see in R$_{\textsf{walk}}$ for the upper levels, here all entry-present
+checks have already been performed; the specification in R$_{\textsf{l1e}}$ ensures that page table entry for L1 needs to be checked at the caller site. 
+In doing so, as we see in Figure \ref{fig:mapping_codeC}, the page reference \textsf{fpaddr} is linked back to the virtual address \textsf{va} 
+only if it does not already refer to a physical resource (lines \ref{line:mappage_pte_present_startC}--\ref{line:mappage_pte_present_endC} in Figure \ref{fig:mapping_codeC}). 
 
 The crucial step in addition to traversing the page table in Figure \ref{walkpgdirC} is actually updating the L1 entry (Line \ref{line:updatepfnC} in Figure \ref{fig:mapping_codeC}),
 via the virtual address (\textsf{pt\_entry+KERNBASE}) known to translate to the appropriate physical address, in our example the L1
@@ -799,7 +796,7 @@ table entry address ($\textsf{PTE\_ADDR\_TO\_PFN(fpaddr)}$).
 
 Unlike the only prior work verifying analogous code for mapping a new page~\cite{kolanski08vstte,kolanski09tphols}, our proof above
 does \emph{not} need to reason directly over the operational semantics,
-making this the first verification we know of for mapping a virtual memory page that 
+making this the first verification we know of for mapping a virtual memory page that
 stays entirely at the program logic level.
 \looseness=-1
 % By incorporating verification of the
@@ -815,7 +812,7 @@ the reasoning around line 22 above: given the virtual points-to assertions for a
 machine words of memory that the L1 entry would map,
 and information about the physical location, 
 full permission on the L1 entry could be obtained, allowing the construction of a
-full virtual PTE pointer for it, setting to 0, and reclaiming the now-unmapped physical memory.
+full virtual PTE pointer for it, setting to 0, and reclaiming the now unmapped physical memory.
 \fi
 
 
@@ -847,32 +844,31 @@ $\specline{ \mathcal{I}\texttt{ASpace}(\theta',\Xi',m') \ast \texttt{Pother} \as
 \end{figure}
 
 \subsection{Change of Address Space}
-A critical piece of \emph{trusted} code in current verified OS kernels is the assembly code to change the current address space; current verified OS kernels currently 
+A critical piece of \emph{trusted} code in current verified OS kernels is the assembly code to change the current address space; current verified OS kernels currently
 lack effective ways to specify and reason about this low-level operation, for reasons outlined in Section \ref{sec:relworkC}.
 
 Figure \ref{fig:swtchC} gives simplified code for a basic task switch, the heart of an OS scheduler implementation. This is code that saves the context (registers and stack)
 of the running thread (here in a structure pointed to by \lstinline|rdi|'s value shown in Lines \ref{line:start_saveC}--\ref{line:end_saveC} of Figure \ref{fig:swtchC}) and restores the context of 
 an existing thread (from \lstinline|rsi| shown in abbreviated Lines \ref{line:start_restoreC}--\ref{line:end_restoreC}), including the corresponding change of address space for a target thread in another process.
 This code assumes the System V AMD64 ABI calling convention, where the normal registers not mentioned are caller-save, and therefore saved on the stack of the thread
-that calls this code, as well as on the new stack of the thread that is restored, thus only the callee-save registers and \texttt{cr3} must be 
+that calls this code, as well as on the new stack of the thread that is restored; thus, only the callee-save registers and \texttt{cr3} must be
 restored.\footnote{We are simplifying by ignoring non-integer registers (e.g., floating point, vector registers),
 and the caller-save registers should be initialized to 0 to avoid leaking information across processes, but this captures the key challenges.}
-With the addition of a return instruction, this code would satisfy the C function signature\footnote{This is the function in UNIX 6th Edition 
+With the addition of a return instruction, this code would satisfy the signatures of the C functions \footnote{This is the function in UNIX 6th Edition 
 with the infamous ``You are not expected to understand this'' comment~\cite{lions1996lions}.}
 \centerline{\lstinline[language=C]|void swtch(context_t* save, context_t* restore);|}\\
-A call to this code begins executing one thread (until just before Line \ref{line:end_saveC}) in one address space ($\rtv$), whose information will be saved in a structure at address $old$,
-and finishes execution executing a different thread in a different address space (Line \ref{line:end_restoreC} on) whose information is initially in $new$.
+A call to this code begins by executing one thread (up to just before line \ref{line:end_saveC}) in an address space ($\rtv$), whose information will be saved in a structure at address $old$,
+and finishes the execution by executing a different thread in a different address-space (line \ref{line:end_restoreC} on), whose information is initially in $new$.
 
 Because this code does not directly update the instruction pointer, it is worth explaining \emph{how} this switches threads: by switching address spaces and stacks. 
 This is meant to be called with a return address for the current thread stored on the current stack when called. 
-The precondition of the return address on the initial stack requires the callee-save register values at the time of the call: those stored in the first 
+The precondition of the return address on the initial stack requires the callee-save register values at the time of the call: those stored in the first
 half of the code.
-Likewise, part of the invariant of the stack of the second thread, the one being restored, is that the return address on \emph{that} stack requires the saved 
-callee-save registers stored in that context to be in registers as its precondition.
+Likewise, part of the invariant of the stack of the second thread, the one being restored, is that the return address on \emph{that} stack requires the saved callee-save registers stored in that context be in registers as its precondition.
 
-The wrinkle, and the importance of the modal treatment of assertions, is that the target thread's precondition is \emph{relative to its address space}, 
+The wrinkle and the importance of the modal treatment of assertions is that the target thread's precondition is \emph{relative to its address space}, 
 not the address space of the calling thread, which is reflected by
-the other-space modality 
+the other-space modality
 $[\rtv'](\mathcal{I}\texttt{ASpace}(\theta,\Xi,m) \ast \texttt{Pother})$
 in the specfication. 
 The precondition of this code,
@@ -881,9 +877,9 @@ has a return address expecting the then-current callee-save register values and
 suitably updated (i.e., post-return) stack in the \emph{current} (initial) address space;
 this would be part of \textsf{P} in the precondition.
 The specification also requires that
-the stack pointer saved in the context to restore expects the same of the saved registers and stack 
+the stack pointer saved in the context to restore expects the same of the saved registers and stack
 \emph{in the other address space}. 
-The other-space modality plays a critical role here; \textsf{Pother} would contain these assumptions in the other
+The other address-space modality plays a critical role here; \textsf{Pother} would contain these assumptions in the other
 address space.
 \looseness=-1
 
@@ -910,9 +906,9 @@ that justified moving those assertions out of the other-space modality.
 % Following Spectre and Meltdown, this kernel design became less prevalent because speculative execution of accesses to kernel addresses could leak information even if the access did eventually cause a fault (the user/kernel mode permission check was done after fetching data from memory). Thus many modern kernels have reverted to the older kernel design where the kernel inhabits its own unique address space, and user processes have only enough extra material mapped in their address spaces to switch into the kernel (CPUs do not speculate past updates to \texttt{cr3}).
 \looseness=-1
 
-While prior work has verified context switches within a single address space~\cite{ni2007contexts}, and context switches
-without any code before or after~\cite{syeda2020formal} (i.e., not reasoning about the impact of address space change
-on what data was accessible), this is the first verification handling both.
+Although prior work has verified context switches within a single address space~\cite{ni2007contexts}, and context switches
+without any code before or after~\cite{syeda2020formal} (that is, not reasoning about the impact of address space change
+on what data were accessible), this is the first verification that handles both.
 \looseness=-1
 
 \begin{comment}
