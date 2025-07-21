@@ -240,7 +240,7 @@ The central invariant of our logic is, due to lack of need for augmenting the ma
 \]
 \end{definition}
 
-As a last definition, we give the head step relation required for the Iris instantiation for our simple language in Figure \ref{} to sequence instructions. This relation allows lifting the program expression to enable the application of changes imposed by the operational semantics on the program state (for a certain cpu, a register map, and a selected memory for an address-space) when applied for an insturction (\textsf{i}).
+As a last definition, we give the head step relation required for the Iris instantiation for our simple language in Figure \ref{} to sequence instructions. This relation allows lifting the program expression to enable the application of changes imposed by the operational semantics on the program state (for a certain cpu, a register map, and a selected memory for an address space) when applied for an insturction (\textsf{i}).
 \begin{lstlisting}[language=Coq]
 Definition exec_step (i: instr) ($\sigma$:state) : option state :=  exec_instr i $\sigma.\mathcal{C}$ $\sigma.\mathcal{R}$ ((memToPhysMem $\sigma.\mathcal{M}$)  ($\sigma.\mathcal{R}$ !! cr3)).
 \end{lstlisting}

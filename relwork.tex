@@ -55,7 +55,7 @@ model, where page table updates are performed through virtual memory accesses (l
 As noted in Section \ref{sec:overly-restrictive}, Kolanski and Klein's virtual points-to is similar to that in Figure \ref{fig:strongvirtualpointsto},
 with the attendant problems discussed earlier and lifted by our model. Their approach had modal elements,
 but the work never addressed the issues of managing multiple address spaces, switching address spaces, or
-invariants referring to other address spaces, which our explicitly modal approach and case studies address.
+invariants referring to other address spaces, which our explicitly modal approach and case studies do address.
 They verified a fraction of an ARM version of our Figure \ref{fig:mapping_code}, which assumed that they already had the virtual address
 of the L1 entry (which they assumed existed), thereby skipping the physical-to-virtual conversion issues we treat in Section \ref{sec:p2v}.
 Due to a lack of fractional permissions in their formalism, they incidentally pick up other limitations orthogonal to their

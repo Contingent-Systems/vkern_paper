@@ -127,7 +127,7 @@ Lines \ref{line:mask_present}--\ref{line:check_entry_present} check
 if the entry's ``present'' bit is set.
 If it is zero, a new page must be allocated for the next level of the table. Otherwise the code jumps ahead to
 the case for the next level already existing (Lines \ref{line:finalpieceS}-\ref{line:finalpieceE} in Figure \ref{fig:calltopteinitializeC}), which is discussed in Section \ref{sec:p2vC}.
-First, we must discuss another refinement of the address-space invariant, establishing
+First, we must discuss another refinement of the address space invariant, establishing
 enough structure on the page tables themselves to allow the traversal.
 The code for allocating a new level of the page table must establish this extended invariant.
 
@@ -858,7 +858,7 @@ With the addition of a return instruction, this code would satisfy the signature
 with the infamous ``You are not expected to understand this'' comment~\cite{lions1996lions}.}
 \centerline{\lstinline[language=C]|void swtch(context_t* save, context_t* restore);|}\\
 A call to this code begins by executing one thread (up to just before line \ref{line:end_saveC}) in an address space ($\rtv$), whose information will be saved in a structure at address $old$,
-and finishes the execution by executing a different thread in a different address-space (line \ref{line:end_restoreC} on), whose information is initially in $new$.
+and finishes the execution by executing a different thread in a different address space (line \ref{line:end_restoreC} on), whose information is initially in $new$.
 
 Because this code does not directly update the instruction pointer, it is worth explaining \emph{how} this switches threads: by switching address spaces and stacks. 
 This is meant to be called with a return address for the current thread stored on the current stack when called. 
@@ -879,7 +879,7 @@ this would be part of \textsf{P} in the precondition.
 The specification also requires that
 the stack pointer saved in the context to restore expects the same of the saved registers and stack
 \emph{in the other address space}. 
-The other address-space modality plays a critical role here; \textsf{Pother} would contain these assumptions in the other
+The other-space modality plays a critical role here; \textsf{Pother} would contain these assumptions in the other
 address space.
 \looseness=-1
 

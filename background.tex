@@ -210,10 +210,19 @@ pte_t *walkpgdir(pte_t *root, void *va){
     \vspace{-1em}
 \end{figure}
 
+\todo[inline]{Colin says: the changes in the next couple paragraphs seem to have deleted critical information about how the hardware
+translates addresses.}
 On the x86-64 architecture, the \textsc{MMU}'s address translation uses a sparse hierarchical set of tables:
 \emph{page tables} (referring to pages of memory). As Figure \ref{fig:pagetables} (based on Figure 5-17 of the 
 AMD64 architecture manual~\cite{amd64_manual_vol2}\footnote{While x86 up through its 32-bit incarnation were due to Intel,
-the x86-64 architecture as a 64-bit extension to x86 was originally due to AMD. As a result, it is sometimes also referred to as the \texttt{amd64} architecture.}) shows a \emph{page-table walk} for a virtual address. The page tables are managed by the OS, typically by a \emph{virtual memory manager} (VMM).\footnote{Not to be confused with Virtual 
+the x86-64 architecture as a 64-bit extension to x86 was originally due to AMD. As a result, it is sometimes also referred to as the \texttt{amd64} architecture.})
+\replace{shows,
+address translation proceeds by repeatedly taking designated slices of the virtual address and indexing into a table.
+The final lookup in the page tables gives the base physical address of a 4KB page of physical memory, to which the low-order
+bits of the accessed virtual address are added to determine the actual physical address retrieved.
+On x86-64, standard configurations use 4 levels of page tables, labelled levels 4 through 1, with lookups in the level 
+}{
+shows a \emph{page-table walk} for a virtual address. The page tables are managed by the OS, typically by a \emph{virtual memory manager} (VMM).\footnote{Not to be confused with Virtual 
 Machine Monitor. We focus on non-hypervisor scenarios, but hardware virtualization extensions for both 
 x86-64 and ARM make use of an additional set of page tables translating what a \emph{guest} considers to be its 
 (virtualized) physical memory to actual physical memory. Our contributions should offer value in this scenario as well.}
@@ -222,16 +231,27 @@ page table, which the OS registers with the CPU by storing the (page-aligned)
 physical address of the root of the page table tree (the start of the L4 table shown as $\mathsf{root}$ in Figure \ref{fig:pagetables}) in a specific register (\texttt{cr3}) as part of switching to a new process. 
 Using different mappings, which map only disjoint portions of physical memory (with some exceptions in the next section) 
 is how the OS ensures memory isolation between processes.
+}
 
+\add{
 In Figure \ref{fig:pagetablescode}, we see a simplified kernel code, \lstinline|walkpgdir|, implementing this page-table walk for translating the virtual address $\vaddr$ over the page-table tree with unique root address $\mathsf{root}$ shown in Figure \ref{fig:pagetables}.
 As shown in Figure at the top of Figure \ref{fig:pagetables}, on x86-64, standard configurations use 4 levels of page tables, labelled levels 4 through 1, with lookups in the level 
+}
 1 page table resulting in the actual page of physical memory holding the requested data, and the low-order 12 bits 
 being used to index into this page.\footnote{Technically levels 1--3 have explicit historical names,
 but for brevity and consistency, we simply number them, in keeping with the newer 5th level. Our formalization only deals with 4-level page tables, but is straightforwardly extensible to 5.} 
+\replace{
+  The translation process or algorithm is sometimes referred to as a \emph{page-table walk}. 
+}{
 As depicted at the top of Figure \ref{fig:pagetables}, for each level of translation, address-translation implementation repeatedly takes designated slices of the virtual address and indexing into a table --- e.g., L4Offset(va) at Line 2 of \lstinline|walkpgdir| in Figure \ref{fig:pagetablescode}. 
 The final lookup in the page tables gives the base physical address of a 4KB page of physical memory, to which the low-order
-bits of the accessed virtual address are added to determine the actual physical address retrieved. The entries (e.g., L4 Entry in Figure \ref{fig:pagetables}) of each table are 64 bits wide, but each points to a physical address aligned to 4KB (4096 byte) boundaries, which leaves 12 bits to spare to 
-control a validity bit (called the \emph{present} bit), a read-write bit (which permits write access through the entry if and only if it is set), and a range of additional bits which can be used to control caching, write-through, and more. This paper will only consider the present bit (0). As we see in Figure \ref{fig:pagetables}, the entry L2 is not be present (shown as dashed in Figure \ref{fig:pagetables}). In order to able to access to the subsequent table base address (e.g., $\mathsf{l1}$ in Line 7 of \lstinline|walkpgdir| in Figure \ref{fig:pagetablescode}). Accessing to the next table is realized in \lstinline|pte_get_next_table| in Figure \ref{fig:pagetablescode} to which the current entry (e.g., $\mathsf{l2_entry}$ in Line 7 of \lstinline|walkpgdir| in Figure \ref{fig:pagetablescode}), and this method first check if the entry is present (Line 7 of \lstinline|pte_get_next_table| in Figure \ref{fig:pagetablecodes}). For a nonexisting entry such as L2 entry, the execution goes through allocation path shown in Lines 7-15 of \lstinline|pte_get_next_table| in Figure \ref{fig:pagetablecodes} which allocates a \emph{physical addresses} (512 L1 entries) and make $\mathsf{l2}$ pointer's frame address to show the first entry of the L1 entries fresly allocated (Line 12 of \lstinline|pte_get_next_table| in Figure \ref{fig:pagetablecodes}), and set the present bit of $\mathsf{l2_entry}$ (Line 12 of \lstinline|pte_get_next_table| in Figure \ref{fig:pagetablecodes}). After the validity of page-table walk is restored, \lstinline|pte_get_next_table| converts the physical frame address of the entry to a \emph{virtual address} in Lines 16-20 of \lstinline|pte_get_next_table| in Figure \ref{fig:pagetablecodes} return the virtual address of the subsequent ($\mathsf{next}$ in in Figure \ref{fig:pagetablecodes}) base address (e.g., $\mathsf{l1}$ in Line 7 of \lstinline|walkpgdir| in Figure \ref{fig:pagetablescode}).
+bits of the accessed virtual address are added to determine the actual physical address retrieved. The entries \add{(e.g., L4 Entry in Figure \ref{fig:pagetables})} of each table are 64 bits wide, but each points to a physical address aligned to 4KB (4096 byte) boundaries, which leaves 12 bits to spare to 
+control a validity bit (called the \emph{present} bit), a read-write bit (which permits write access through the entry if and only if it is set),
+and a range of additional bits which can be used to control caching, write-through, and more.
+This paper will only consider the present bit (0).
+}
+\add{As we see in Figure \ref{fig:pagetables}, the entry L2 is not be present (shown as dashed in Figure \ref{fig:pagetables}). In order to able to access to the subsequent table base address (e.g., $\mathsf{l1}$ in Line 7 of \lstinline|walkpgdir| in Figure \ref{fig:pagetablescode}). Accessing to the next table is realized in \lstinline|pte_get_next_table| in Figure \ref{fig:pagetablescode} to which the current entry (e.g., $\mathsf{l2_entry}$ in Line 7 of \lstinline|walkpgdir| in Figure \ref{fig:pagetablescode}), and this method first check if the entry is present (Line 7 of \lstinline|pte_get_next_table| in Figure \ref{fig:pagetablecodes}). For a nonexisting entry such as L2 entry, the execution goes through allocation path shown in Lines 7-15 of \lstinline|pte_get_next_table| in Figure \ref{fig:pagetablecodes} which allocates a \emph{physical addresses} (512 L1 entries) and make $\mathsf{l2}$ pointer's frame address to show the first entry of the L1 entries fresly allocated (Line 12 of \lstinline|pte_get_next_table| in Figure \ref{fig:pagetablecodes}), and set the present bit of $\mathsf{l2_entry}$ (Line 12 of \lstinline|pte_get_next_table| in Figure \ref{fig:pagetablecodes}). After the validity of page-table walk is restored, \lstinline|pte_get_next_table| converts the physical frame address of the entry to a \emph{virtual address} in Lines 16-20 of \lstinline|pte_get_next_table| in Figure \ref{fig:pagetablecodes} return the virtual address of the subsequent ($\mathsf{next}$ in in Figure \ref{fig:pagetablecodes}) base address (e.g., $\mathsf{l1}$ in Line 7 of \lstinline|walkpgdir| in Figure \ref{fig:pagetablescode}).
+}
  
 While Figure \ref{fig:pagetables} and most of our constants (how many levels, which virtual address bits index which
 table levels) are specific to the x86-64 architecture, ARMv8 (a.k.a.\ 
@@ -240,6 +260,25 @@ RISC-V's \texttt{sv48} paging configuration~\cite[\S 4.5]{riscv-privileged} and 
 both split 64-bit virtual addresses at the same points to index into the respective tables, so most of what follows
 is equally applicable to those architectures (the only difference is that page table entries place control bits of write access, etc.,
 in different orders).
+
+\del{
+  The entries of each table are 64 bits wide, but each points to a physical address aligned to 4KB (4096 byte) boundaries, which leaves 12 bits to spare to
+  control a validity bit (called the \emph{present} bit), a read-write bit (which permits write access through the entry if and only if it is set),
+  and a range of additional bits which can be used to control caching, write-through, and more. This paper will only consider the present bit (0).
+}
+
+\del{
+  The page tables are managed by the OS, typically by a \emph{virtual memory manager} (VMM).\footnote{Not to be confused with Virtual
+  Machine Monitor. We focus on non-hypervisor scenarios, but hardware virtualization extensions for both
+  x86-64 and ARM make use of an additional set of page tables translating what a \emph{guest} considers to be its
+  (virtualized) physical memory to actual physical memory. Our contributions should offer value in this scenario as well.}
+  Typically each process has its own
+  page table, which the OS registers with the CPU by storing the (page-aligned)
+  physical address of the root of the page table treethe start of the L4 table) in a
+  specific register (\texttt{cr3}) as part of switching to a new process.
+  Using different mappings, which map only disjoint portions of physical memory (with some exceptions in the next section)
+  is how the OS ensures memory isolation between processes.
+}
 
 If an instruction is executed that accesses a virtual address that either has no mapping, or does not have a mapping permitting 
 the kind of access that was performed (e.g., the instruction was a memory write, but the relevant address range was marked read-only in
@@ -268,6 +307,24 @@ Some virtual addresses are valid in only a single address space (e.g., a code ad
 process), while others are valid in all address spaces (e.g., kernel data structure pointers). 
 The VMM must maintain some of these assumptions on behalf of the rest of the kernel, for example by guaranteeing that 
 a certain range of virtual addresses (corresponding to the kernel's code and data) are valid in every address space.
+
+\paragraph{\add{Mapping a New Page}}
+\add{Mapping a new page into a virtual address space is a key piece fo functionality, and also a key challenge for verification.
+This operation takes a chunk of physical memory to install, and a (page-aligned) virtual address at which to make it
+visible to the process.
+Starting from the page table root (\lstinline|cr3| in Figure \ref{fig:pagetables}), it must traverse the page tables until it locates
+the correct location of the L1 entry which should point to the physical page (installing new L3, L2, and L1 tables as needed),
+and update the L1 entry to point to the physical page. This is complicated by the fact that the kernel accesses the page
+tables through \emph{virtual} addresses, but the page table root and the addresses in the L4--L1 entries are all \emph{physical}
+addresses. So the mapping process must repeatedly perform \emph{backwards} mappings (not supported by hardware) from
+physical addresses of each level's entry to a virtual address that is then mapped back to the corresponding physical address!
+And for modularity, the translation process (and possible allocation of missing tables) is typically implemented in a function
+used for every level of translation (i.e., a level-polymorphic function).
+These compounding subtleties are one reason \textsc{CertiKOS} and \textsc{seL4} \emph{trust} their page table
+manipulations; both the reasoning to prove correctness, and the kernel invariants that ensure correctness of typical implementations,
+are remarkably subtle.
+}
+\looseness=-1
 
 \paragraph{Out of Scope: Translation Lookaside Buffers (TLBs)}
 CPUs with MMUs typically have an additional \emph{translation lookaside buffer}
@@ -368,7 +425,7 @@ logics (including ours) often encapsulate raw \rocq assertions: $\ulcorner P \ur
 of the \rocq assertion $P$ into an \iris assertion (used for things like equality and other
 general pure logical assertions), similar to prior \rocq-embedded program logics~\cite{Chlipala2013Bedrock}. Newly-defined \iris assertions are in fact
 \rocq terms of a particular type, rather than being drawn from a fixed vocabulary.
-We introduce other details as they arise.
+\del{We introduce other details as they arise.}
 
 \iris includes two forms of implication. The magic wand operator $\wand$ is an affine implication:
 $A\wand B$ describes a resource which, if combined with a resource satisfying $A$, will satisfy $B$.
@@ -379,6 +436,7 @@ experts may note that this is \emph{technically} mildly misleading given how \ir
 are defined, but
 this is adequate intuition for non-experts in \iris to follow their use.
 }
+View shifts are essentially logical entailment plus ghost updates.
 \looseness=-1
 
 % Of particular interest to us, \iris's machinery is largely agnostic to the particular choice of
@@ -396,7 +454,7 @@ this is adequate intuition for non-experts in \iris to follow their use.
 % $P \wand \textsf{wp}\;C\;\{v\ldotp Q\}$.\footnote{An idea with long history~\cite{pratt1976semantical}.}
 % This is a natural fit for assembly-level verification, where the \emph{Hoare double}
 
-An important limitation here is that to date, every separation logic
+An important limitation \del{here} is that to date, every separation logic
 has assumed that all pointer addresses are meant for use in a single address space, which avoided the
 problem of tracking that certain points-to assertions are true only for certain address spaces, but not others.
 
@@ -425,7 +483,10 @@ with assertions of the form $[\ell](P)$ indicating that $P$ is true in the speci
 the points at which a modal assertion is evaluated inside the modality's definition, the choice of what world a modalized
 assertion should be true in is chosen \emph{in the assertion itself}. This allows assertions to talk about not simply whether some other assertion
 is true in some possible future or past world related in a fixed way to the current world, but to talk about \emph{arbitrary}
-other worlds. This explicit naming of alternate worlds increases the power of modal logics~\cite{blackburn1995hybrid}, and is actually
+other worlds.
+
+\add{This is somewhat different from the accessibility relation modalities more common in verification, but also well-established.}
+This explicit naming of alternate worlds increases the power of modal logics~\cite{blackburn1995hybrid}, and is actually
 necessary for completeness in classical separation logics~\cite{brotherston2014parametric}.
 %   A key distinguishing feature of
 % hybrid logic is that the logic itself does not fix the set of modalities, but is defined relative to any set of sensible worlds.
@@ -473,6 +534,7 @@ Some prior \iris-based work~\cite{dang2019rustbelt,dang2022compass} has construc
 by thread IDs. However in that setting, the intepretation of those modalities was fully fixed ahead of time (to refer to essentially buffers in operationalized versions of C11
 concurrency). In this setting, while our modalities will be indexed by page table roots, it is possible to modify the address translation for an address
 space with root $r$ --- thus changing the interpretation of a modality, and even whether a modality is valid --- \emph{while assertions with that modality are active}.
+\add{This is essential to updating page mappings for the current address space in use by a CPU.}
 %
 %
 %Work on modal logic extends back for decades with many widely-varied variations; we discuss here only the pieces most relevant to our work.
