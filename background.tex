@@ -164,18 +164,12 @@ address, but tagged with the physical data addresses, so cache lookups and addre
 \begin{lstlisting}[mathescape,escapeinside={(*}{*)},basicstyle=\footnotesize]
 pte_t *pte_get_next_table(pte_t *entry) {
   pte_t *next;
-  /*Reading page table entry:
-    pointed by a virtual memory address*/
-  /* Jump if the present bit is not zero:
-     no need to allocate next level (* \label{line:check_entry_presentC} *)(* \label{line:mask_presentC} *)  (*\label{line:after_concluding_qfrac1C}*)*/
+  /* Check if entry is populated, allocate if needed(* \label{line:check_entry_presentC} *)(* \label{line:mask_presentC} *)(*\label{line:after_concluding_qfrac1C}*)*/
   if (!entry->present(*\label{line:read_entry_contentsC}*) (*\label{line:conditional_childrenC}*)) {
-    /*Allocation path starts here (*\label{line:pass_addrof_nextC}*)(*\label{line:alloc_path_startC}*)*/
-    pte_initialize(entry);(* \label{line:call_to_pte_initializeC} *)
-    /*Entry value updates:*/
-    entry->pfn = nextpaddr;
-    entry->present = 1; (*\label{line:install_new_entryC}*)
-    /*Entry is initialized,
-      so we satisfy the condition to access children list */
+    pte_initialize(entry); // Alloc empty table for next level (*\label{line:pass_addrof_nextC}*)(*\label{line:alloc_path_startC}*)(* \label{line:call_to_pte_initializeC} *)
+    entry->pfn = nextpaddr; // Point to next table
+    entry->present = 1; // Mark valid (*\label{line:install_new_entryC}*)
+    /* Key invariant for child access now holds */
   } (*\label{line:end_of_allocation_pathCB}*)
   /*Physical to virtual address mapping code segment starts here (*\label{line:finalpieceSB}*)*/
   uintptr_t next_phys_addr = PTE_PFN_TO_ADDR(entry->pfn)
