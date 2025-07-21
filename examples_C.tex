@@ -133,70 +133,7 @@ and explanation of entry pointing to a C bitfield so entry\_val encompasses the 
 }
 \todo[inline]{need to narrate the main parts of assertions in prose}
 
-\subsubsection{From L$n+1$ Entries to L$n$ Tables}
-\hrule
-We will discuss access to the level 4 table later (Section \ref{wlkpgdirC}). However, for subsequent levels, the base address of level $n$ must be
-fetched from the appropriate entry in the table of level $n+1$.
-This is the role of \lstinline|pte_get_next_table| (originally Figure \ref{fig:pagetablescode}, with proof details in Figure \ref{fig:calltopteinitializeC}).
-It is passed the virtual address of the page table entry in level $n+1$, and should return the \emph{virtual} 
-address of the \emph{base} of the level $n$ table
-indicated by that entry.
-If the entry is empty (i.e., this is a sparse part of the page table representation),
-the code also allocates a page for the level $n$ table, installs it in the level $n+1$ entry, and establishes appropriate invariants.
-Figure \ref{fig:calltopteinitializeC} presents the initial part of the function, which performs the allocation if necessary.
-Lines \ref{line:finalpieceS}-\ref{line:finalpieceE} in Figure \ref{fig:calltopteinitializeC} (discussed in Section \ref{sec:p2vC}) deal with the cases where no allocation is necessary \emph{or} the allocation has already
-been performed by the code in this figure.
-\looseness=-1
 
-Note that the specification does \emph{not} assume a specific page table level --- the logical parameter \textsf{v} represents the level
-of the entry passed as an argument, and this code
-is used for all three level transitions when traversing page tables (4 to 3, 3 to 2, 2 to 1).
-This comes into play with a subtlety of the specification of \lstinline|pte_get_next_table| that we will
-revisit several times: \lstinline|pte_get_next_table|'s specification
-assumes it is given a virtual \emph{vpte-pointsto}
-(a virtual points-to exposing the underlying physical address instead of existentially quantifying it;
- see Section \ref{sec:mapnewC}) granting access to the specified entry,
-but its postcondition does not yield new virtual points-to assertions!
-Instead it merely computes the base virtual address of the next table, and returns adequate capabilities (discussed in Section \ref{subsec:identitymappingsC})
-for the \emph{caller} to construct a vpte-pointsto for any entry of the next table level (if this is not an L1 entry ---
-the caller knows which level of the table this is for).
-\looseness=-1
-
-Within \textsf{get\_next\_table}, after a standard function prologue, the code
-loads the entry pointed to by the argument (logical variable \textsf{entry} in the proof outline).
-This is a page table entry: a 64-bit word divided into bit-fields for
-the physical address of the next table, and control bits like the valid bit, as discussed in 
-Section \ref{sec:backgroundonmachinemodel}.
-
-
-
-\ifPLDI
-Line \ref{line:conditional_childrenC} checks % In the condensed figure, it's all on one line
-\else
-Lines \ref{line:mask_present}--\ref{line:check_entry_present} check
-\fi
-if the entry's ``present'' bit is set.
-If it is zero, a new page must be allocated for the next level of the table. Otherwise the code jumps ahead to
-the case for the next level already existing (Lines \ref{line:finalpieceS}-\ref{line:finalpieceE} in Figure \ref{fig:calltopteinitializeC}), which is discussed in Section \ref{sec:p2vC}.
-First, we must discuss another refinement of the address space invariant, establishing
-enough structure on the page tables themselves to allow the traversal.
-The code for allocating a new level of the page table must establish this extended invariant.
-
-%wshiftll (wshiftll (natToWord 64 entry) (WordImpl.concat (WordImpl.zero 56) (WordImpl.from_nat 8 12 ^& WordImpl.concat (WordImpl.zero 2) WO~1~1~1~1~1~1)) ^& constf)
-%(WordImpl.concat (WordImpl.zero 56) (natToWord 8 12 ^& WordImpl.concat (WordImpl.zero 2) WO~1~1~1~1~1~1))
-%
-%wshiftll
- %      (wshiftll
-%          ((((natToWord 64 entry ^& WordImpl.concat (WordImpl.zero 32) consta ^| WordImpl.concat (WordImpl.zero 32) (natToWord 32 2))
-%             ^& WordImpl.concat (WordImpl.zero 32) constb ^| WordImpl.concat (WordImpl.zero 32) (natToWord 32 4)) ^& constd
-%            ^| wshiftll
-%                 (wshiftll (nextpaddr ^+ ^~ (natToWord 64 KERNBASE))
-%                    (WordImpl.concat (WordImpl.zero 56) (WordImpl.from_nat 8 12 ^& WordImpl.concat (WordImpl.zero 2) WO~1~1~1~1~1~1))
-%                  ^& constf)
-%                 (WordImpl.concat (WordImpl.zero 56) (WordImpl.from_nat 8 12 ^& WordImpl.concat (WordImpl.zero 2) WO~1~1~1~1~1~1)))
-%           ^& WordImpl.concat (WordImpl.zero 32) conste ^| wone 64)
-%          (WordImpl.concat (WordImpl.zero 56) (WordImpl.from_nat 8 12 ^& WordImpl.concat (WordImpl.zero 2) WO~1~1~1~1~1~1)) ^& constf)
-%       (WordImpl.concat (WordImpl.zero 56) (natToWord 8 12 ^& WordImpl.concat (WordImpl.zero 2) WO~1~1~1~1~1~1)) 
 \begin{figure}\footnotesize
 \ifPLDI
 \begin{lstlisting}[language=C,mathescape,escapeinside={(*}{*)}]
@@ -218,12 +155,11 @@ pte_t *pte_get_next_table(pte_t *entry) {
     $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}}  \textsf{pte\_initialized(pfn\_set(entryv nextpaddr))} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
     $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:alloc_path_endC}*)
   } (*\label{line:end_of_allocation_pathC}*)
-  /*Physical to virtual address mapping code segment starts here (*\label{line:finalpieceS}*)*/
   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \}),m) \ast \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
   $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{(pte\_initialized (entry\_val.pfn))} \urcorner }_{\rtv}$
   $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (entry\_val.pfn)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:childrenC}*)
-  uintptr_t next_phys_addr = PTE_PFN_TO_ADDR(entry->pfn)
-  uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr); (*\label{line:p2vC}*);
+  uintptr_t next_phys_addr = PTE_PFN_TO_ADDR(entry->pfn); // Fetch physical address of next table (*\label{line:finalpieceS}*)(*\label{line:extract_pfn}*)
+  uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr); // Convert to virtual address (*\label{line:p2vC}*)
   next = (pte_t *) next_virt_addr;(*\label{line:finalpieceE}*)
   return next;
 }
@@ -285,15 +221,57 @@ $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}
 % ;;next = (pte_t *) next_virt_addr;
 % ;;clean up the stack and return next
 % \end{lstlisting}
-\todo[inline]{this figure has an issue with entry, which is used both as a logical variable and a program variable (e.g., assertion on line 6)}
+\todo[inline]{this figure has an issue with entry, which is used both as a logical variable and a program variable (e.g., assertion on line 6).
+I would also expect to see a more prominent use of \textsf{v} in the precondition
+}
 \vspace{-1em}
 \caption{Ensuring \textsf{entry} points to a valid next-level table, allocating if necessary, returning its virtual address.}
 \label{fig:calltopteinitializeC}
 \vspace{-1em}
 \end{figure}
 
-\subsubsection{Identity Mappings}
+\subsubsection{From L$n+1$ Entries to L$n$ Tables}
+We will discuss access to the level 4 table later (Section \ref{wlkpgdirC}). However, for subsequent levels, the base address of level $n$ must be
+fetched from the appropriate entry in the table of level $n+1$.
+This is the role of \lstinline|pte_get_next_table| (originally Figure \ref{fig:pagetablescode}, with proof details in Figure \ref{fig:calltopteinitializeC}).
+It is passed the virtual address of the page table entry in level $n+1$, and should return the \emph{virtual} 
+address of the \emph{base} of the level $n$ table
+indicated by that entry.
+If the entry is empty (i.e., this is a sparse part of the page table representation),
+the code also allocates a page for the level $n$ table, installs it in the level $n+1$ entry, and establishes appropriate invariants.
+Figure \ref{fig:calltopteinitializeC} presents the function with proof annotations that we will explain shortly, but we first explain the functionality.
+\lstinline|pte_get_next_table| accepts a \emph{virtual} address \lstinline|entry| which points to a level-$n+1$
+table entry. On Line \ref{line:read_entry_contentsC}, the code checks the present bit of the entry.
+If the bit is unset, there is no level-$n$ table, so one must be allocated via \lstinline|pte_initialize| (explained shortly\footnote{
+  Briefly, it allocates a fresh physical page, and initializes the memory pointed to by \lstinline|entry| with that physical address.
+}) and marked present.
+By Line \ref{line:finalpieceS} the entry is known to be valid and contain the physical address of
+the base of a level $n$ table. That address is then extracted (Line \ref{line:extract_pfn}),
+converted to a virtual address (Line \ref{line:p2vC}), and returned to the caller.
+
+We can now discuss \lstinline|pte_get_next_table|'s proof of correctness, which is surprisingly subtle for two
+local reasons, and a third related to interaction with the caller, none of which have been addressed by prior work.
+First, the update to the memory at (virtual) address \lstinline|entry| depends on subtle ownership invariants:
+if the entry is present then its fractional ownership is shared with a large number of \lstinline|L4_L1_PointsTo| assertions
+from the address space invariant (Figure \ref{fig:peraspaceinvariant}),
+but if the entry is absent the proof requires full ownership to update it. We resolve this by extending the address space invariant
+to make the owned fraction of the entry's memory \emph{dependent on its own contents}.
+Second, the conversion of physical addresses into a corresponding virtual address that can be used to modify the specific
+physical location relies on subtle, never-before-formalized kernel invariants.
+And third, these two factors percolate to the precondition (for conditional fractional ownership) and postcondition
+(for physical-to-virtual conversions), as the caller essentially passes output from one call to \lstinline|pte_get_next_table|
+as input to a subsequent call to traverse multiple levels.
+Since the key to solving these challenges is to extend the address space invariant, we
+first discuss that invariant and the kernel designs it supports, before returning to the subtle details of
+verifying lines \ref{line:install_new_entryC} and \ref{line:p2vC}.
+
+
+\subsubsection{An Extended Address Space Invariant: Identity Mappings and Conditional Ownership Page Table Ownership}
 \label{subsec:identitymappingsC}
+
+\ldots
+\hrule\hrule
+
 Kernels need to convert between physical and virtual addresses, in both directions.
 Traversing the page tables in software is the simplest way to convert a virtual address to a physical address; this is the context we are working up to.
 However, implementing this virtual-to-physical (V2P) translation in this way ironically requires physical-to-virtual (P2V) translation,
@@ -543,6 +521,22 @@ that justifies the caller's subsequent access to a particular entry of the retur
 % ($\textsf{entry}_{\textsf{pfn}}$) by removing it from the ghost map ($\Xi\setminus\{entry\}\cup \{\textsf{entry}_{\textsf{pfn}}) \}$) 
 % in Line 5 and compute the identity mapping for this physical frame address in Line 13 in Figure \ref{fig:p2v}).
 
+\subsubsection{The Specification of \lstinline|pte_get_next_table|}
+\hrule
+
+Note that the specification does \emph{not} assume a specific page table level --- the logical parameter \textsf{v} represents the level
+of the entry passed as an argument, and this code
+is used for all three level transitions when traversing page tables (4 to 3, 3 to 2, 2 to 1).
+This comes into play with a subtlety of the specification of \lstinline|pte_get_next_table| that we will
+revisit several times: \lstinline|pte_get_next_table|'s specification
+assumes it is given a virtual \emph{vpte-pointsto}
+(a virtual points-to exposing the underlying physical address instead of existentially quantifying it;
+ see Section \ref{sec:mapnewC}) granting access to the specified entry,
+but its postcondition does not yield new virtual points-to assertions!
+Instead it merely computes the base virtual address of the next table, and returns adequate capabilities (discussed in Section \ref{subsec:identitymappingsC})
+for the \emph{caller} to construct a vpte-pointsto for any entry of the next table level (if this is not an L1 entry ---
+the caller knows which level of the table this is for).
+\looseness=-1
 
 
 \subsubsection{Walking Page-Table Tree: Calling \textsf{pte\_get\_next\_table} for Each Level}
