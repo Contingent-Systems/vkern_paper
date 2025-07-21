@@ -115,7 +115,8 @@ From this we can derive a more concise physical points-to when the split is unim
 \end{lstlisting}
 \vspace{-1em}
 \caption{A Strong Virtual Points-to Relation
-\todo[inline]{Ismail: Tie these lines to the steps and entries in Figure \ref{fig:pagetables}, e.g., with \textcircled{1}\ldots}
+  \todo[inline]{Ismail: Tie these lines to the steps and entries in Figure \ref{fig:pagetables}, e.g., with \textcircled{1}\ldots}
+  \todo[inline]{Ismail Addressed: earlier in the background and the current text is clearly related to \ref{fig:pagetables}}
 }
   \label{fig:strongvirtualpointsto}
 \vspace{-1em}
@@ -145,6 +146,8 @@ and don't the \texttt{l$n$off} accessors ignore the entry arguments? If so we ca
 (e.g., with comments like \lstinline[mathescape]|(*$\textcircled{E}$*)|) each \texttt{l$n$off} in Figure \ref{fig:strongvirtualpointsto}
 with a tag matching a new tag on the corresponding offset chunk of the translated virtual addres in Figure \ref{fig:pagetables}\ldots
 }
+\todo[inline]{Ismail Addressed: current explanation in here is fortified by the changed text in the background section smoothly}
+
 \lstinline|L4_L1_PointsTo| works by
 chaining together the entries for each level, using the sequence of table offsets from the address being translated to index
 each table level, and using the physical page address embedded in each entry. \footnote{
@@ -582,8 +585,8 @@ antecedent of the rule.}
  % \\
 \inferrule[\footnotesize WriteToRegFromVirtMem]{
   \left\{ \begin{array}{l}
-    P \ast \mathcal{I}\textsf{ASpace}\ast \mathcal{I}\textsf{ASpace} \ast \textsf{rip} \mapsto_{\textsf{r}} {\textsf{iv} + \textsf{MovLen}(\textsf{r}_d,[\textsf{r}_a])} \ast \arcr
-    r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v}
+    P \ast \mathcal{I}\textsf{ASpace}\ast  \textsf{rip} \mapsto_{\textsf{r}} {\textsf{iv} + \textsf{MovLen}(\textsf{r}_d,[\textsf{r}_a])} \ast \arcr
+    r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \{q\} \textsf{v}
   \end{array} \right\}_{\textsf{rtv}}\;\overline{is}
 }{
   \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} \ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v} \}_{\textsf{rtv}}\;
@@ -622,6 +625,8 @@ antecedent of the rule.}
 \end{mathpar}
 \todo[inline]{Ismail, what do you think about shading the ``core'' assertions that are common to any asm program logic?
 Or shading the VMM-specific ones?
+}
+\todo[inline]{Ismail Addressed: I don't think that we should do.
 }
 \vspace{-1em}
 \caption{Proof rules for selected \textsf{AMD64} instructions}
@@ -689,7 +694,11 @@ In WriteToVirtMemFromReg, vaddr points to a value rvs both before and after the 
 And also in WriteToVirtMemFromReg, why are all the fractions q? They should be allowed to be different fractions.
 (Also, explaining the fraction notation was one of the questions from reviewers.)
 }
-
+\todo[inline,color=cyan]{Ismail Addressed:
+Others issues are addressed.
+"(Also, explaining the fraction notation was one of the questions from reviewers.)"
+They are explained earlier in the text. No need. They should go back and read.
+}
 \subsubsection{Updating \lstinline|cr3|} 
 Unlike other rules, \TirNameStyle{WriteToRegCtlFromRegModal} updates the root address of the 
 address-space determining the validity of resources, from $\rtv$ before the
