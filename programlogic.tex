@@ -594,9 +594,9 @@ antecedent of the rule.}
 }
 \\
 \inferrule[\footnotesize WriteToVirtMemFromReg]{
-  \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{ iv} + \textsf{MovLen}(\textsf{r}_d,[\textsf{r}_a])  \ast r_s \mapsto_{r}\;\{q\}  \textsf{ rvs}  \ast r_a \mapsto_{r} \; \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{ v} \}_{\textsf{rtv}}\;\overline{ is}  
+  \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{ iv} + \textsf{MovLen}(\textsf{r}_d,[\textsf{r}_a])  \ast r_s \mapsto_{r}\;\{q_1\}  \textsf{ rvs}  \ast r_a \mapsto_{r} \; \{q_2\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{ v} \}_{\textsf{rtv}}\;\overline{ is}  
 }{
-  \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{ iv} \ast r_s \mapsto_{r} \;\{q\}  \textsf{ rvs}   \ast r_a \mapsto_{r} \; \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{ rvs} \}_{\textsf{rtv}}
+  \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{ iv} \ast r_s \mapsto_{r} \;\{q_1\}  \textsf{ rvs}   \ast r_a \mapsto_{r} \; \{q_2\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{ rvs} \}_{\textsf{rtv}}
   \textsf{ mov}~[\textsf{r}_a],~\textsf{r}_s;\;\overline{is}
 }
 \\
