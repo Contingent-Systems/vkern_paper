@@ -585,18 +585,18 @@ antecedent of the rule.}
  % \\
 \inferrule[\footnotesize WriteToRegFromVirtMem]{
   \left\{ \begin{array}{l}
-    P \ast \mathcal{I}\textsf{ASpace}\ast  \textsf{rip} \mapsto_{\textsf{r}} {\textsf{iv} + \textsf{MovLen}(\textsf{r}_d,[\textsf{r}_a])} \ast \arcr
-    r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \{q\} \textsf{v}
+    P \ast \mathcal{I}\textsf{ASpace}\ast  \textsf{rip} \mapsto_{\textsf{r}} \; {\textsf{iv} + \textsf{MovLen}(\textsf{r}_d,[\textsf{r}_a])} \ast \arcr
+    r_d \mapsto_{r}  \textsf{ v} \ast r_a \mapsto_{r} \; \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \;\{q\} \textsf{ v}
   \end{array} \right\}_{\textsf{rtv}}\;\overline{is}
 }{
-  \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} \ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v} \}_{\textsf{rtv}}\;
+  \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{ iv} \ast r_d \mapsto_{r}  \textsf{ rvd} \ast r_a \mapsto_{r} \;\{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{ v} \}_{\textsf{rtv}}\;
   \textsf{mov}~\textsf{r}_d,~[\textsf{r}_a];\;\overline{is}
 }
 \\
 \inferrule[\footnotesize WriteToVirtMemFromReg]{
-  \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} + \textsf{MovLen}(\textsf{r}_d,[\textsf{r}_a])  \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v} \}_{\textsf{rtv}}\;\overline{ is}  
+  \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{ iv} + \textsf{MovLen}(\textsf{r}_d,[\textsf{r}_a])  \ast r_s \mapsto_{r}\;\{q\}  \textsf{ rvs}  \ast r_a \mapsto_{r} \; \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{ v} \}_{\textsf{rtv}}\;\overline{ is}  
 }{
-  \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} \ast r_s \mapsto_{r}\{q\}  \textsf{rvs}   \ast r_a \mapsto_{r}\{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{rvs} \}_{\textsf{rtv}}
+  \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{ iv} \ast r_s \mapsto_{r} \;\{q\}  \textsf{ rvs}   \ast r_a \mapsto_{r} \; \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{ rvs} \}_{\textsf{rtv}}
   \textsf{ mov}~[\textsf{r}_a],~\textsf{r}_s;\;\overline{is}
 }
 \\
@@ -608,9 +608,9 @@ antecedent of the rule.}
   %\lstinline|mov %cr3, r| 
 %}\\
 \inferrule[\footnotesize WriteToRegCtlFromRegModal]{
-  \{[\textsf{rtv}](P \ast \mathcal{I}\textsf{ASpace})\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv + 4} \ast \mathcal{I}\textsf{ASpace} \ast R\ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}  \}_{\textsf{rvs}} \;\overline{is}
+  \{[\textsf{rtv}](P \ast \mathcal{I}\textsf{ASpace})\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{ iv + 4} \ast \mathcal{I}\textsf{ASpace} \ast R\ast r_s \mapsto_{r} \;\{q\}  \textsf{ rvs}  \}_{\textsf{rvs}} \;\overline{is}
 }{
-  \{P \ast \mathcal{I}\textsf{ASpace} \ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{iv} \ast [\textsf{rvs}](R \ast\mathcal{I}\textsf{ASpace})\ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}   \}_{\textsf{rtv}} \;
+  \{P \ast \mathcal{I}\textsf{ASpace} \ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{ iv} \ast [\textsf{rvs}](R \ast\mathcal{I}\textsf{ASpace})\ast r_s \mapsto_{r}\; \{q\}  \textsf{ rvs}   \}_{\textsf{rtv}} \;
   \textsf{mov}~\textsf{cr3},~r_s;\;\overline{is}
   %\lstinline|mov %cr3, r| 
 }
@@ -626,7 +626,7 @@ antecedent of the rule.}
 \todo[inline]{Ismail, what do you think about shading the ``core'' assertions that are common to any asm program logic?
 Or shading the VMM-specific ones?
 }
-\todo[inline]{Ismail Addressed: I don't think that we should do.
+\todo[inline]{Ismail Addressed: I don't think that we should do -- general instructions' text outlines the how to read VMM related ones in the text. 
 }
 \vspace{-1em}
 \caption{Proof rules for selected \textsf{AMD64} instructions}
