@@ -72,22 +72,73 @@ the first such verification handling both old and new processes' assertions (in 
 \subsection{Traversing Live Page Tables}
 \label{sec:traversing}
 We build up to the main task of mapping a new page after traversing the page tables in the software.
-The mapping operation of Figure \ref{fig:mapping_codeC} assumes an operation \textsf{walkpgdir} which must traverse the page tables
-in order to locate the address of the L1 entry to update --- 
-% possibly allocating tables for levels 3, 2, and 1 in the process,
-% installing them into levels 4, 3, and 2, along the way.
-possibly allocating new L3, L2, and L1 tables as necessary.
-Traversing the page tables is itself challenging functionality to verify: loading the current table root from \lstinline|cr3| is straightforward
-(a \lstinline|mov| instruction); however, this produces the physical address of \lstinline|cr3|, not the virtual address the kernel code would use to access that memory.
+This algorithm is complex and corresponds to a significant amount of assembly code.
+To assist with readability, we present C code for this process, with assertions adjusted slightly to refer to
+C program variables rather than registers. The actual verification was carried out on x86-64 assembly
+\emph{generated from this source code}.
+Listings of the assembly fragments with inline assertions appear in Appendix ???. %\ref{apdx:asm}.
+\todo[inline]{Need to add the assembly appendix.}
+Whether in C or assembly,
+the page table traversal involved in mapping a new page is very challenging functionality to verify.
+Loading the current table root from \lstinline|cr3| is straightforward (a \lstinline|mov| instruction).
+However, this produces the \emph{physical} address stored in \lstinline|cr3|, not a \emph{virtual} address the kernel code can use to access that memory.
 This problem repeats at each level of the page table: assuming that the code has \emph{somehow} read the appropriate L4 (or L3, or L2) entry, those entries again
 yield physical addresses, not virtual.
+The only prior work to verify page mapping ignored the traversal and only verified mapping
+assuming code \emph{already} had an appropriate virtual address for the L1 entry, where a physical
+address could simply be stored. Our proof is the first to additionally deal with the critical code
+leading up to that point.
 
-\subsubsection{Loading Page-Table Address Value}
+\paragraph{Code Overview}
+As described in Section \ref{sec:background}, mapping a new page consists of 
+simulating the hardware address translation of Figure \ref{fig:pagetables}, but in software.
+The code for this task takes three explicit parameters:
+the root pointer (read from \lstinline|cr3| by earlier code),
+the page-aligned \emph{virtual} address (\lstinline|va|) at which to make a new piece of memory accessible,
+and the \emph{physical} address (\lstinline|fpaddr|) of the memory to map in that location.
+The function we ultimately verify, \lstinline|vaspace_mappage| (Figure \ref{fig:mapping_codeC}),
+relies primarily on a helper function already shown in Figure \ref{fig:pagetablescode}.
+\lstinline|walkpgdir| finds the (virtual) address of the the correct L1 entry to translate \lstinline|va|,
+by walking the page tables in software one level at a time.
+\lstinline|vaspace_mappage| then uses the result to install the new entry.
+\lstinline|walkpgdir| itself relies on its own helper function \lstinline|pte_get_next_table|, also shown in Figure \ref{fig:pagetablescode},
+which implements a single-level of traversal from level $n+1$ to level $n$ (and whose specification and proof are therefore
+parameterized by page table level), allocating additional levels as needed.
+
+We organize our explanation of the proofs by essentially following execution from the start of \lstinline|walkpgdir|, through
+execution of \lstinline|pte_get_next_table|, and out to its callsite in \lstinline|vaspace_mappage|.
+While slightly awkward because we start in the middle of the mapping execution,
+this ordering allows us to start with the simpler pieces of the proof, and incrementally explain the complexities
+of the proofs and kernel invariant, before concluding with the top-level verification.
+
+
+% The mapping operation of Figure \ref{fig:mapping_codeC} assumes an operation \textsf{walkpgdir} which must traverse the page tables
+% in order to locate the address of the L1 entry to update --- 
+% % possibly allocating tables for levels 3, 2, and 1 in the process,
+% % installing them into levels 4, 3, and 2, along the way.
+% possibly allocating new L3, L2, and L1 tables as necessary.
+
+\todo[inline]{Colin WIP note: The organization is odd here.
+We talk through access to entry, then start talking about identity mappings even though we don't need that info
+until the P2V call later. But we do need the part of the extended invariant that deals with the
+entry-present qfrac bit, which does only hold for those addresses used for page tables, so is part
+of the same invariant. Maybe we should reorg to first talk through the logic, 
+calling out the two problems the new invariant solves (permission to update the entry and p2v) along the way,
+then have a section called "extended address space invariant" or similar to talk about the solutions.
+This would roughly mean moving 5.1.3 (installing a new table) up
+}
+\todo[inline]{this and other figures need assertion updates to talk about C: see entry\_val (needs adjustment to points-to preconditions
+and explanation of entry pointing to a C bitfield so entry\_val encompasses the various bits), nextpaddr
+(was logical name in asm proof, but not a C variable)
+}
+\todo[inline]{need to narrate the main parts of assertions in prose}
+
+\subsubsection{From L$n+1$ Entries to L$n$ Tables}
+\hrule
 We will discuss access to the level 4 table later (Section \ref{wlkpgdirC}). However, for subsequent levels, the base address of level $n$ must be
 fetched from the appropriate entry in the table of level $n+1$.
-This is the role of \lstinline|pte_get_next_table| (Figure \ref{fig:calltopteinitializeC}):
-%and \ref{fig:p2vC}):
-it is passed the virtual address of the page table entry in level $n+1$, and should return the \emph{virtual} 
+This is the role of \lstinline|pte_get_next_table| (originally Figure \ref{fig:pagetablescode}, with proof details in Figure \ref{fig:calltopteinitializeC}).
+It is passed the virtual address of the page table entry in level $n+1$, and should return the \emph{virtual} 
 address of the \emph{base} of the level $n$ table
 indicated by that entry.
 If the entry is empty (i.e., this is a sparse part of the page table representation),
@@ -148,26 +199,21 @@ The code for allocating a new level of the page table must establish this extend
 %       (WordImpl.concat (WordImpl.zero 56) (natToWord 8 12 ^& WordImpl.concat (WordImpl.zero 2) WO~1~1~1~1~1~1)) 
 \begin{figure}\footnotesize
 \ifPLDI
-\begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
-/*
-@param entry: entry whose frame address is used to locate the a-level-lower entry in the page-tree
-@return next: return a virtual pointer to the descendant tree
-*/
+\begin{lstlisting}[language=C,mathescape,escapeinside={(*}{*)}]
+/* @param entry: virtual address of level n+1 entry which should point to the base of a level n table
+   @return next: a virtual pointer to the base of a valid level n table */
 pte_t *pte_get_next_table(pte_t *entry) {
   pte_t *next;
   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry}\},m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
   $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$ (*\label{line:get_next_vpte_preconditionC}*)
   $\specline{\ulcorner\textsf{entry\_present(entry\_val)}\urcorner \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(entry\_val.pfn) + i * 8}}{\textsf{v-1}} }_{\rtv} $ 
-  /*Reading page table entry justified by virtual pte-pointsto*/
-  if (!entry->present(*\label{line:read_entry_contentsC}*)(*\label{line:conditional_childrenC}*)(*\label{line:check_entry_present_jumpC}*)) {
-    /* Jump if the present bit is not zero; no need to allocate next level (* \label{line:check_entry_presentC} *)(* \label{line:mask_presentC} *) */
-    /*Allocation path starts here (*\label{line:pass_addrof_nextC}*)(*\label{line:alloc_path_startC}*)*/
-    $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$ (*\label{line:after_concluding_qfrac1C}*)
-    pte_initialize(entry);(* \label{line:call_to_pte_initializeC}(*\label{line:page_of_capsC}*) *)
+  /* Reading the page table is entry justified by the virtual pte-points-to */
+  if (!entry->present(*\label{line:read_entry_contentsC}*)(*\label{line:conditional_childrenC}*)(*\label{line:check_entry_present_jumpC}*)) {// If the present bit is zero, need to allocate next level (* \label{line:check_entry_presentC} *)(* \label{line:mask_presentC} *) 
+    (*\label{line:pass_addrof_nextC}*)(*\label{line:alloc_path_startC}*)$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$ (*\label{line:after_concluding_qfrac1C}*)
+    pte_initialize(entry); // Allocate a zeroed physical page and install in entry(*\label{line:call_to_pte_initializeC}\label{line:page_of_capsC}*)
     $\specline{ \ldots \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present (pfn\_set (entry\_val nextpaddr))}  \urcorner   }_{\rtv}$
     $\specline{ \begin{array}{l}\textsf{entry\_present (pte\_initialized (pfn\_set(entryv nextpaddr)))} \wand  \\ \;\;\;\;\;\;\;\;\  \forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}} \end{array}  }$ (*\label{line:page_of_capsC}*)
-    /*Entry value updates:*/
-    entry->pfn = nextpaddr; entry->present = 1; (*\label{line:install_new_entryC}*)
+    entry->pfn = nextpaddr; entry->present = 1; // Install newly-allocated level n table, mark present(*\label{line:install_new_entryC}*)
     /*Now we know that entry is initialized, so we satisfy the condition to access children list */
     $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}}  \textsf{pte\_initialized(pfn\_set(entryv nextpaddr))} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
     $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:alloc_path_endC}*)
@@ -239,8 +285,9 @@ $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}
 % ;;next = (pte_t *) next_virt_addr;
 % ;;clean up the stack and return next
 % \end{lstlisting}
+\todo[inline]{this figure has an issue with entry, which is used both as a logical variable and a program variable (e.g., assertion on line 6)}
 \vspace{-1em}
-\caption{Ensuring \textsf{entry} points to a valid next table, allocating if necessary.}
+\caption{Ensuring \textsf{entry} points to a valid next-level table, allocating if necessary, returning its virtual address.}
 \label{fig:calltopteinitializeC}
 \vspace{-1em}
 \end{figure}
@@ -379,19 +426,15 @@ continuation of this code).
 
 \begin{figure}\footnotesize
   \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
-/*
-@param entry: page entry whose frame is initialized with a new physical page 
-*/
+/* @param entry: virtual address of a non-present entry to initialize with a new physical page */
 $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \lnot(\textsf{entry\_present entry\_val} }_{\rtv}$
 $\specline{\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{entry entryv} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{entry})}{\textsf{level}} }$
 void pte_initialize(pte_t *entry) {
-  /*Allocate a full zeroed page for 512 8-byte entries(*\label{line:call_to_kallocC}*)*/
-  pte_t *local = kalloc();
+  pte_t *local = kalloc(); // Allocate a full zeroed page for 512 8-byte entries(*\label{line:call_to_kallocC}*)
   entry->pfn = PTE_ADDR_TO_PFN((uintptr_t) local);
   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \lnot(\textsf{entry\_present entry\_val}) }$
   $\specline{ \textsf{entry+KERNBASE} \mapsto_{\mathsf{vpte,1}} \mathsf{entry} \; \textsf{pfn\_set(entryv nextpaddr)}}$
   $\specline{\ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \begin{array}{l} \ulcorner\textsf{entry\_present (pte\_initialize(pfn\_set(entry\_val nextpaddr)),level)}\urcorner \wand \\  \;\;\;\;\;\;\; \forall_{i\in\textsf{0..511}} \; \textsf{table\_root (pte\_initialized (pfn\_set (entry\_val nextpaddr))) + i * 8} \mapsto_{\textsf{id}} \textsf{level-1}    \end{array}  }_{\rtv}$
-  return;
 }
 \end{lstlisting}
 \vspace{-1em}
