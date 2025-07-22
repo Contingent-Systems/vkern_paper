@@ -123,7 +123,7 @@ Figure \ref{fig:strongvirtualpointsto} is already an improvement in this way).
 % address spaces, making it possible to manipulate other address spaces, and equally critically, to \emph{change} address 
 % spaces while reasoning about correctness.
 
-Unlike our work, Kolanski and Klein prove very useful embedding theorems stating that code that does not modify page table 
+Unlike our work, Kolanski and Klein prove very useful embedding theorems\todo{no, Colin fix per response} stating that code that does not modify page table 
 entries can be verified in a VM-ignorant program logic, and that proofs in that logic can be embedded into the VM-aware logic 
 (essentially by interpreting ``normal'' points-to relations as virtual points-to facts). While we have not proven such a result,
 an analagous result {should} hold of our work: consider that the doubles for the \texttt{mov} instructions

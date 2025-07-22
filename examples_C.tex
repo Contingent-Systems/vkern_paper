@@ -133,7 +133,7 @@ and explanation of entry pointing to a C bitfield so entry\_val encompasses the 
    @return next: a virtual pointer to the base of a valid level n table */
 pte_t *pte_get_next_table(pte_t *entry) {
   pte_t *next;
-  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry}\},m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$(*\label{line:precondition_entry_out}*)
+  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry}\mapsto\textsf{v}\},m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$(*\label{line:precondition_entry_out}*)
   $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$ (*\label{line:get_next_vpte_preconditionC}*)
   $\specline{\ulcorner\textsf{entry\_present(entry\_val)}\urcorner \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(entry\_val.pfn) + i * 8}}{\textsf{v-1}} }_{\rtv} $(*\label{line:precondition_conditional}*) 
   /* Reading the page table is entry justified by the virtual pte-points-to */
@@ -217,6 +217,8 @@ $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}
 I would also expect to see a more prominent use of \textsf{v} in the precondition
 Line 20 also seems like it lost the paddr of the vpte
 }
+\todo[inline,color=cyan]{yes update logical entry to entryp, maybe remove entry $\mapsto$ v from $\Xi$ in first line?
+and fix 20}
 \vspace{-1em}
 \caption{Ensuring \textsf{entry} points to a valid next-level table, allocating if necessary, returning its virtual address.}
 \label{fig:calltopteinitializeC}
@@ -252,6 +254,9 @@ entries is shared between parts of the kernel. No prior work has engaged with th
 Assembly-level verification of compiler output from Figure \ref{fig:calltopteinitializeC} is verbose but doable
 Section \ref{sec:logic}'s logic, but only after resolving two critical challenges.\todo{Ismail, not sure if this ``verbose but doable''
  is a good framing, we should discuss
+}\todo[color=cyan]{maybe say something about it feeling like normal asm verification \emph{because} of the virtual points-to enabling
+familiar-style proving except for specific manipulation of page tables.
+Maybe mention that it's well-beyond the capabilities of prior work because they just never tried? (said nicer...)
 }
 Two key challenges stand out and end up affecting both the pre- and post-conditions, neither of which has been addressed by prior work.
 First, the update to the memory at (virtual) address \lstinline|entry| depends on subtle ownership invariants:
@@ -325,6 +330,10 @@ hence the comment of Line \ref{line:now_we_know}).
 \end{array}
 \]
 \todo[inline]{Ismail, what's APVMappings?}
+\todo[inline,color=cyan]{APVMappings is authoritative ownership of the ghost map for the current address space's $\Xi$ (identity mappings).
+So the last line shouldn't just existentially quantify $\delta$, but also a $\delta'$ since the authoritative map for $\Xi$ should have its own ghost name
+(and does in the Rocq)
+}
 \vspace{-1em}
 \caption{Address space invariant of Figure \ref{fig:peraspaceinvariant} extended with a ghost map bookkeeping identity mappings. }
   \label{fig:peraspaceinvariant_with_p2v_extensionC}
@@ -414,6 +423,7 @@ Also, do we need the conditional implication in this postcondition? it alloc'ed 
 a region already in Xi.
 And shouldn't we be excluding entry (the paddr) from Xi here?
 }
+\todo[inline,color=cyan]{no, this proof really doesn't care if entry is in or out of Xi, no need to exclude, but maybe worth explaining}
 \vspace{-2em}
 \caption{Allocating a physical page }
 \label{pteinitializespecC}
