@@ -355,32 +355,26 @@ Line \ref{line:p2vC} is the critical piece, and arguably corresponds to the most
 (\lstinline|add rax, KERNBASE|)\todo{if walkpgdir returns vaddr, then KERNBASE==0, which complicates some discussion here}
 that we are aware of, and something no prior work on verified OS kernels has dealt with.
 
-After Line \ref{line:extract_pfn}, it is already known that the present bit is set in the entry,
-thus Line \ref{line:childrenC}'s assertion reflects that the tokens for $\Xi$ exist for each word-aligned
+After Line \ref{line:extract_pfn}, it is already known that the present bit is set in the entry;
+Line \ref{line:childrenC}'s assertion reflects that the tokens for $\Xi$ exist for each word-aligned
 physical address in the next-level table.
-
-\hrule
-\todo[inline]{this next (older) text is a little confusing; it talks about the conversion to virtual points-to,
-but that happens at the caller, which is the only one that knows which index is needed.
-Clean up: the end of this function returns (1) computationally, the virtual address of the base of the level $n-1$ table;
-and (2) logically, the resources for the \emph{caller} to convert any aligned virtual address in the 4K
-range after that base into a virtual points-to.
-}
-
-The code loads the value at the offseted (\textsf{KERNBASE}) virtual memory address ($\textsf{entry}_{\textsf{pfn}}$ \textsf{+KERNBASE})
-of the \emph{base} of the next level of the page table.
-While we could now convert this address to a virtual points-to, this is not necessarily the correct thing to do.
-The caller \lstinline|walkpgdir| (discussed next) uses \lstinline|pte_get_next_table| to retrieve just the base address,
-because only the caller knows which entry in the subsequent table will be accessed (it depends on the corresponding bits from the virtual
-address being translated). So instead we pass back the per-address-space invariant with the identity mapping resources for \lstinline|entry|
-pulled out. The caller determines which entry in that table must actually
+However, note that no argument to this function specifies which virtual address is being accessed,
+so \lstinline|pte_get_next_table| does not know which entry in the next table to retrieve.
+Even if that address were passed, this function is used for each step-down, so the slice of the
+virtual address (per Figure \ref{fig:pagetables}) is not fixed.
+Thus Line \ref{line:p2vC} computes the virtual address of the \emph{base} of the next-level table,
+and the postcondition includes a renamed version of the assertion on line \ref{line:childrenC},
+for the \emph{caller} --- \lstinline|walkpgdir| (discussed next) to perform the conversion for
+The caller determines which entry in that table must actually
 be accessed --- by selecting the appropriate index into the 512 ghost map tokens returned in the postcondition,
 and using the ghost translation and physical location portions of the invariant to assemble a vpte-pointsto
 that justifies the caller's subsequent access to a particular entry of the returned table.
+The postcondition also passes back the per-address-space invariant with the
+identity mapping resources for \lstinline|entry| still pulled out (it was removed by the caller).
 
 
 
-\paragraph{Self-Conditional Fractional Ownership}
+\subsubsection{Self-Conditional Fractional Ownership and Installing a New Table}
 The fractional ownership of the entry's physical memory is subtle.
 As noted above, a \emph{valid} entry must coexist with the fractional ownership from
 $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ and therefore have less than full ownership,
@@ -392,102 +386,57 @@ But determining this requires reading the very memory whose ownership is being d
 We use the invariant portion annotated as ``Entry validity'' (\textcircled{3}) in Figure \ref{fig:peraspaceinvariant_with_p2v_extensionC} to capture this:
 if the entry is invalid the invariant holds full ownership of the entry, so it can be updated;
 while if the entry is valid, the invariant owns only a constant nonzero fraction sufficient to read but not modify the entry.
-% \begin{equation*}
-%  \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner \tag{*}
-% \end{equation*}
-Since the fractional ownership is always non-zero, Line \ref{line:read_entry_contentsC} in Figure \ref{fig:calltopteinitializeC} can read the entry,
-and if the entry is dynamically found to be invalid, the invariant is refined (Line \ref{line:refined_fractional_ownership}) for full
-ownership, allowing updates.
-
+Since the fractional ownership is always non-zero, Line \ref{line:read_entry_contentsC} in Figure \ref{fig:calltopteinitializeC} can read the entry
+(using a rule similar to \textsc{WriteToRegFromVirtMem}, tailored to virtual PTE-points-to assertions),
+and if the entry is dynamically found to be invalid, the invariant is refined (Line \ref{line:refined_fractional_ownership})
+to indicate full ownership, allowing updates.
 Note that the caller is responsible for providing this conditional ownership, having pulled it out of the invariant earlier.
-This is why the precondition (Line \ref{line:preconditoin_entry_out}) explicitly excludes the entry's physical address from the invariant ($\Xi\setminus\{\mathsf{entry}\}$) ---
+This is why the precondition (Line \ref{line:precondition_entry_out}) explicitly excludes the entry's physical address from the invariant ($\Xi\setminus\{\mathsf{entry}\}$) ---
 its relevant assertions have already been borrowed by the caller.
 \looseness=-1
-\\
-
-
-
-% Concretely speaking, going back to Line 15 in Figure \ref{fig:calltopteinitialize}, to read the value referenced by physical address \textsf{entry} while preserving the soundness of memory mappings, our extended invariant introduces the side condition (*)
-% \begin{equation*}
-%  \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner \tag{*}
-% \end{equation*}
-% assuring that looking the identity mapping for \textsf{entry} is safe under the subtle justification which equates the full ownership to the non/presence of the entry which can only be known when investigated in Line 21 in Figure \ref{fig:calltopteinitialize}.
-\begin{comment}
- \begin{figure*}
-   \footnotesize
-   \[
- \begin{array}{l}
-   \specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \textsf{\_} \ast \ulcorner \Xi !! \textsf{entry} = \textsf{Some V} \urcorner  }_{\rtv}  \\
-\sqsubseteq \\
-   \specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv} \\
-\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv} \\
-\mathsf{mov} \;   [ \mathsf{r8} ],\mathsf{rdi}\\
- \specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv} \\
-\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv} \\
- \end{array}
- \]
- \vspace{-1em}
-\caption{Peel-out the resources needed for the virtual-pte pointsto relation for physical address \textsf{entry} to be accessed in Line 7 in Figure \ref{fig:calltopteinitializeC}. }
-  \label{fig:lookingupidpamppingC}
- \end{figure*}
-\end{comment}
-
-
- \subsubsection{Installing a New Table}
-\todo[inline]{C edit frontier. Should see if we can condense this discussion, since the C is only 2 lines and mostly follows from assumptions
-about kalloc. Maybe this should get inlined into the Self-Conditional Fractional Ownership above, and likewise the P2V subsubsection below into the Physical-to-Virtual Mappings
-bit above. Yeah, they should. I think the expository order still makes sense even if it's not program order; maybe explain we treat the
-success case first and the backup case second? This would then still permit the discussion of pte initialize to be near the proof of its call}
- After obtaining the identity mapping for \textsf{entry}, we are able to load the \textsf{entry\_val} into \textsf{rdi}, and check the presence bit through
-\ifPLDI
-Line \ref{line:mask_presentC} % in condensed version, all on same line
-\else
-Lines \ref{line:mask_present}--\ref{line:check_entry_present} 
-\fi
-in Figure \ref{fig:calltopteinitializeC}.
-Accessing the presence bit and checking the value allows us to exploit the condition (*) that was just discussed when verifying the allocation
-path (i.e., when the entry is invalid and Lines \ref{line:alloc_path_startC}--\ref{line:alloc_path_endC} in Figure \ref{fig:calltopteinitializeC}
-must allocate the next level of tables).
-This operation is subtle. To reiterate: the operation requires that the relevant table entry is readable, but the exact portion of ownership
-returned must be determined by inspecting the valid bit of the value in memory --- so full ownership is returned only for unused entries.
-When the bit is not set, that entails full ownership of the entry's memory ($\textsf{qfrac} = 1$) and justifies writing to that memory.
-Otherwise, the code jumps past the end of this listing, to the following code at the top of Figure \ref{fig:p2v} (which is also the
-continuation of this code).
 
 \begin{figure}\footnotesize
-  \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
+  \begin{lstlisting}[language=C,mathescape,escapeinside={(*}{*)}]
 /* @param entry: virtual address of a non-present entry to initialize with a new physical page */
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \lnot(\textsf{entry\_present entry\_val} }_{\rtv}$
-$\specline{\textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{entry entryv} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{entry})}{\textsf{level}} }$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \lnot(\textsf{entry\_present entry\_val} \ast \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{entry entryv} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{entry})}{\textsf{level}} }$
 void pte_initialize(pte_t *entry) {
   pte_t *local = kalloc(); // Allocate a full zeroed page for 512 8-byte entries(*\label{line:call_to_kallocC}*)
-  entry->pfn = PTE_ADDR_TO_PFN((uintptr_t) local);
+  entry->pfn = PTE_ADDR_TO_PFN((uintptr_t) local);(*\label{line:kalloc_install}*)
   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \lnot(\textsf{entry\_present entry\_val}) }$
   $\specline{ \textsf{entry+KERNBASE} \mapsto_{\mathsf{vpte,1}} \mathsf{entry} \; \textsf{pfn\_set(entryv nextpaddr)}}$
-  $\specline{\ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \begin{array}{l} \ulcorner\textsf{entry\_present (pte\_initialize(pfn\_set(entry\_val nextpaddr)),level)}\urcorner \wand \\  \;\;\;\;\;\;\; \forall_{i\in\textsf{0..511}} \; \textsf{table\_root (pte\_initialized (pfn\_set (entry\_val nextpaddr))) + i * 8} \mapsto_{\textsf{id}} \textsf{level-1}    \end{array}  }_{\rtv}$
+  $\specline{\ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \begin{array}{l} \ulcorner\textsf{entry\_present (pte\_initialize(pfn\_set(entry\_val nextpaddr)),level)}\urcorner \wand \\  \;\;\;\;\;\;\; \forall_{i\in\textsf{0..511}} \; \textsf{table\_root (pte\_initialized (pfn\_set (entry\_val nextpaddr))) + i * 8} \mapsto_{\textsf{id}} \textsf{level-1}    \end{array}  }_{\rtv}$(*\label{line:initialize_post}*)
 }
 \end{lstlisting}
-\vspace{-1em}
+\todo[inline]{more confusion of entry as program variable holding vaddr
+vs entry as logical variable for the paddr, nextpaddr, etc.
+update, clarifying that it returns a value for which the mapping holds.
+Also, do we need the conditional implication in this postcondition? it alloc'ed from
+a region already in Xi.
+And shouldn't we be excluding entry (the paddr) from Xi here?
+}
+\vspace{-2em}
 \caption{Allocating a physical page }
 \label{pteinitializespecC}
 \vspace{-1em}
 \end{figure}
 
-If the entry is not set, \textsf{pte\_initialize} (Line \ref{line:call_to_pte_initializeC} in Figure \ref{fig:calltopteinitializeC}) 
-allocates a physical page (internally utilizing the only unverified (trusted) code in our case studies, the page-allocator's \textsf{kalloc},\footnote{
+If the entry is not set, \lstinline|pte_initialize|  
+allocates a physical page for use as the next-level table.
+\lstinline|pte_initialize| is shown in Figure \ref{pteinitializespecC}: it simply calls
+\lstinline|kalloc| to allocate a physical page (Figure \ref{pteinitializespecC} Line \ref{line:call_to_kallocC}),
+and installs it into the entry (Line \ref{line:kalloc_install}).
+The page-allocator's \textsf{kalloc}
+is the only unverified (trusted) code in our case study.\footnote{
   This is an allocator for regions of pre-zeroed physical memory that is mapped, but not accessed by the allocator itself,
   as is typical for slab allocators~\cite{bonwick1994slab}.
   Its verification would be similar to verifying a usermode \textsf{malloc} verification ~\cite{Chlipala2013Bedrock,wickerson2010explicit},
   just with additional invariants on the memory pool.
 } 
-on Line \ref{line:call_to_kallocC} in Figure \ref{pteinitializespecC}). 
 Since we are using \textsf{pte\_initialize} for page-table address allocation, we must relate this newly
 allocated physical address to the identity mapping map $\Xi$ --- 
 see Line \ref{line:page_of_capsC} in Figure \ref{fig:calltopteinitializeC}, where
 \texttt{kalloc}'s specification guarantees it has returned memory from a designated memory
 pool that is already mapped
-\ifPLDI
-\else
 \footnote{A reasonable reader might wonder where this pool
 initially comes from and how it might grow when needed. Typically an initial mapping subject to this identity mapping
 constraint is set up prior to transition to 64-bit kernel code (notably,
@@ -498,32 +447,19 @@ typically by starting general virtual address allocation at the highest physical
 This reserves the virtual addresses corresponding to all physical addresses plus the offset for later use in this pool,
 as needed.
 } 
-\fi
-and satisfies the offset invariants.
-% \todo[inline,color=blue]{colin frontier.
-% Stuck with line 31 onwards in Figure 7. rax holds nextpaddr, but I think that should be entrypfn, and 
-% the explicit entrypfn id token assertion should go away, as its covered by the forall assertion.
-% then the postcondition for pte-initialize should have a specific level now for the entries,
-% like 0, which can be updated in the view shift on line 42.
-% }
-% Focusing on the specification of \textsf{pte\_initialize} separately in Figure \ref{fig:pteinitializespec}, 
-% we right immediately realize that instead of seeing see a physical pointsto for the fresly page-table address 
-% (e.g. $\mathsf{nextpaddr} \mapsto_{\mathsf{p}} \mathsf{w64\_0}$) deliberately in the post-conditoin in Lines 15-16,
-%  we observe a full-ownership token representing the knowledge that a frame and all the entries indexed from this 
-% frame are freshly allocated with full-ownership to be a part of the identity map, $\Xi$. 
-The soundness argument of this specification relies on the fact that these freshly allocated resources are part
-of an entry construction that has not been completed yet: the presence bit is set (line \ref{line:install_new_entryC} in Figure \ref{fig:calltopteinitializeC}) after these freshly allocated resources are incorporated into the
-entry construction via the page frame portion of the PTE. In other words, the side condition, (*),
- formalizes that any access to the entry with these resources is \textit{invalid} (in the sense of not necessarily
-having accompanying resources) until the entry is marked present (and thus the memory returned from \textsf{kalloc}
-moves into the page table invariant).
+and satisfies the offset invariants (trivially, as the new page is zeroed).
+The presence bit of the entry is \emph{not} set during \lstinline|pte_initialize|, but upon
+return to \lstinline|pte_get_next_table|, where it will validate the conditional ownership discussed above.
+\lstinline|pte_initialize| has a full-permission virtual pte-pointsto in its precondition.
+Then the assertions that hold after Line \ref{line:now_we_know} of Figure \ref{fig:calltopteinitializeC}
+are enough to establish the same page table invariants which hold in the case where the entry was already valid,
+by updating the current address space's entry.
+\todo[inline]{still feel like this was a little too high level}
+
+\todo[inline,color=cyan]{Colin edit frontier}
 
 
 \subsubsection{The Specification of \lstinline|pte_get_next_table|}
-\todo[inline]{Colin says: should make this section more concise, really just tie up earlier discussions.
-But make a point to highlight that none of the specifications need to track which address space we're dealing with!}
-\hrule
-
 Note that the specification does \emph{not} assume a specific page table level --- the logical parameter \textsf{v} represents the level
 of the entry passed as an argument, and this code
 is used for all three level transitions when traversing page tables (4 to 3, 3 to 2, 2 to 1).
@@ -537,7 +473,6 @@ Instead it merely computes the base virtual address of the next table, and retur
 for the \emph{caller} to construct a vpte-pointsto for any entry of the next table level (if this is not an L1 entry ---
 the caller knows which level of the table this is for).
 \looseness=-1
-
 
 \subsubsection{Walking Page-Table Tree: Calling \textsf{pte\_get\_next\_table} for Each Level}
 \label{wlkpgdirC}
