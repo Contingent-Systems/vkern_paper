@@ -118,15 +118,7 @@ of the proofs and kernel invariant, before concluding with the top-level verific
 % % installing them into levels 4, 3, and 2, along the way.
 % possibly allocating new L3, L2, and L1 tables as necessary.
 
-\todo[inline]{Colin WIP note: The organization is odd here.
-We talk through access to entry, then start talking about identity mappings even though we don't need that info
-until the P2V call later. But we do need the part of the extended invariant that deals with the
-entry-present qfrac bit, which does only hold for those addresses used for page tables, so is part
-of the same invariant. Maybe we should reorg to first talk through the logic, 
-calling out the two problems the new invariant solves (permission to update the entry and p2v) along the way,
-then have a section called "extended address space invariant" or similar to talk about the solutions.
-This would roughly mean moving 5.1.3 (installing a new table) up
-}
+
 \todo[inline]{this and other figures need assertion updates to talk about C: see entry\_val (needs adjustment to points-to preconditions
 and explanation of entry pointing to a C bitfield so entry\_val encompasses the various bits), nextpaddr
 (was logical name in asm proof, but not a C variable)
@@ -223,6 +215,7 @@ $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}
 % \end{lstlisting}
 \todo[inline]{this figure has an issue with entry, which is used both as a logical variable and a program variable (e.g., assertion on line 6).
 I would also expect to see a more prominent use of \textsf{v} in the precondition
+Line 20 also seems like it lost the paddr of the vpte
 }
 \vspace{-1em}
 \caption{Ensuring \textsf{entry} points to a valid next-level table, allocating if necessary, returning its virtual address.}
@@ -254,7 +247,7 @@ it has a highly nontrivial correctness argument, which depends critically on det
 entries is shared between parts of the kernel. No prior work has engaged with this problem.
 
 
-\subsubsection{Address Space Invariant: Identity Mappings and Conditional Ownership Page Table Ownership}
+\subsubsection{Address Space Invariant: Identity Mappings and Conditional Page Table Ownership}
 \label{subsec:identitymappingsC}
 Assembly-level verification of compiler output from Figure \ref{fig:calltopteinitializeC} is verbose but doable
 Section \ref{sec:logic}'s logic, but only after resolving two critical challenges.\todo{Ismail, not sure if this ``verbose but doable''
@@ -276,8 +269,17 @@ physical location relies on subtle, never-before-formalized kernel invariants.
 Since the key to solving these challenges is to extend the address space invariant, we
 first discuss that invariant and the kernel designs it supports, before returning to the subtle details of
 verifying lines \ref{line:install_new_entryC} and \ref{line:p2vC}.
+The key idea is to establish extra invariants on physical addresses that are part of a page table ---
+but to do so in a way that meshes with the existing invariants (in the informal sense) already preserved in most
+unverified kernel designs.
+Each of the above problems requires its own extension to the invariant, but we will discuss
+physical-to-virtual conversion first, both because it dictates the organization of the invariant
+and because when Line \ref{line:check_entry_present_jumpC}'s
+conditional check is false that is all that is necessary for the proof; correctness of the conditional branch deals with \emph{both}
+extensions.
 
-\paragraph{Physical-to-Virtual Mappings}
+\subsubsection{Physical-to-Virtual Mappings and \textsf{P2V}}
+\label{sec:p2vC}
 Kernels need to convert between physical and virtual addresses, in both directions.
 Traversing the page tables in software is the simplest way to convert a virtual address to a physical address;
 this is the context we are working up to.
@@ -341,8 +343,42 @@ to repeat the process one level down (\textcircled{4}).
 Line \ref{line:precondition_conditional}) says that if the entry is valid (points to a next-level table)
 then there are tokens for accessing $\Xi$ for every entry in the next-level table.
 By Line \ref{line:finalpieceS} the entry is guaranteed to be valid so all tokens for converting the next table level's physical addresses to virtual
-are available (Line \ref{line:available_child_tokens}).
+are available (in the form expressed by the assertion on Line \ref{line:available_child_tokens}).
 \looseness=-1
+
+As noted above, for the code path where the conditional does not execute (there was already a valid entry), this is all we need of the new
+invariant to verify the end of the function from Line \ref{line:finalpieceS} onward.
+By that point the invariant holds and applies to the definitely-valid entry,
+so we can the physical address of the next-level table to a corresponding virtual address via the identity mappings just described.
+Line \ref{line:extract_pfn} simply retrieves the physical address.
+Line \ref{line:p2vC} is the critical piece, and arguably corresponds to the most subtle verification of an \lstinline|add| instruction
+(\lstinline|add rax, KERNBASE|)\todo{if walkpgdir returns vaddr, then KERNBASE==0, which complicates some discussion here}
+that we are aware of, and something no prior work on verified OS kernels has dealt with.
+
+After Line \ref{line:extract_pfn}, it is already known that the present bit is set in the entry,
+thus Line \ref{line:childrenC}'s assertion reflects that the tokens for $\Xi$ exist for each word-aligned
+physical address in the next-level table.
+
+\hrule
+\todo[inline]{this next (older) text is a little confusing; it talks about the conversion to virtual points-to,
+but that happens at the caller, which is the only one that knows which index is needed.
+Clean up: the end of this function returns (1) computationally, the virtual address of the base of the level $n-1$ table;
+and (2) logically, the resources for the \emph{caller} to convert any aligned virtual address in the 4K
+range after that base into a virtual points-to.
+}
+
+The code loads the value at the offseted (\textsf{KERNBASE}) virtual memory address ($\textsf{entry}_{\textsf{pfn}}$ \textsf{+KERNBASE})
+of the \emph{base} of the next level of the page table.
+While we could now convert this address to a virtual points-to, this is not necessarily the correct thing to do.
+The caller \lstinline|walkpgdir| (discussed next) uses \lstinline|pte_get_next_table| to retrieve just the base address,
+because only the caller knows which entry in the subsequent table will be accessed (it depends on the corresponding bits from the virtual
+address being translated). So instead we pass back the per-address-space invariant with the identity mapping resources for \lstinline|entry|
+pulled out. The caller determines which entry in that table must actually
+be accessed --- by selecting the appropriate index into the 512 ghost map tokens returned in the postcondition,
+and using the ghost translation and physical location portions of the invariant to assemble a vpte-pointsto
+that justifies the caller's subsequent access to a particular entry of the returned table.
+
+
 
 \paragraph{Self-Conditional Fractional Ownership}
 The fractional ownership of the entry's physical memory is subtle.
@@ -367,6 +403,8 @@ Note that the caller is responsible for providing this conditional ownership, ha
 This is why the precondition (Line \ref{line:preconditoin_entry_out}) explicitly excludes the entry's physical address from the invariant ($\Xi\setminus\{\mathsf{entry}\}$) ---
 its relevant assertions have already been borrowed by the caller.
 \looseness=-1
+\\
+
 
 
 % Concretely speaking, going back to Line 15 in Figure \ref{fig:calltopteinitialize}, to read the value referenced by physical address \textsf{entry} while preserving the soundness of memory mappings, our extended invariant introduces the side condition (*)
@@ -480,62 +518,10 @@ entry construction via the page frame portion of the PTE. In other words, the si
 having accompanying resources) until the entry is marked present (and thus the memory returned from \textsf{kalloc}
 moves into the page table invariant).
 
-\subsubsection{Physical-to-Virtual Conversion with \textsf{P2V}}
-\label{sec:p2vC}
-Once we know that the entry refers to a physical address in the identity mapping range ($\Xi$)
-(via the branch at Line \ref{line:check_entry_present_jumpC}, or by allocating and installing a new entry
-as just discussed for Lines \ref{line:check_entry_present_jumpC}--\ref{line:end_of_allocation_pathC}), 
-we can convert this frame address to a corresponding virtual address via the identity mappings
-discussed in Section \ref{subsec:identitymappingsC} and Figure \ref{fig:peraspaceinvariant_with_p2v_extensionC}.
-in the last lines of \lstinline|pte_get_next_table| shown in Line \ref{line:p2vC} in Figure \ref{fig:calltopteinitializeC} (the continuation of Figure \ref{fig:calltopteinitializeC}).
-This is a critical piece of the full page table walk verification.
-In our small kernel (Line \ref{line:p2vC} in Figure \ref{fig:calltopteinitializeC}), as in larger kernels, the C macro \texttt{P2V} common to many kernels
-is actually just addition by the constant offset mentioned in Section \ref{subsec:identitymappingsC}.
-But the correctness of this simple instruction is quite subtle.
-%  and cannot be proven 
-% without the extended invariant (Figure \ref{fig:peraspaceinvariant_with_p2v_extension})
-% worked out Section \ref{subsec:identitymappings}.
-
-%\begin{figure}\footnotesize
-%  \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
-%  /*... Continued from Figure (*\ref{fig:calltopteinitialize}*); assertions below specialized to non-allocating path for clarity */
-%  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \}),m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{rcx}  \mapsto_{\textsf{r}} \textsf{\_}  \ast \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
-%  $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{(pte\_initialized (entry\_val.pfn))} \urcorner }_{\rtv}$
-%  $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{(pte\_initialized (entry\_val.pfn)))} \ast \texttt{rax} \mapsto_{\textsf{r}} \textsf{ table\_root (pte\_initialize(entry\_val.pfn))} }_{\rtv}$
-%  $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (entry\_val.pfn)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:children}*)
-%  uintptr_t next_phys_addr = PTE_PFN_TO_ADDR(entry->pfn)
-%  uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr); (*\label{line:p2v}*) 
-%  /*... clean up the stack and return the rax value*/
-%  return next
-%}
-%\end{lstlisting}
-%\vspace{-1em}
-%\caption{Converting a physical address of a PTE to a virtual address (w/o instruction pointer or flag updates).
-% % Abreviating the other relevant resources (including the lower entries) peeled-out of the invariant as $\textsf{R}_{\textsf{children}}$
-%\vspace{-1em}
-%}
-%\label{fig:p2v}
-%\end{figure}
-Lines \ref{line:childrenC}-\ref{line:p2vC} in Figure \ref{fig:calltopteinitializeC} show the verification of the end of \lstinline|pte_get_next_table| specialized to the case where no allocation was necessary (i.e., the conditional on Line \ref{line:check_entry_presentC} of Figure \ref{fig:calltopteinitializeC} was taken).
-In this case, the true present bit allows access to the child tokens from Line \ref{line:conditional_childrenC} of Figure \ref{fig:calltopteinitializeC},
-which is then refined to the assertion on Line \ref{line:childrenC} of Figure \ref{fig:calltopteinitializeC}.
-The code loads the value at the offseted (\textsf{KERNBASE}) virtual memory address ($\textsf{entry}_{\textsf{pfn}}$ \textsf{+KERNBASE})
-of the \emph{base} of the next level of the page table.
-% \todo[inline]{the next sentence depends on having figure 10 updated to reflect the page-worth of tokens}
-While we could now convert this address to a virtual points-to, this is not necessarily the correct thing to do.
-The caller \lstinline|walkpgdir| (discussed next) uses \lstinline|pte_get_next_table| to retrieve just the base address,
-because only the caller knows which entry in the subsequent table will be accessed (it depends on the corresponding bits from the virtual
-address being translated). So instead we pass back the per-address-space invariant with the identity mapping resources for \lstinline|entry|
-pulled out. The caller determines which entry in that table must actually
-be accessed --- by selecting the appropriate index into the 512 ghost map tokens returned in the postcondition,
-and using the ghost translation and physical location portions of the invariant to assemble a vpte-pointsto
-that justifies the caller's subsequent access to a particular entry of the returned table.
-% in the identity map ($\Xi\setminus\{entry\}$) of the kernel invariant.
-% the logical update in Specification  Lines 5-10 to 10-14 for obtaining virtual-pointsto resource for the frame 
-% ($\textsf{entry}_{\textsf{pfn}}$) by removing it from the ghost map ($\Xi\setminus\{entry\}\cup \{\textsf{entry}_{\textsf{pfn}}) \}$) 
-% in Line 5 and compute the identity mapping for this physical frame address in Line 13 in Figure \ref{fig:p2v}).
 
 \subsubsection{The Specification of \lstinline|pte_get_next_table|}
+\todo[inline]{Colin says: should make this section more concise, really just tie up earlier discussions.
+But make a point to highlight that none of the specifications need to track which address space we're dealing with!}
 \hrule
 
 Note that the specification does \emph{not} assume a specific page table level --- the logical parameter \textsf{v} represents the level
