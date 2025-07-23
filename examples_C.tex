@@ -29,7 +29,7 @@
   \ownGhostpv\gammaPred{\authfrag{\singletonMap{#1}{(#2, #3)}}}
 }
 
-\newcommand{\pvmapping}[1]{\mathcal{A}\textsf{PVMappings}(#1)}
+\newcommand{\pvmapping}[1]{\mathcal{A}\textsf{P2VMappings}(#1)}
 
 
 \newcommand{\fpaddr}{\texttt{fpaddr}}
@@ -238,23 +238,23 @@ of the proofs and kernel invariant, before concluding with the top-level verific
    @return next: a virtual pointer to the base of a valid level n table */
 pte_t *pte_get_next_table(pte_t *entry) {
   pte_t *next;
-  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry}\mapsto\textsf{v}\},m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$(*\label{line:precondition_entry_out}*)
-  $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$ (*\label{line:get_next_vpte_preconditionC}*)
-  $\specline{\ulcorner\textsf{entry\_present(entry\_val)}\urcorner \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(entry\_val.pfn) + i * 8}}{\textsf{v-1}} }_{\rtv} $(*\label{line:precondition_conditional}*) 
+  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entryp}\mapsto\textsf{v}\},m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \mathsf{entry} \mapsto_r \mathsf{entryp+KERNBASE} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{entryp})}{\textsf{level}}}_{\rtv}$(*\label{line:precondition_entry_out}*)
+  $\specline{ \textsf{entryp+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entryp entryv} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entryv})\urcorner}_{\rtv}$ (*\label{line:get_next_vpte_preconditionC}*)
+  $\specline{\ulcorner\textsf{entry\_present(entryv)}\urcorner \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(entryv.pfn) + i * 8}}{\textsf{v-1}} }_{\rtv} $(*\label{line:precondition_conditional}*) 
   /* Reading the page table is entry justified by the virtual pte-points-to */
   if (!entry->present(*\label{line:read_entry_contentsC}*)(*\label{line:conditional_childrenC}*)(*\label{line:check_entry_present_jumpC}*)) {// If the present bit is zero, need to allocate next level (* \label{line:check_entry_presentC} *)(* \label{line:mask_presentC} *) 
-    (*\label{line:refined_fractional_ownership}*)(*\label{line:pass_addrof_nextC}*)(*\label{line:alloc_path_startC}*)$\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$ (*\label{line:after_concluding_qfrac1C}*)
+    (*\label{line:refined_fractional_ownership}*)(*\label{line:pass_addrof_nextC}*)(*\label{line:alloc_path_startC}*)$\specline{ \textsf{entryp+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entryp entryv} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entryv})  \urcorner }_{\rtv}$ (*\label{line:after_concluding_qfrac1C}*)
     pte_initialize(entry); // Allocate a zeroed physical page and install in entry(*\label{line:call_to_pte_initializeC}\label{line:page_of_capsC}*)
-    $\specline{ \ldots \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present (pfn\_set (entry\_val nextpaddr))}  \urcorner   }_{\rtv}$
-    $\specline{ \begin{array}{l}\textsf{entry\_present (pte\_initialized (pfn\_set(entryv nextpaddr)))} \wand  \\ \;\;\;\;\;\;\;\;\  \forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}} \end{array}  }$ (*\label{line:page_of_capsC}*)
+    $\specline{ \ldots \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entryv})  \urcorner \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present (pfn\_set (entryv nextpaddr))}  \urcorner   }_{\rtv}$
+    $\specline{ \begin{array}{l}\textsf{entry\_present (pte\_initialized (pfn\_set(entryv nextpaddr)))} \wand  \\ \;\;\;\;\;\;\;\;\  \forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entryv nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}} \end{array}  }$ (*\label{line:page_of_capsC}*)
     entry->present = 1; // Install newly-allocated level n table, mark present(*\label{line:install_new_entryC}*)
     /*Now we know that entry is initialized, so we satisfy the condition to access children list */(*\label{line:now_we_know}*)
-    $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}}  \textsf{entry} \; \textsf{pte\_initialized(pfn\_set(entryv nextpaddr))} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
-    $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$(*\label{line:available_child_tokens}*) (*\label{line:alloc_path_endC}*)
+    $\specline{ \textsf{entryp+KERNBASE} \mapsto_{\textsf{vpte,qfrac}}  \textsf{entryp} \; \textsf{pte\_initialized(pfn\_set(entryv nextpaddr))} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entryv})  \urcorner }_{\rtv}$
+    $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entryv nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$(*\label{line:available_child_tokens}*) (*\label{line:alloc_path_endC}*)
   } (*\label{line:end_of_allocation_pathC}*)
-  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry}\mapsto\textsf{v} \}),m) \ast \textsf{entry} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
-  $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry} \; \textsf{(pte\_initialized (entry\_val.pfn))} \urcorner }_{\rtv}$
-  $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (entry\_val.pfn)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:childrenC}*)
+  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entryp}\mapsto\textsf{v} \}),m) \ast \textsf{entryp} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+  $\specline{ \textsf{entryp+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entryp} \; \textsf{(pte\_initialized (entryv.pfn))} \urcorner }_{\rtv}$
+  $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (entryv.pfn)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:childrenC}*)
   uintptr_t next_phys_addr = PTE_PFN_TO_ADDR(entry->pfn); // Fetch physical address of next table (*\label{line:finalpieceS}*)(*\label{line:extract_pfn}*)
   uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr); // Convert to virtual address (*\label{line:p2vC}*)
   next = (pte_t *) next_virt_addr;(*\label{line:finalpieceE}*)
@@ -318,11 +318,10 @@ $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}
 % ;;next = (pte_t *) next_virt_addr;
 % ;;clean up the stack and return next
 % \end{lstlisting}
-\todo[inline]{this figure has an issue with entry, which is used both as a logical variable and a program variable (e.g., assertion on line 6).
-Line 20 also seems like it lost the paddr of the vpte
+\todo[inline]{
+Ismail, why does the implication on line 13 talk about entryv? Is that really what the Rocq proof talks about, after overwriting?
+Are we missing some existential quantification of the value in the conditional branch and lines 19-21?
 }
-\todo[inline,color=cyan]{yes update logical entry to entryp, which requires also adding a local-variable assertion that entry the variable
-holds entryp+KERNBASE}
 \vspace{-1em}
 \caption{Ensuring \textsf{entry} points to a valid next-level table, allocating if necessary, returning its virtual address.}
 \label{fig:calltopteinitializeC}
@@ -340,7 +339,9 @@ If the entry is empty (i.e., this is a sparse part of the page table representat
 the code also allocates a page for the level $n$ table, installs it in the level $n+1$ entry, and establishes appropriate invariants.
 Figure \ref{fig:calltopteinitializeC} presents the function with proof annotations that we will explain shortly, but we first explain the functionality.
 \lstinline|pte_get_next_table| accepts a \emph{virtual} address \lstinline|entry| which points to a level-$n+1$
-table entry. On Line \ref{line:read_entry_contentsC}, the code checks the present bit of the entry.
+table entry.
+
+On Line \ref{line:read_entry_contentsC}, the code checks the present bit of the entry.
 If the bit is unset, there is no level-$n$ table, so one must be allocated via \lstinline|pte_initialize| (explained shortly\footnote{
   Briefly, it allocates a fresh physical page, and initializes the memory pointed to by \lstinline|entry| with that physical address.
 }) and marked present.
@@ -352,16 +353,35 @@ While at first glance this code does not sound terribly complex, beyond needing 
 it has a highly nontrivial correctness argument, which depends critically on detailed invariants on how access to page table
 entries is shared between parts of the kernel. No prior work has engaged with this problem.
 
+For this C presentation of what is really an assembly-level proof, we abuse notation and
+use our register points-to for C-level program variables. So on Line \ref{line:precondition_entry_out},
+$\mathsf{entry} \mapsto_r \mathsf{entryp+KERNBASE}$ means that the \emph{register representing} the C program variable
+\lstinline|entry| (per the calling convention, \lstinline|rdi|) holds the sum on the right (a constant offset added to the physical address $\mathsf{entryp}$ of the entry).
+That particular value is one subtlety of the proof related to the aforementioned kernel invariant, and is explained in Section \ref{sec:p2vC}.
+The \emph{virtual pte-points-to} from that virtual address (Line \ref{line:get_next_vpte_preconditionC}) indicates that it points to a value
+$\mathsf{entryv}$, a (possibly-unpopulated) page table entry.
+A virtual pte-points-to is defined just like the normal virtual points-to of Figure \ref{fig:virtualpointstosharing},
+except the physical address (\textsf{entryp} on Line \ref{line:get_next_vpte_preconditionC}) is explicit in the assertion
+rather than existentially quantified:\\
+\centerline{$
+    \vaddr\mapsto_{\textsf{vpte,q}} \; \paddr \; \vpage : \mathsf{vProp}~\Sigma \stackrel{\triangle}{=} 
+    \exists \delta\ldotp
+	(\lambda \mathit{cr3val}\ldotp
+	\ghostmaptoken{\delta{}s}{\mathit{cr3val}}{\delta}) \ast 
+  \fracghostmaptoken{\delta}{\vaddr}{\paddr}{\qfrac} \ast \paddr \mapsto_{\mathsf{p}} \vpage
+$}\\
+This supports memory access rules much like Figure \ref{fig:wpdamd}'s rules (which are proven sound using soundness of virtual pte-points-to rules as lemmas!)
+while exposing the physical location being modified.
+This is useful for page table modifications, which require knowing the physical location being changed.
+They are used throughout the software page table walk because entries in any level may be initialized.
+\looseness=-1
 
 \subsubsection{Address Space Invariant: Identity Mappings and Conditional Page Table Ownership}
 \label{subsec:identitymappingsC}
-Assembly-level verification of compiler output from Figure \ref{fig:calltopteinitializeC} is verbose but doable
-Section \ref{sec:logic}'s logic, but only after resolving two critical challenges.\todo{Ismail, not sure if this ``verbose but doable''
- is a good framing, we should discuss
-}\todo[color=cyan]{maybe say something about it feeling like normal asm verification \emph{because} of the virtual points-to enabling
-familiar-style proving except for specific manipulation of page tables.
-Maybe mention that it's well-beyond the capabilities of prior work because they just never tried? (said nicer...)
-}
+Assembly-level verification of compiler output from Figure \ref{fig:calltopteinitializeC} is verbose, but largely
+similar to other assembly-level verification thanks to Section \ref{sec:logic}'s logic (including virtual pte-points-to
+assertions),\todo{figure out how to highlight advance over prior work here}
+but only after resolving two critical challenges.
 Two key challenges stand out and end up affecting both the pre- and post-conditions, neither of which has been addressed by prior work.
 First, the update to the memory at (virtual) address \lstinline|entry| depends on subtle ownership invariants:
 if the entry is present then its fractional ownership is shared with a large number of \lstinline|L4_L1_PointsTo| assertions
@@ -426,18 +446,13 @@ hence the comment of Line \ref{line:now_we_know}).
    \qquad\underbrace{ \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner}_\text{\textcircled{3} Entry validity}\ast 
     \underbrace{\left(\ulcorner\textsf{present\_L}(\vale,\mathsf{level})\urcorner \wand \forall_{\textsf{i}\in\textsf{0..511}} \ldotp \ghostmaptoken{\textsf{id}}{((\mathsf{entry\_page}\;\vale) + \textsf{i * 8})}{\textsf{level-1}}\right)}_{\text{\textcircled{4} Indexing into next level of tables}} \\
   \textsf{ where } \\
-   \textsf{ASpace\_Lookup}_{\textsf{id}}(\ptablestore,\Xi,m) \stackrel{\triangle}{=} \lambda\textsf{ cr3val} \ldotp \; \exists \gammaPred \; \ldotp \ulcorner m \; !!\; \textsf{cr3val} = \textsf{Some } \gammaPred \urcorner \ast
+   \textsf{ASpace\_Lookup}_{\textsf{id}}(\ptablestore,\Xi,m) \stackrel{\triangle}{=} \lambda\textsf{ cr3val} \ldotp \; \exists \gammaPred,\gammaPred' \; \ldotp \ulcorner m \; !!\; \textsf{cr3val} = \textsf{Some } \gammaPred \urcorner \ast
    % \ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}} \ast  \ownGhostpv\gammaPred{\authfull{\pvmapping\Xi}}
-   \ptableabswalk{\delta,\ptablestore} \ast \pvmapping{\delta,\Xi}\\
-  \textsf{present\_L}(\vale,\mathsf{level})\stackrel{\triangle}{=} \mathsf{entry\_present}(\vale)\land \mathsf{level} > 0
+   \ptableabswalk{\delta,\ptablestore} \ast \pvmapping{\delta',\Xi}\\
+  \textsf{present\_L}(\vale,\mathsf{level})\stackrel{\triangle}{=} \mathsf{entry\_present}(\vale)\land \mathsf{level} > 1
   
 \end{array}
 \]
-\todo[inline]{Ismail, what's APVMappings?}
-\todo[inline,color=cyan]{APVMappings is authoritative ownership of the ghost map for the current address space's $\Xi$ (identity mappings).
-So the last line shouldn't just existentially quantify $\delta$, but also a $\delta'$ since the authoritative map for $\Xi$ should have its own ghost name
-(and does in the Rocq)
-}
 \vspace{-1em}
 \caption{Address space invariant of Figure \ref{fig:peraspaceinvariant} extended with a ghost map bookkeeping identity mappings. }
   \label{fig:peraspaceinvariant_with_p2v_extensionC}
@@ -511,23 +526,15 @@ its relevant assertions have already been borrowed by the caller.
 \begin{figure}\footnotesize
   \begin{lstlisting}[language=C,mathescape,escapeinside={(*}{*)}]
 /* @param entry: virtual address of a non-present entry to initialize with a new physical page */
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \lnot(\textsf{entry\_present entry\_val} \ast \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{entry entryv} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{entry})}{\textsf{level}} }$
+$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \lnot(\textsf{entry\_present entryv}) \ast \textsf{entryp+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{entryp entryv} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{entryp})}{\textsf{level}} }$
 void pte_initialize(pte_t *entry) {
   pte_t *local = kalloc(); // Allocate a full zeroed page for 512 8-byte entries(*\label{line:call_to_kallocC}*)
   entry->pfn = PTE_ADDR_TO_PFN((uintptr_t) local);(*\label{line:kalloc_install}*)
-  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \lnot(\textsf{entry\_present entry\_val}) }$
-  $\specline{ \textsf{entry+KERNBASE} \mapsto_{\mathsf{vpte,1}} \mathsf{entry} \; \textsf{pfn\_set(entryv nextpaddr)}}$
+  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \lnot(\textsf{entry\_present entryv}) }$
+  $\specline{ \textsf{entryp+KERNBASE} \mapsto_{\mathsf{vpte,1}} \mathsf{entryp} \; \textsf{pfn\_set(entryv nextpaddr)}}$
   $\specline{\ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \begin{array}{l} \ulcorner\textsf{entry\_present (pte\_initialize(pfn\_set(entry\_val nextpaddr)),level)}\urcorner \wand \\  \;\;\;\;\;\;\; \forall_{i\in\textsf{0..511}} \; \textsf{table\_root (pte\_initialized (pfn\_set (entry\_val nextpaddr))) + i * 8} \mapsto_{\textsf{id}} \textsf{level-1}    \end{array}  }_{\rtv}$(*\label{line:initialize_post}*)
 }
 \end{lstlisting}
-\todo[inline]{more confusion of entry as program variable holding vaddr
-vs entry as logical variable for the paddr, nextpaddr, etc.
-update, clarifying that it returns a value for which the mapping holds.
-Also, do we need the conditional implication in this postcondition? it alloc'ed from
-a region already in Xi.
-And shouldn't we be excluding entry (the paddr) from Xi here?
-}
-\todo[inline,color=cyan]{no, this proof really doesn't care if entry is in or out of Xi, no need to exclude, but maybe worth explaining}
 \vspace{-2em}
 \caption{Allocating a physical page }
 \label{pteinitializespecC}
@@ -570,23 +577,25 @@ are enough to establish the same page table invariants which hold in the case wh
 by updating the current address space's entry.
 \todo[inline]{still feel like this was a little too high level}
 
-\todo[inline,color=cyan]{Colin edit frontier}
 
 
 \subsubsection{The Specification of \lstinline|pte_get_next_table|}
-Note that the specification does \emph{not} assume a specific page table level --- the logical parameter \textsf{v} represents the level
-of the entry passed as an argument, and this code
-is used for all three level transitions when traversing page tables (4 to 3, 3 to 2, 2 to 1).
-This comes into play with a subtlety of the specification of \lstinline|pte_get_next_table| that we will
-revisit several times: \lstinline|pte_get_next_table|'s specification
-assumes it is given a virtual \emph{vpte-pointsto}
-(a virtual points-to exposing the underlying physical address instead of existentially quantifying it;
- see Section \ref{sec:mapnewC}) granting access to the specified entry,
+Note that the specification does \emph{not} assume a specific page table level and is used
+for all three level transitions (4 to 3, 3 to 2, 2 to 1).
+The logical parameter \textsf{v} represents the level
+of the entry passed as an argument (c.f. the token $\ghostmaptoken{\textsf{id}}{(\mathsf{entryp})}{\textsf{v}}$ witnessing
+that \textsf{entryp} is part of the page table invariant on Line \ref{line:precondition_entry_out}).
+
+This comes into play with a key subtlety of \lstinline|pte_get_next_table|'s
+specification: its precondition
+includes a virtual {pte-points-to} (discussed earlier, Line \ref{line:get_next_vpte_preconditionC})
 but its postcondition does not yield new virtual points-to assertions!
-Instead it merely computes the base virtual address of the next table, and returns adequate capabilities (discussed in Section \ref{subsec:identitymappingsC})
-for the \emph{caller} to construct a vpte-pointsto for any entry of the next table level (if this is not an L1 entry ---
-the caller knows which level of the table this is for).
+Instead it merely computes the base virtual address of the next table, and returns adequate capabilities
+(discussed in Section \ref{subsec:identitymappingsC}, explicit on Line \ref{line:childrenC})
+for the \emph{caller} to construct a vpte-points-to for any entry of the next table level.
 \looseness=-1
+
+\todo[inline,color=cyan]{Colin edit frontier}
 
 \subsubsection{Walking Page-Table Tree: Calling \textsf{pte\_get\_next\_table} for Each Level}
 \label{wlkpgdirC}
@@ -846,6 +855,7 @@ both for ensuring partial page table walk reaching the
 L1 entry (l1e) by asserting that higher levels of the page table exist (R$_{\textsf{walk}}$ in Figure \ref{fig:rwalkC}), 
 and for allowing access to the memory of the L1 entry via virtual address (R$_{\textsf{l1e}}$ in Figure \ref{fig:rwalkC}).
 
+\todo[inline]{update this since we moved the definition earlier}
 A PTE points-to, as we already have briefly mentioned, is defined just like the normal virtual points-to of Figure \ref{fig:virtualpointstosharingC}, except the physical address (here, \textsf{pa}) is explicit in the assertion
 rather than existentially quantified:\\
 \centerline{$
