@@ -142,7 +142,7 @@ pte_t *pte_get_next_table(pte_t *entry) {
     pte_initialize(entry); // Allocate a zeroed physical page and install in entry(*\label{line:call_to_pte_initializeC}\label{line:page_of_capsC}*)
     $\specline{ \ldots \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present (pfn\_set (entry\_val nextpaddr))}  \urcorner   }_{\rtv}$
     $\specline{ \begin{array}{l}\textsf{entry\_present (pte\_initialized (pfn\_set(entryv nextpaddr)))} \wand  \\ \;\;\;\;\;\;\;\;\  \forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}} \end{array}  }$ (*\label{line:page_of_capsC}*)
-    entry->pfn = nextpaddr; entry->present = 1; // Install newly-allocated level n table, mark present(*\label{line:install_new_entryC}*)
+    entry->present = 1; // Install newly-allocated level n table, mark present(*\label{line:install_new_entryC}*)
     /*Now we know that entry is initialized, so we satisfy the condition to access children list */(*\label{line:now_we_know}*)
     $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}}  \textsf{pte\_initialized(pfn\_set(entryv nextpaddr))} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
     $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$(*\label{line:available_child_tokens}*) (*\label{line:alloc_path_endC}*)

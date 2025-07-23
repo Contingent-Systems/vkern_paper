@@ -167,7 +167,6 @@ pte_t *pte_get_next_table(pte_t *entry) {
   /* Check if entry is populated, allocate if needed(* \label{line:check_entry_presentC} *)(* \label{line:mask_presentC} *)(*\label{line:after_concluding_qfrac1C}*)*/
   if (!entry->present(*\label{line:read_entry_contentsC}*) (*\label{line:conditional_childrenC}*)) {
     pte_initialize(entry); // Alloc empty table for next level (*\label{line:pass_addrof_nextC}*)(*\label{line:alloc_path_startC}*)(* \label{line:call_to_pte_initializeC} *)
-    entry->pfn = nextpaddr; // Point to next table
     entry->present = 1; // Mark valid (*\label{line:install_new_entryC}*)
     /* Key invariant for child access now holds */
   } (*\label{line:end_of_allocation_pathCB}*)
@@ -198,7 +197,6 @@ pte_t *walkpgdir(pte_t *root, void *va){
  %   \end{figure}
 \end{minipage}
 %\end{framed}
-\todo[inline,color=cyan]{delete line 6 from this figure and later get next table code}
     \vspace{-2.5em}
     \caption{A kernel implementation of x86-64 page table lookups.}
     \label{fig:pagetablescode}
