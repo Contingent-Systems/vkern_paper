@@ -890,6 +890,7 @@ the precondition on Line \ref{line:mappage_pre} includes $\theta \; !!\; \vaddr 
 }
 \todo[inline,color=cyan]{
   Ismail, shouldn't the precondition include the 512 tokens for the L4 table, and shouldn't the l4 entry be excluded from $\Xi$?
+  Assuming yes, I need to add a note that they're carried around in the general kernel invariant.
 }
 The precondition directly implies the precondition of \lstinline|walkpgdir|, which as just discussed
 returns the virtual address of an allocated L1 entry, and whose postcondition contains almost all of the information
