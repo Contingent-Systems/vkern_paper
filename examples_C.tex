@@ -590,19 +590,17 @@ This comes into play with a key subtlety of \lstinline|pte_get_next_table|'s
 specification: its precondition
 includes a virtual {pte-points-to} (discussed earlier, Line \ref{line:get_next_vpte_preconditionC})
 but its postcondition does not yield new virtual points-to assertions!
-Instead it merely computes the base virtual address of the next table, and returns adequate capabilities
+Instead it merely computes the base virtual address of the next table, and returns adequate tokens
 (discussed in Section \ref{subsec:identitymappingsC}, explicit on Line \ref{line:childrenC})
 for the \emph{caller} to construct a vpte-points-to for any entry of the next table level.
 \looseness=-1
 
-\todo[inline,color=cyan]{Colin edit frontier}
-
-\subsubsection{Walking Page-Table Tree: Calling \textsf{pte\_get\_next\_table} for Each Level}
+\subsubsection{Walking The Page Tables: Calling \textsf{pte\_get\_next\_table} for Each Level}
 \label{wlkpgdirC}
 \begin{figure}\footnotesize
 \ifPLDI
 \begin{lstlisting}[language=C,mathescape,escapeinside={(*}{*)}]
-/* @param l4: the root address of the page-table tree
+/* @param l4: the (virtual) root address of the page-table tree
    @param va: virtual address to be translated and mapped */
 pte_t *walkpgdir(pte_t *l4, const void *va) {
   $\specline{\textsf{P} \ast \ulcorner\textsf{rtv+KERNBASE}=\textsf{l4}\urcorner \ast \forall_{i\in\textsf{0..511}}\ghostmaptoken{\textsf{id}}{(\textsf{rtv}+i*8)}{\textsf{4}} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}}_{\rtv}$
@@ -620,7 +618,7 @@ pte_t *walkpgdir(pte_t *l4, const void *va) {
   $\specline{\forall_{i\in\textsf{0..511}} \ghostmaptoken{\textsf{id}}{\textsf{table\_root(l4e\_val'.pfn) + i * 8}}{\textsf{3}}  \ast \ulcorner\textsf{l3-KERNBASE}=\textsf{table\_root(l4e\_val'.pfn)}\urcorner} $
   $\specline{ \textsf{l4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l4\_entry l4e\_val'} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}_{\rtv}$(*\label{line:first_pte_pointstoC}*)
   /*pte_get_next_table may have allocated a new page which updates entry*/
-  pte_t *l3_entry = &l3[L3Offset(va)]; /* Virtual address of L3 entry*/
+  pte_t *l3_entry = &l3[L3Offset(va)]; /* Virtual address of L3 entry*/(*\label{line:l3offset}*)
   $\specline{\ulcorner\textsf{l3}+\textsf{L3Offset(va)*8} = \textsf{l3\_entry} \land \textsf{table\_root(l4e\_val'.pfn)}  = \textsf{l3} \urcorner }_{\rtv}$
   $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{l4\_entry},\textsf{l3\_entry}\},m)  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
   $\specline{\forall_{i\in\textsf{0..511}\setminus\{\textsf{L3Offset(va)}\}} \; \textsf{table\_root(l4\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{3} }_{\rtv}$
@@ -628,11 +626,10 @@ pte_t *walkpgdir(pte_t *l4, const void *va) {
   $\specline{ \textsf{l3\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac3}}\textsf{l3\_entry}\; \textsf{l3e\_val} \ast \ulcorner  \textsf{qfrac3} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l3e\_val})\urcorner}_{\rtv}$(*\label{line:ex_l3_vpteC}*)
   $\specline{\textsf{entry\_present(l3e\_val)} \wand \forall_{i\in\textsf{0..511}} \;\ghostmaptoken{\textsf{id}}{\textsf{table\_root(l3\_entry.pfn) + i * 8}}{ \textsf{2}} } _{\rtv} $
   /*Similar steps & proofs for levels 3 and 2*/
-  pte_t *l2 = pte_get_next_table(l3_entry);
-  pte_t l2_entry = &l2[L2Offset(va)];
-  pte_t *l1 = pte_get_next_table(l2_entry);
-  /*Return the address of L1 entry with a similar index computation*/
-  return &l1[L1Offset(va)]; 
+  pte_t *l2 = pte_get_next_table(l3_entry);(*\label{line:getnextl3}*)
+  pte_t l2_entry = &l2[L2Offset(va)];(*\label{line:l2offset}*)
+  pte_t *l1 = pte_get_next_table(l2_entry);(*\label{line:getnextl2}*)
+  return &l1[L1Offset(va)]; // Return the address of L1 entry with a similar index computation(*\label{line:returnl1entryaddr}*)
 }
 $\specline{\textsf{R}_{\textsf{walk}} \ast \textsf{R}_{\textsf{l1e}} }_{\rtv}$
 \end{lstlisting}
@@ -684,6 +681,9 @@ $\specline{\textsf{R}_{\textsf{walk}} \ast \textsf{R}_{\textsf{l1e}} }_{\rtv}$
 % \end{lstlisting}
 \fi
 \todo[inline]{clarify virt/phys of input root and the output}
+\todo[inline]{Colin: I think \lstinline|l2_entry| and such are also supposed to be pointers --- they hold the address of an entry.
+And they are passed as arguments to pte get next table, which accepts pointers.
+}
 \caption{Walking page-table directory via calls to \textsf{pte\_get\_next\_table} in Figure \ref{fig:calltopteinitializeC}}
 \label{walkpgdirC}
 \vspace{-1em}
@@ -698,7 +698,31 @@ $\begin{array}{l}\left( \begin{array}{l} \ulcorner \textsf{l3}+\textsf{L3Offset(
 \label{fig:rwalkC}
 \vspace{-1em}
 \end{figure}
-Implementing a software page-table walk amounts to calling \textsf{pte\_get\_next\_table} for each level as shown in Figure \ref{walkpgdirC}. 
+
+Implementing a software page table walk amounts to calling \textsf{pte\_get\_next\_table} for each level as shown in Figure \ref{walkpgdirC}. 
+\lstinline|walkpgdir| traverses the page table anchored at \lstinline|l4| (the virtual address of the base of the L4 table)
+and returns the virtual address of the L1 entry that should map the virtual address \lstinline|va|.
+For each level, \lstinline|walkpgdir| locates the appropriate entry by using the level-specific slice of \lstinline|va| to index into
+that table (simulating the hardware translation as in Figure \ref{fig:pagetables}), and passes the virtual address of that entry to
+\lstinline|pte_get_next_table| to get the base of the next level down.
+For example, Line \ref{line:start_l4_calcC} uses \lstinline|L4Offset| (a bit shifting and masking macro) to extract bits 39--47 of \lstinline|va|,
+and uses that to find the address of the L4 entry that would map \lstinline|va| in the address space.
+That is then passed to \lstinline|pte_get_next_table| on Line \ref{line:first_getnext_callC}, which
+returns the virtual address of the base of the L3 table. This process repeats for 3-to-2 (Lines \ref{line:l3offset}--\ref{line:getnextl3}),
+and 2-to-1 (Lines \ref{line:l2offset}--\ref{line:getnextl2}), after which Line \ref{line:returnl1entryaddr} returns
+the virtual address of the appropriate L1 entry.
+
+For each of the three level transitions, the main challenges for the proof are to
+construct a virtual pte-points-to assertion for the entry in that level's table,
+and pass the conditional assertion discussed in Section \ref{sec:p2vC} that if that entry is present then there are
+identity map tokens for the the physical address of each entry in the subsequent level's table.
+\todo[inline,color=cyan]{WIP checkpoint:
+continue by highlighting parallels between assertion on line 13 and precondition of get next table,
+and between assertions on lines 4 and 16 and the postcondition.
+Then finish talking through essentially the safety argument, then loop back and talk about accumulating the info for
+constructing a virtual points-to for va
+}
+
 The key part of the specification and proof for a page table walk is accumulation of memory mappings for the page-table entries 
 visited and frame addresses for page-tables. 
 For example, Lines \ref{line:ex_l4_vpteC} and \ref{line:ex_l3_vpteC} in Figure \ref{walkpgdirC} show the virtual pte-pointsto assertions for L4 and L3 entries.
