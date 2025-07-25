@@ -697,7 +697,7 @@ $\begin{array}{l}\left( \begin{array}{l}
     \\ \left(\begin{array}{l}  (\textsf{l1p+KERNBASE*8*L1Offset(va)}) \mapsto_{\textsf{vpte,qfrac1}} \textsf{l1p+8*L1Offset(va)}\;\textsf{l1e\_val} \ast  \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l1e\_val})\urcorner \end{array}\right) =\textsf{R}_{\textsf{l1e}}\end{array} $
 \todo[inline]{Ismail: Why isn't there an l1 entry identity map token in Rwalk?}
 \vspace{-1em}
-\caption{\textsf{R}$_{\textsf{walk}}$: Resources obtained from invariant for walking page-table directory with \emph{non-existing entries} via calls to \textsf{l1e\_get\_next\_table} in Figure \ref{fig:calltopteinitializeC}}
+\caption{\textsf{R}$_{\textsf{walk}}$: Resources obtained from invariant for walking page-table directory with \emph{non-existing entries} via calls to \textsf{pte\_get\_next\_table} in Figure \ref{fig:calltopteinitializeC}}
 \label{fig:rwalkC}
 \vspace{-1em}
 \end{figure}
