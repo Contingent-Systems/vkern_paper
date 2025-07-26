@@ -689,7 +689,7 @@ $\begin{array}{l}\left( \begin{array}{l}
     \land \textsf{table\_root(l2e\_val}_{\textsf{pfn}})  = \textsf{l1} \urcorner  \ast \\
     % \textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{l4p},\textsf{l3p},\textsf{l2p},\textsf{l1p}\},m)  \ast  
     \textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{l4p+8*L4Offset(va)},\textsf{l3p+8*L3Offset(va)},\textsf{l2p+8*L2Offset(va)},\textsf{l1p+8*L1Offset(va)}\},m)  \ast  \\
-      \ghostmaptoken{\textsf{id}}{(\mathsf{l4p+8*L4Offset(va)})}{\textsf{4}}\ast \ghostmaptoken{\textsf{id}}{(\mathsf{l3p+8*L3Offset(va)})}{\textsf{3}} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{l2p+8*L2Offset(va)})}{\textsf{2}}  \ast \\
+      \ghostmaptoken{\textsf{id}}{(\mathsf{l4p+8*L4Offset(va)})}{\textsf{4}}\ast \ghostmaptoken{\textsf{id}}{(\mathsf{l3p+8*L3Offset(va)})}{\textsf{3}} \ast \\ \ghostmaptoken{\textsf{id}}{(\mathsf{l2p+8*L2Offset(va)})}{\textsf{2}}  \ast \ghostmaptoken{\textsf{id}}{(\mathsf{l1p+8*L1Offset(va)})}{\textsf{1}} \ast \\
       \ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast (\textsf{l4p+KERNBASE+8*L4Offset(va)}) \mapsto_{\textsf{vpte,qfrac4}} (\textsf{l4p+8*L4Offset(va)}) \; \textsf{l4e\_val}  \ast \\
       (\textsf{l3p+KERNBASE+8*L3Offset(va)}) \mapsto_{\textsf{vpte,qfrac3}} \textsf{l3p+8*L3Offset(va)}\;\textsf{l3e\_val}  \ast\\
       (\textsf{l2p+KERNBASE+8*L2Offset(va)}) \mapsto_{\textsf{vpte,qfrac2}} \textsf{l2p+8*L2Offset(va)} \; \textsf{l2e\_val}
@@ -697,7 +697,7 @@ $\begin{array}{l}\left( \begin{array}{l}
     \\ \left(\begin{array}{l}  (\textsf{l1p+KERNBASE*8*L1Offset(va)}) \mapsto_{\textsf{vpte,qfrac1}} \textsf{l1p+8*L1Offset(va)}\;\textsf{l1e\_val} \ast  \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l1e\_val})\urcorner \end{array}\right) =\textsf{R}_{\textsf{l1e}}\end{array} $
 \todo[inline]{Ismail: Why isn't there an l1 entry identity map token in Rwalk?}
 \vspace{-1em}
-\caption{\textsf{R}$_{\textsf{walk}}$: Resources obtained from invariant for walking page-table directory with \emph{non-existing entries} via calls to \textsf{l1e\_get\_next\_table} in Figure \ref{fig:calltopteinitializeC}}
+\caption{\textsf{R}$_{\textsf{walk}}$: Resources obtained from invariant for walking page-table directory with \emph{non-existing entries} via calls to \textsf{pte\_get\_next\_table} in Figure \ref{fig:calltopteinitializeC}}
 \label{fig:rwalkC}
 \vspace{-1em}
 \end{figure}
