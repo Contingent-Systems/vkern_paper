@@ -19,7 +19,33 @@
 \newcommand{\ptableabswalk}[1]{\mathcal{A}\textsf{bsPTableWalk}(#1)}
 \newcommand{\ptablestore}{\theta}
 
-We describe a program logic (a separation logic) along the lines suggested earlier, where every assertion is relative
+\add{
+  A program logic for reasoning about code which may work with (and possibly update) multiple address spaces requires dealing with
+  several key challenges. It must ensure that reasoning about memory accesses only depends on assertions that hold
+  in the active address space at the time of access. It must allow invariants for code or data structures to refer
+  to other address spaces. These constraints mean it must also support reasoning about when the active address space
+  changes, as this affects which memory assumptions are usable or not for memory access and thus which data structures are
+  immediately directly accessible.
+}
+\add{
+  Many approaches which could handle these problems in principle, such as tagging pointers with the relevant address space.
+  But such approaches introduce other complexities.
+  Most code, even in an operating system kernel, only works with a single address space (the current one).
+  Explicitly plumbing address space information through a simple linked list specification, simply because some other part of the program
+  may manipulate other address spaces, adds significant specification burden.
+  Specifications which need to talk about a particular invariant holding in an arbitrary other address space,
+  or with knowing a certain assertion conceptually holds in multiple specific address spaces, would need to quantify
+  over functions from address space identity to assertions rather than just assertions.
+  Using a modal approach resolves all of these technical and usability\todo{need better word, I'm always wary of using this word in PL}
+  challenges cleanly and uniformly.
+  Specifications that are not \emph{about} address space manipulation need not mention an address spaces at all:
+  one can use one's favorite separation logic data structure specifications without restructuring,
+  and every assertion can be stated for either the current or specific other address spaces.
+  In short, modalities make it possible for specifications to mention address spaces only when they deal with address spaces,
+  and not when they don't.\todo{wary of this due to the rtv in the double}
+}
+
+We describe a program logic (a separation logic) along the lines suggested \replace{earlier}{above}, where every assertion is relative
 to an address space in which it is interpreted, allowing us to define \emph{virtual points-to} assertions that make claims
 about memory locations in a particular address space. Virtual addresses, and even virtual points-to assertions, 
 are not tagged with their address spaces in any way. Memory access in this logic is validated through the use
@@ -33,6 +59,7 @@ currently active in hardware, which is not only useful for virtual memory manage
 about change of address space.
 By developing this within the \iris framework, we obtain additional features (e.g., fractional permissions) that allow us to verify
 some of the most subtle and technically challenging instruction sequences in an OS kernel (Section \ref{sec:experiment}).
+
 
 
 % We derive a program logic (a separation logic) supporting the following stances and constraints:
@@ -98,9 +125,9 @@ and \textsf{pageoff} (a $\mathcal{W}_{12}$) is an offset within that page.
 % could be an 52-bits masked address to level 4 table 
 % ($\textsf{w1 } =( \textsf{ l4M52 maddr cr3val}) $),
 %and, expectedly \textsf{w2} is an address computed by page-offset computation (e.g. $\textsf{l4off maddr cr3val}$). 
-From this we can derive a more concise physical points-to when the split is unimportant:\\
+From this we can derive a more concise physical points-to when the split is unimportant:
 % Giving a raw 64-bits memory pointsto assertion becomes
-\centerline{$\textsf{w} \mapsto_{\textsf{p}} \{q\} \textsf{ v} \stackrel{\triangle}{=} (\textsf{drop 12}~w) \ \sim \ (\textsf{bottom 12}~w)\mapsto_{\textsf{a}} \; \{\textsf{q}\} \textsf{ v} $}
+{$\textsf{w} \mapsto_{\textsf{p}} \{q\} \textsf{ v} \stackrel{\triangle}{=} (\textsf{drop 12}~w) \ \sim \ (\textsf{bottom 12}~w)\mapsto_{\textsf{a}} \; \{\textsf{q}\} \textsf{ v} $}
 
  %I put a newline in between the following two Definitions as the second Definition seems not proper without the newline
 \begin{figure*}
@@ -114,10 +141,9 @@ From this we can derive a more concise physical points-to when the split is unim
   (l2M52 maddr l3e) $\sim$ (l2off maddr l3e) $\mapsto_{a}$ {q3}  l2e $\ast$
   (l1M52 maddr l2e) $\sim$ (l1off maddr l2e) $\mapsto_{a}$ {q4}  l1e $\ast$ $\ulcorner$ addr_L1(va,l1e) = paddr $\urcorner$.
 \end{lstlisting}
+\todo[inline,color=cyan]{Ismail, we can drop the maddr from the l4M52 etc, and the l4e etc. from the l3off etc., right?}
 \vspace{-1em}
 \caption{A Strong Virtual Points-to Relation
-  \todo[inline]{Ismail: Tie these lines to the steps and entries in Figure \ref{fig:pagetables}, e.g., with \textcircled{1}\ldots}
-  \todo[inline]{Ismail Addressed: earlier in the background and the current text is clearly related to \ref{fig:pagetables}}
 }
   \label{fig:strongvirtualpointsto}
 \vspace{-1em}
@@ -248,6 +274,7 @@ $}
 
   \begin{figure}
 \footnotesize
+\vspace{-1em}
   \begin{mathpar}
   \inferrule*[right=\footnotesize GhostMapUpdate]{ }{\mathsf{GhostMap}(\gamma,\theta) \ast \ghostmaptoken{\gamma}{\mathsf{pa}}{\mathsf{va}} \vs 
   \mathsf{GhostMap}(\gamma,\theta[\mathsf{va}\mapsto\mathsf{pa'}]) \ast \ghostmaptoken{\gamma}{\mathsf{va}}{\mathsf{pa}'} 
@@ -625,11 +652,6 @@ antecedent of the rule.}
 %   %\lstinline|mov %cr3, r| 
 % }
 \end{mathpar}
-\todo[inline]{Ismail, what do you think about shading the ``core'' assertions that are common to any asm program logic?
-Or shading the VMM-specific ones?
-}
-\todo[inline]{Ismail Addressed: I don't think that we should do -- general instructions' text outlines the how to read VMM related ones in the text. 
-}
 \vspace{-1em}
 \caption{Proof rules for selected \textsf{AMD64} instructions}
 \label{fig:wpdamd}
@@ -747,19 +769,6 @@ Thus, framing around arbitrary \lstinline|cr3| updates is unsound --- hence the 
 though a variant the ensures the same \lstinline|cr3| value is installed before and after the framing
 can be recovered.
 
-\todo[inline,color=green]{Colin needs to add more of the ``why modals'' stuff here, per the response.
-But it's a little awkward: in the response we said this was hard to specify with ghost-tagged
-pointers, but now I'm wondering if that's \emph{quite} right.
-It seems like maybe you could just plumb an implicitly-tagged P through to the following
-instructions and be okay, the instantiation of P would just be horrid.
-What we said about e.g., defining
-a generic linked list is still true, and should be raised earlier (not here).
-Here, we want to make a point about packaging all resources for a specific address space
-together. But it would be stronger if we could hone the argument in the response more.
-The bit about ``how would we talk abstractly about the fact that some unspecified resources R should
-be sufficient ... in the new address space'' is the right bit to polish...
-ghost bit discussion should either go in relwork with some Dafny(?) discussion, or earlier in motivation.
-}
 
 \subsection{Soundness}
 \label{sec:soundness}

@@ -10,10 +10,12 @@ There has been relatively little prior work on formal verification of virtual me
 Instead, most OS verification work has focused on minimizing reasoning about virtual memory management.
 The original \textsc{Verisoft} project~\cite{alkassar2008verisoft,alkassar2010pervasive,alkassar2008formal,dalinger2005verification,hillebrand2005address,alkassar2008formal,starostin2010formal} 
 relied on custom hardware, which, among other things, always ran kernel code with virtual memory disabled, removing the circularity that is a key challenge of verifying
-VMM code for real hardware: At that point page tables become a basic partial map data structure to represent user program address translations,
-with an idiosyncratic format. It turns out that subsequent OS verification work also treats page tables this way, but
-unsoundly given that other projects target hardware that \emph{does} run the kernel with address translation: they \emph{trust}
-that the particular page table manipulations do not, for example, unmap kernel code (which can crash the machine even if done ``temporarily'').
+VMM code for real hardware: \replace{A}{a}t that point page tables become a basic partial map data structure to represent user program address translations,
+with an idiosyncratic format. \replace{It turns out that s}{S}ubsequent OS verification work also treats page tables this way, but
+unsoundly given that \replace{other projects}{their} target hardware \del{that} \emph{does} run the kernel with address translation: they \emph{trust}
+that the particular page table manipulations do not, for example, unmap kernel code\footnote{\add{A ``fun'' bug one author encountered in
+an industrial prototype kernel.}}
+ (which can crash the machine even if done ``temporarily'').
 % \footnote{A bug
 % one author has personally encountered in a research kernel, though not one discussed here.}).
 This is true for \textsc{seL4}~\cite{Klein2009seL4,seL4TOCS,Sewell2013translation}, whose formal machine model omits address translation,
@@ -55,95 +57,68 @@ hardware, like swapping~\cite{Denning1970VM} or exploiting copy-on-write techniq
 model, where page table updates are performed through virtual memory accesses (later adding C-level type modeling~\cite{kolanski09tphols}).
 As noted in Section \ref{sec:overly-restrictive}, Kolanski and Klein's virtual points-to is similar to that in Figure \ref{fig:strongvirtualpointsto},
 with the attendant problems discussed earlier and lifted by our model. Their approach had modal elements,
-but the work never addressed the issues of managing multiple address spaces, switching address spaces, or
+but
+\replace{the work never addressed the issues of managing multiple address spaces, switching address spaces, or
 invariants referring to other address spaces, which our explicitly modal approach and case studies do address.
-They verified a fraction of an ARM version of our Figure \ref{fig:mapping_code}, which assumed that they already had the virtual address
-of the L1 entry (which they assumed existed), thereby skipping the physical-to-virtual conversion issues we treat in Section \ref{sec:p2v}.
+They verified a fraction of an ARM version of our Figure ??, which assumed that they already had the virtual address
+of the L1 entry (which they assumed existed), thereby skipping the physical-to-virtual conversion issues we treat in Section ??.
+}{
+ did not tackle evaluations that would benefit from modality.
+ We have verified significantly more VMM code than Kolanski and Klein, which pushed us towards the modal approach.
+ They verify~\cite{kolanski08vstte} roughly the (ARM) assembly corresponding to Lines \ref{line:l1entry_storeC} and \ref{line:l1entry_setpresent} of Figure
+ \ref{fig:mapping_codeC},
+ plus pulling the zeroed page to install in the L1 entry from a simple linked list.
+ They never addressed code equivalent to our \lstinline|walkpgdir| (Figure \ref{walkpgdirC}), or \lstinline|pte_get_next_table| (Figure \ref{fig:calltopteinitializeC}),
+ which are the most challenging parts of verifying a full page table walk, encompasing subtle sharing and ownership
+ specifications and delicate kernel invariants involved in converting physical to virtual addresses. Ours is the only work to date
+ to tackle verification of the \emph{entirety} of a software page table walk and mapping a new page.
+}
 Due to a lack of fractional permissions in their formalism, they incidentally pick up other limitations orthogonal to their
 foundational focus: by requiring
 a virtual points-to have \emph{full} ownership of the page table walk memory, they limit their system to having only as many
-virtual points-to assertions as there are entries in the top-level table (4096) because they cannot share access to entries.
+virtual points-to assertions as there are entries in the top-level table (\replace{4096}{512}) because they cannot share access to entries.
 We inherit fractional permission support form \iris, and use it extensively (the overly-restrictive
 Figure \ref{fig:strongvirtualpointsto} is already an improvement in this way).
+\add{While we cannot claim credit for \textsc{Iris}'s extensive feature set, the fact that the model of our
+assertions is based on a classic algebraic tool (pointwise lifting) makes our approach compatible with
+other logical bases as well, such as \textsc{PulseCore}~\cite{ebner2025pulsecore} or \textsc{VST}~\cite{appel2014program}.
+}
  
-% Some work has been done like ours, studying VMM verification separately from the rest of the kernel.
-% One important outgrowth of the \textsc{seL4} project, not integrated into the main project's proof, was work by 
-% Kolanski and Klein which studied verification of code against a hardware model that \emph{did} include address translation
-%  --- the only work aside from ours to do so --- initially in terms of basic memory~\cite{kolanski08vstte} and subsequently 
-% integrating source-level types into the interpretation~\cite{kolanski09tphols}. 
-% They were the first work to model physical and virtual points-to assertions separately, defining virtual points-to assertions
-% in terms of physical points-to assertions mimicking page table walks, and defining all of their assertions as predicates on a
-% pair of (physical) machine memory and a page table root, an approach we improve on.
-
-% They also define their virtual points-to assertions such that a virtual points-to $p\mapsto_\mathsf{v} a$ owns the full 
-% lookup path to virtual address $p$. This means that given two virtual points-to assertions at the same time, such as 
-% $p\mapsto_\mathsf{v}a \ast p'\mapsto_\mathsf{v}b$, the memory locations traversed to translate $p$ and $p'$ must be disjoint. 
-% This means the logic has a peculiar limit on how many virtual points-to assertions can coexist in a proof. Since page tables 
-% fan out, the bottleneck is the number of entries in the root table. For their 32-bit ARMv6 example, the top-level address is 
-% still 4Kb (4096 bytes), and each entry (consumed entirely by a virtual points-to in their scheme) is 4 bytes, so they have a 
-% maximum of 1024 virtual points-tos in their ARMv6 configuration. Any assertion which implies more than that number
-% of virtual addresses are mapped implies false in their logic.
-% (They do formulate their logic over an abstract model, but every architecture would incur a similar limitation.)
-% % Na\"ively transferring their model to x86-64 4-level tables would yield a limit of 512 assertions (also a 4Kb root page, 
-% % but 8-byte entries).
-% Our definitions make use of fractional permissions throughout; Figure \ref{fig:strongvirtualpointsto}'s definition
-% of \lstinline|L4_L1_PointsTo| ellides the specific fractions used, but it in fact asserts 1/512 ownership of
-% the L1 entry, 1/($512^2$) of the L2 entry, and so on, so each entry may map the appropriate number of machine words.
-% \looseness=-1
-
-% As noted earlier, by collocating both the physical ownership of the page table walk
-% as part of the virtual points-to itself these logics preempt support for changes to page tables which do not actually affect 
-% address translation. We address this by moving from Figure \ref{fig:strongvirtualpointsto}'s definition (essentially Kolanski and Klein's
-% with fractional sharing of intermediate table entries) to Figure \ref{fig:virtualpointstosharing}'s.
-% \looseness=-1
-
-% Kolanski and Klein do verify code to map in a new page by installing an L1 page table entry, akin to our Figure \ref{fig:mapping_code}.
-% However, our logic treatment of mapping goes beyond theirs. 
-% Kolanski and Klein must unfold machine semantics at one point in their proof of mapping correctness~\cite[p.~27]{kolanski08vstte}, while
-% our logic permits us to conduct the proof entirely in separation logic.
-% Their proofs also do not address
-% converting physical addresses of page table entries to virtual addresses that can be used to access them.
-% Their original low-level (pseudo-assembly) proof assumes the correct virtual address already exists~\cite{kolanski08vstte},
-% and their subsequent C-level proof~\cite{kolanski09tphols} axiomatizes a function akin to our \lstinline|ensure_L1|.
-% While full proof of \lstinline|ensure_L1|'s page table walk is ongoing work, we have verified that virtual-to-physical
-% translation can be done in our logic with appropriate kernel invariants (Section \ref{sec:traversing}), while
-% Kolanski and Klein's model may not be able to do so --- because the virtual points-to owns the physical resources associated with
-% intermediate page table entries, it appears impossible to have a virtual points-to for a page table entry that is part of the
-% page table walk for another virtual address.
-% \looseness=-1
-
-% The other major distinction is that Kolanski and Klein have no explicit accounting for other address spaces.
-% Their logic does not deal with change of address space, and has no way to assert that certain facts hold
-% in another address space.
-% They verify only one address space manipulation: mapping a single unmapped page into the current address space (in both papers).
-% We verify this, as well as a change-of-address-space, which requires us to introduce assertions for talking
-% about other address spaces (we must know, for example, that the precondition of the code after the change must be true
-% in the \emph{other} address space), and to deal with the fact that the standard frame rule
-% for separation logic is unsound in the presence of address space changes and address-space-contingent assertions.
-% Our approach in this paper uses modalities to distinguish virtual-address-based assertions that hold only in specific 
-% address spaces, making it possible to manipulate other address spaces, and equally critically, to \emph{change} address 
-% spaces while reasoning about correctness.
-
-Unlike our work, Kolanski and Klein prove very useful embedding theorems\todo{no, Colin fix per response} stating that code that does not modify page table 
+\replace{Unlike our work, Kolanski and Klein prove very useful embedding theorems stating that code that does not modify page table 
 entries can be verified in a VM-ignorant program logic, and that proofs in that logic can be embedded into the VM-aware logic 
-(essentially by interpreting ``normal'' points-to relations as virtual points-to facts). While we have not proven such a result,
-an analagous result {should} hold of our work: consider that the doubles for the \texttt{mov} instructions
+(essentially by interpreting ``normal'' points-to relations as virtual points-to facts).}{
+ Kolanski and Klein prove that updates to any memory locations that are not part of the page tables
+ do not affect the interpretation of other memory addresses.
+ This implies that programs that do not modify memory mappings could be reasoned about without
+ concern for mappings.
+}
+While we have not \add{formally} proven such a result \add[of our machine model, it holds (just as for real hardware)],
+an analagous result \replace{{should} hold}{holds} of our work: consider that the doubles for the \texttt{mov} instructions
 that access memory behave just as one would expect for a VM-ignorant logic~\cite{Chlipala2013Bedrock}.
 With our general approach to virtual points-to assertions being inspired by Kolanski and Klein, \emph{both}
- our approach and theirs could in principle be extended to account for pageable points-to assertions by adding additional 
+ our approach and theirs could in principle be extended to account for pageable points-to assertions by adding \del{additional}
 disjunctions to an extended points-to definition; embedding ``regular'' separation logic into such a variant
 is the appropriate next step to extend reasoning to usermode programs running with a kernel that may demand-page the program's
 memory.
 
+\add{
+ No prior work has dealt with combined address space changes and context switching. \textsc{XCAP}~\cite{ni2007contexts} deals
+ only with usermode threading (in a single process). \textsc{CertiKOS} and \textsc{seL4} trust assembly primitives for
+ context switches, in addition to not modeling address translation for executing code.
+}
+\todo[inline]{author response talks about syeda and klein here briefly, and it fits, but we also want the longer discussion}
+
 \paragraph{Translation Lookaside Buffers}
 As noted in Section \ref{sec:backgroundonmachinemodel}, we do not formally model or reason about TLBs.
-TLB flushes are required only when addresses are removed from a virtual address space, or when changing
-virtual address spaces. Because this occurs in few places in the kernel (in some, only 3 locations), full verified
+\replace{TLB flushes are required only when addresses are removed from a virtual address space, or when changing
+virtual address spaces.}{
+ TLB flushes are necessary when a page is \emph{un}mapped, or when switching address spaces.
+}
+\replace{Because t}{T}his occurs in few places in \replace{the}{uniprocessor} kernel\add{s} (in some, only 3 locations), \add{so} full verified
 kernels including \textsc{seL4}~\cite{Klein2009seL4,seL4TOCS} and \textsc{CertiKOS}~\cite{gu15,gu2016certikos}
 trust TLB management. Neither of the aforementioned systems has a hardware model including a TLB, so neither is able
 to verify TLB management in any form --- they \emph{must} trust its operation.
-\looseness=-1
-
+\replace{
 The only place TLB code becomes particularly challenging is in multiprocessor kernels, where
 not only must the running CPU flush its own TLB with special instructions, but it must send an inter-processor interrupt (IPI) to all
 other cores to ensure they also flush the relevant ranges of their own TLBs.
@@ -152,45 +127,28 @@ which would require extensions to model interactions with ACPI tables populated 
 or flattened device trees for (semi-)embedded systems like single-board ARM and RISC-V machines, which tell the OS
 important information about how to control other CPU cores;
 plus the memory-mapped IO used to trigger those IPIs.
-As a result, multicore extensions of \textsc{seL4}~\cite{von2013clustered} and \textsc{CertiKOS}~\cite{gu2016certikos} also trust this functionality.
-\looseness=-1
-
-% Fully grounded trust for this would require a formal model of how hardware populates ACPI tables and formal verification of ACPI
-% parsing code on general-purpose desktop and server machines, or a formalized and verified
-% parsing of flattened device trees (plus trust that a system was booted with a correct FDT) for (semi-)embedded systems like single-board
-% ARM and RISC-V machines. Either route would also require detailed treatment of memory-mapped IO triggering
-% interrupts on other CPUs. This is far beyond any formal model of computer hardware that exists today,
-% and far out of scope for this paper.
-
-
-% \citet{syeda2020formal,syeda2018program} are the only existing work to address formal verification of TLB management.
-% They extend the work of \citet{kolanski08ssv,kolanski09tphols,kolanski09tphols}, and therefore inherit the limitations of that work discussed
-% above. Their logic primarily tracks a set of mapped addresses and a set of
-% cached addresses, and generally preserve a global invariant (in a global Hoare logic, not a separation logic)
-% that the cached addresses are a subset of the mapped addresses. When this invariant is violated, the logic provides only
-% a Hoare-style backwards assignment type rule with unconstrained assertion $P$, rather than providing structure in the logic
-% for reasoning about how to restore the invariant. Most technical results in the paper focus on proving
-% transparency lemmas, that code that \emph{does not} modify page tables (kernel code outside the VMM, user code)
-% is unaffected by its existence. The one piece of kernel code verified is a sequence of 4 pseudo-instructions for changing address spaces
-% which include \emph{only} the installation of a new page table root and flushing of the old address space from the TLB.
-
-% Adapting Syeda and Klein's global reasoning principles to a separation logic is non-trivial, even though their approach
-% does capture some intuition about TLB reasoning. And as noted above, in the absence of support for significant additional
-% hardware functionality in the hardware model, this would be substantial work for only very limited gains in confidence compared
-% to trusting single-core TLB managment.
-% Thus we leave TLB management to our future work plans, where we believe it is best addressed in tandem with substantially
-% richer hardware models than any currently existing.
+As a result, multicore extensions of \textsc{seL4}~[?] and \textsc{CertiKOS}~[?] also trust this functionality.
+}{
+ This is true of multicore verified kernels as well~\cite{von2013clustered,gu2016certikos}, though there
+ the situation becomes much more challenging: when unmapping pages, the running CPU must invalidate the relevant TLB entries locally,
+ but also send an inter-procesor interrupt (IPI) to all other cores to ensure they also invalidate affected entries on their TLBs.
+ No formal hardware model currently exists for IPIs on any architecture, or even for the memory-mapped IO
+ used to trigger those IPIs.
+}
 
 The only other attempt to verify a change of address space was by \citet{syeda2018program,syeda2020formal}, whose focus was on TLB maintenance (which we
 do not model). However, they verified only the 4 instructions to switch address spaces and update the TLB on an ARM processor, in isolation
 (i.e., not the full context switch including changing stacks with address spaces).
 The specification they proved for those instructions did not address program invariants that may be valid in one address space and not the other,
-so is not flexible enough to extend directly to a full context switching primitive as in Figure \ref{fig:swtch},
-in addition to inheriting other limitations from the work they extend, discussed above~\cite{kolanski08vstte,kolanski09tphols}.
-\looseness=-1
-
-The right eventual solution would be to combine our work
-and theirs, which we leave to future work, as combining both the models and reasoning principles would be highly non-trivial.
+so is not flexible enough to extend directly to a full context switching primitive as in Figure \ref{fig:swtchC}\replace{,}{.}
+\del{in addition to inheriting other limitations from {the work they extend, discussed above}.}
+\add{Their logic adds an assertion tracking known-inconsistent addresses (i.e., recently-unmapped by a table update or change in page table root)
+and their memory access rules require accessed memory to lie outside that set.
+However their logic is proven sound against a generalized semantics where any page table change adds \emph{all}
+addresses to the inconsistent set, which is too imprecise for finer-grained unmapping.
+}
+The right \replace{eventual}{general} solution would be to combine our work
+and \add{an extension of} theirs, \add{a substantial project} which we leave to future work\replace{,}{.}\del{ as combining both the models and reasoning principles would be highly non-trivial.}
 
 \subsection{Program Logics with Modalities}
 Modalities have long been a staple of program logics, at least as far back as Dijkstra's weakest precondition calculus~\cite{dijkstra1975guarded}
