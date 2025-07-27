@@ -43,7 +43,7 @@ the \emph{non-local} effects of page table updates whether within the current ad
 
 \paragraph{Contributions}
 We develop these ideas in the form of a logic for working with virtual-address-space-relative assertions,
-implemented as an embedded separation logic within Iris~\cite{jung2018iris}.
+implemented as an embedded separation logic within \replace{Iris}{\textsc{Iris}}~\cite{jung2018iris}.
 The result is a separation logic that lifts a number of major semantic restrictions present in the few
 prior logics tackling virtual address translation.
 The logic we develop covers core reasoning principles for reasoning about memory configurations and code
@@ -54,13 +54,17 @@ We prove the soundness of our \textsf{vProp} logic with respect to a RISC-like f
 We verify simplified versions of several critical virtual-memory-related pieces of OS functionality, 
 including:
 switching address spaces, converting physical addresses to virtual addresses for
-software page table walks, and complete page table walk which backbones other essential functionalities of
+software page table walks, and \add{a} complete \add{software} page table walk \replace{which backbones}{ --- the backbone of} other essential functionalities of
 virtual-memory which we discuss for mapping and unmapping pages. 
 These examples demonstrate the suitability and flexibility of
 a modal treatment of address spaces: each has a concise specification, each example either goes beyond the technical
-capabilities of prior logics, or revisits an example from prior work with more details (treating parts of the kernel
+capabilities of prior logics, or revisits an example from prior work
+\replace{with more details (treating parts of the kernel
 invariant never addressed by prior work) and fewer assumptions (e.g., verifying the reverse physical-to-virtual 
-address conversion rather than assuming it has already occurred).
+address conversion rather than assuming it has already occurred).}{
+  in greater detail (e.g., verifying critical and challenging supporting code that was
+  axiomatized or treated as out-of-scope in prior work).
+}
 
 % One aspect of virtual memory management we do not address in this paper is updates to the translation lookaside
 % buffer (TLB) present in most CPUs. Like CertiKOS~\cite{?}, seL4~\cite{sel4tocs}, and most other OS verification
