@@ -487,13 +487,25 @@ the points at which a modal assertion is evaluated inside the modality's definit
 assertion should be true in is chosen \emph{in the assertion itself}. This allows assertions to talk about not simply whether some other assertion
 is true in some possible future or past world related in a fixed way to the current world, but to talk about \emph{arbitrary}
 other worlds.
-\looseness=-1
+\add{This is somewhat different from the accessibility relation modalities more common in verification, but also well-established,
+tracing its origin back to Arthur Prior~\cite{areces2006hybrid}, just as many temporal logics do.}
 
-\add{This is somewhat different from the accessibility relation modalities more common in verification, but also well-established.}
-This explicit naming of alternate worlds increases the power of modal logics~\cite{blackburn1995hybrid}, and is actually
+This explicit naming of alternate worlds increases the power of \add{propositional} modal logics~\cite{blackburn1995hybrid}, and is actually
 necessary for completeness in classical separation logics~\cite{brotherston2014parametric}.
-%   A key distinguishing feature of
-% hybrid logic is that the logic itself does not fix the set of modalities, but is defined relative to any set of sensible worlds.
+\add{However typically modal logics can always be ``compiled'' into logics with suitable quantifiers:
+the \emph{standard translation}~\cite{blackburn2006modal} of propositional modal logics into first-order logic
+has been thoroughly studied. \textsc{Iris}'s support for higher-order impredicative quantification means
+this applies to our modalities as well --- they do not strictly speaking make \textsc{Iris} more expressive.
+But while propositional modal logics are no more expressive than first-order logic (with just two variables!),
+the primary goal of a modal logic is not expressive power but intuitive readable specifications.
+Temporal logics are used because they simplify specifications (vs. having explicit time variables
+in every base asertion) and reasoning principles (because the modal correspondents of quantification over
+time is used in a highly structured way).
+Our logic offers a similar value proposition: natural specifications and reasoning principles which
+are powerful enough for reasoning about virtual memory management, but without requiring pervasive tracking of
+and explicit abstraction over address spaces.
+}
+
 
 For our purposes, these are natural candidates to adapt for virtual memory management. We can reinterpret the notion of 
 naming an alternate world slightly more loosely, and instead name \emph{address spaces} by the physical address of the 
@@ -502,6 +514,7 @@ the notion that we can represent contingent truth of an assertion via $[r](P)$ i
 space rooted at physical address $r$. Because OS kernels create and destroy address spaces, it is sensible to use
 a hybrid-style logic that is not specialized to a fixed set of modalities, but this introduces
 some subtleties from the fact that the existence of certain modalities (address spaces) can change.
+
 
 % The typical hybrid modality introduction rule, that $P$ and $\ell$ (indicating the current world is $\ell$) imply 
 % $[\ell](P)$, has a natural analogue: knowing $P$ and that the current address space is $r$ (i.e., that $r$ is the 
