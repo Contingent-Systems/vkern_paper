@@ -163,7 +163,6 @@ flags set by comparison operations and inspected by conditional jumps).
 For clarity and ease of representation, we use machine words, $\loc \in \Loc$, with the subscripts showing the number of bits in a word,
 for memory addresses, values, and offsets, rather than distinct location types that wrap machine words.
 For example, $\kw{w}_{12}$ is a 12-bit word, which can be obtained for example truncating away 52 bits of a 64-bit word ($\kw{w}_{64}$).
-
 % \subsection{State}
 \label{sec:state}
 We represent the machine state mainly as a finite map of registers to register values and a map of word-aligned physical memory addresses 
@@ -172,7 +171,7 @@ Thus our states $\sigma$ include register maps $\sigma.\mathcal{R}: \kw{greg} \r
 memory maps $\sigma.\mathcal{M}: \Locft \rightharpoonup_{\textrm{fin}} (\Loctw \rightharpoonup_{\textrm{fin}} \Locsf )$
 \add{which segment memory into page-sized increments}.
 Of particular note, \lstinline|cr3|, the page table register, is included in the machine state.
-% As one might have already anticipated from the syntax we introduce, we do not bind any value of an evaluated expression. All the indices and accessed values are treated as globally referenced. In align with this design choice, our expression is a stream of instructions, which is not evaluated to a value to be bound, but changes the machine state through the indices (e.g. $\kw{r}\in\kw{greg}$) -- to the global maps.
+\looseness=-1
 
 
 % \subsection{Instructions}

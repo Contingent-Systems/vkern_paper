@@ -356,7 +356,7 @@ changes in the virtual-to-physical translations become possible without the need
 % \todo[inline]{This next paragraph below explains details, but should first explain the big picture: the current address space
 % is identified by a paddr, so to state the invariant for the address space named by that paddr we need to look up
 % what invariants should hold, then assert that those invariants do hold.}
-\add{We mus also ensure that different address spaces can have independent ghost maps ---
+\add{We must also ensure that different address spaces can have independent ghost maps ---
 which we resolve with an additional unique global ghost map (with ghost name $\delta{s}$) from address-space identifiers (page table roots
 whose values are manipulated by the kernel code) to
 the \textsc{Iris} ghost name for that address space's ghost map.
@@ -541,14 +541,14 @@ We leave such kernel-specific reasoning to future work, but our verification of 
 As common for assembly-level verification~\add{\cite{Ni2006codeptrs,ni2007contexts}}, we define our logic using Hoare doubles:%\footnote{This
 % omits some low-level Iris details (stuckness, observations) that play no meaningful
 % role in our development.}
-  \[
+\\\centerline{$
   \begin{array}{l}
     %\textsf{wpd\_def e s E1 } \Phi \;\mathsf{ rtv } : \textsf{iProp }\Sigma := \\
     \{ \Phi \}_\mathsf{ rtv }\;\textsf{e} : \textsf{iProp }\Sigma := 
    % \qquad
    ((\textsf{cr3} \mapsto_{\textsf{r}} \textsf{rtv} \ast \Phi) \textsf{ rtv}) \wand \textsf{WP e } \{\_, \textsf{True} \}
     \end{array}
-  \]
+$}\\
 Our Hoare doubles $\{\Phi\}_\textsf{rtv}\;\textsf{e}$ state that the expression (i.e., sequence of instructions)
 \textsf{e} are safe to execute (will not fault)
 when executed with \textsf{vProp} precondition $\Phi\ast\textsf{cr3}\mapsto_{\textsf{r}} \textsf{rtv}$.
@@ -693,8 +693,9 @@ $P$ describes framed resources, which are passed along to the precondition of su
 as in any system of Hoare doubles~\cite{Chlipala2013Bedrock,ni2007contexts}.
 \textsc{WriteToVirtMemFromReg} is analogous for writing to memory.
 }
-
 \add{There are only two changes specific to our approach.}
+\looseness=-1
+
 \replace{However, }{First,}
 because we split the physical resources for the page table walk from the
 virtual points-to itself (\replace{in order to permit the physical page tables to be freely modified
