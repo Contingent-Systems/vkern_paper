@@ -189,14 +189,13 @@ on what data were accessible), this is the first verification that handles both.
 %}
 %\end{comment}
 \subsection{Traversing Live Page Tables}
-\label{sec:traversing}
+\label{sec:traversingC}
 We build up to the main task of mapping a new page after traversing the page tables in the software.
 This algorithm is complex and corresponds to a significant amount of assembly code.
 To assist with readability, we present C code for this process, with assertions adjusted slightly to refer to
 C program variables rather than registers. The actual verification was carried out on x86-64 assembly
 \emph{generated from this source code}.
-Listings of the assembly fragments with inline assertions appear in Appendix ???. %\ref{apdx:asm}.
-\todo[inline]{Need to add the assembly appendix.}
+Listings of the assembly fragments with inline assertions appear in Appendix \ref{sec:experiment_appendix}. %\ref{apdx:asm}.
 Whether in C or assembly,
 the page table traversal involved in mapping a new page is very challenging functionality to verify.
 Loading the current table root from \lstinline|cr3| is straightforward (a \lstinline|mov| instruction).
