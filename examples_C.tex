@@ -374,7 +374,8 @@ rather than existentially quantified:\\
 	\ghostmaptoken{\delta{}s}{\mathit{cr3val}}{\delta}) \ast 
   \fracghostmaptoken{\delta}{\vaddr}{\paddr}{\qfrac} \ast \paddr \mapsto_{\mathsf{p}} \vpage
 $}\\
-This supports memory access rules much like Figure \ref{fig:wpdamd}'s rules (which are proven sound using soundness of virtual pte-points-to rules as lemmas!)
+This supports memory access rules much like Figure \ref{fig:wpdamd}'s rules (which are proven
+sound using the virtual pte-points-to rules as lemmas!)
 while exposing the physical location being modified.
 This is useful for page table modifications, which require knowing the physical location being changed.
 They are used throughout the software page table walk because entries in any level may be initialized.
@@ -503,6 +504,7 @@ and using the ghost translation and physical location portions of the invariant 
 that justifies the caller's subsequent access to a particular entry of the returned table.
 The postcondition also passes back the per-address-space invariant with the
 identity mapping resources for \lstinline|entry| still pulled out (it was removed by the caller).
+\looseness=-1
 
 
 
