@@ -111,7 +111,9 @@ the current address space:
 The assertion $\textsf{r}\;\mapsto_{\textsf{r}}\{q\}\;\textsf{rv}$ ensures the ownership of the register $\rg$ containing the
 value of the register $\rv$.
 The fraction $\qfrac$ with value 1 asserts the unique ownership of the register mapping and grants update permission \replace{on}{to} it;
-otherwise, any value $0 < \qfrac <1$ represents partial ownership, granting read-only permission on the mapping.
+otherwise, any value $0 < \qfrac <1$ represents partial ownership, granting read-only permission on the mapping.\footnote{
+\add{We adopt the standard naming convention of $\qfrac$-related names representing fractional permission, with fractions
+sometimes appearing in braces or as subscripts in various asertions.}}
 
 \paragraph{Physical memory  points-to} The soundness proofs for our logic's rules largely center around
 proving that page-table-walk accesses as in Figure \ref{fig:pagetables} succeed, which requires assertions
@@ -351,14 +353,19 @@ When combined with the
 fragment stored in the virtual points-to (Figure \ref{fig:virtualpointstosharing}),
 changes in the virtual-to-physical translations become possible without the need to track all virtual points-to assertions.
 
-\todo[inline,color=cyan]{Explain $\delta{s}$ (Iris ghost name) vs $m$ (logical contents of ghost map) in next 2 paragraphs}
+% \todo[inline,color=cyan]{Explain $\delta{s}$ (Iris ghost name) vs $m$ (logical contents of ghost map) in next 2 paragraphs}
 % \todo[inline]{This next paragraph below explains details, but should first explain the big picture: the current address space
 % is identified by a paddr, so to state the invariant for the address space named by that paddr we need to look up
 % what invariants should hold, then assert that those invariants do hold.}
-\add{One remaining difficulty is ensuring that different address spaces can have independent ghost maps ---
-which we resolve with an additional global ghost map from address-space identifiers (page table roots) to
-the \textsc{Iris} ghost name for that address space's ghost map.}
-In Figure \ref{fig:peraspaceinvariant},
+\add{We mus also ensure that different address spaces can have independent ghost maps ---
+which we resolve with an additional unique global ghost map (with ghost name $\delta{s}$) from address-space identifiers (page table roots
+whose values are manipulated by the kernel code) to
+the \textsc{Iris} ghost name for that address space's ghost map.
+In Figure \ref{fig:virtualpointstosharing}, the extra ghost map token for $\delta{s}$ asserts that $\delta$ --- which is exisentially
+quantified --- is the correct ghost name for the current address space. That is then the ghost map named
+in the ghost virtual-to-physical translation token of Figure \ref{fig:virtualpointstosharing}.
+}
+\del{In Figure \ref{fig:peraspaceinvariant},
 $\theta$ is the logical map from virtual addresses to the physical addresses they should translate to, 
 for the \emph{current} address space, corresponding to the  currently installed page tables (the ones
 indicated by \lstinline|cr3|). In Figure \ref{fig:virtualpointstosharing}, the existentially quantified $\delta$
@@ -368,17 +375,27 @@ it must ensure that $\theta$ actually corresponds to the intended ghost map for 
 This requires looking up the ghost name (i.e., $\delta$) for the current address space,
 which is handled by $m$ --- another logical map (tied to ghost state shortly)
 from various page table roots to ghost names for the per-address-space ghost maps discussed above.
-$\mathcal{I}\textsf{ASpace}(\theta,m)$ then stores the physical resources for the current address space mappings,
-ensuring that the current address space is valid (has an entry in $m$ whose corresponding
+}
+\add{
+Just as the ghost name $\delta$ names the ghost map with contents $\theta$,
+$\delta{s}$ names a ghost map, whose contents appear as $m$ in Figure \ref{fig:peraspaceinvariant} (the association of $\delta{s}$ to $m$
+is a global invariant not shown).
+}
+$\mathcal{I}\textsf{ASpace}(\theta,m)$ then \add{performs 3 roles:
+it associates the current address space's root with an appropriate \textsc{Iris} ghost name $\delta$;
+it tracks authoritatively that $\delta$'s logical contents match $\theta$; and it}
+stores the physical resources for the current address space mappings \add{(via the iterated $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$)}.
+\del{ensuring that the current address space is valid (has an entry in $m$ whose corresponding
 authoritative map matches $\theta$), and asserting ownership of the appropriate fractional ownership
-of the physical page table walk for each virtual-to-physical translation in $\Theta$ (for the current address space).
+of the physical page table walk for each virtual-to-physical translation in $\Theta$ (for the current address space).}
 
+\del{
 Virtual points-to assertions must also ensure that they are tied to a valid address space, and because they
 use ghost map tokens to ensure the virtual-to-physical translation exists in a specific ghost map, they must also
 name that map. In Figure \ref{fig:virtualpointstosharing}, this is done with a ghost map token for \emph{another} ghost map,
 one shared across the kernel, holding $m$. Our virtual points-to assertion existentially quantifies the address-space-specific
 ghost map $\delta$ mapping virtual addresses to physical addresses, and ensures it exists with a token for the distinguished
-global (unique) ghost map named by $\delta{s}$.
+global (unique) ghost map named by $\delta{s}$.}
 % the ghost map of virtual-to-physical translations for a particular address space (the ghost name $\delta$ in Figure \ref{fig:virtualpointstosharing}).
 % % for each address space must be locateable from a representation of the specific address space:
 % % This means we also require a way to locate the map for the current address space from 
@@ -690,13 +707,15 @@ use that to extract the physical page-table-traversal points-to collection descr
 the page table walk for the relevant address ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$)
 from the invariant ($\mathcal{I}\mathsf{ASpace}$), prove that the page table walk succeeds
 and that memory or registers are updated appropriately, before re-packing the invariant and virtual points-to resources.
+\looseness=-1
 
 \replace{T}{Second, t}he memory access rules --- as with all rules in our logic ---
-model updates to the instruction pointer \lstinline|rip| \add{based on the length of the encoded instruction.
-These rules} \replace{using}{use} a metafunction \textsf{MovLen}.
+\replace{model updates to}{increment} the instruction pointer \lstinline|rip| \add{by the length of the encoded instruction.}
+\del{using a metafunction \textsf{MovLen}.}
 \textsf{MovLen} returns how long the instruction encoding for the corresponding \lstinline|mov| is;
 x86-64 instruction encodings are often longer for instructions using registers that are absent from the 32-bit
 x86 ISA that preceded x86-64.
+\looseness=-1
 
 \add{Note that the use of a modal abstraction of address space simplifies these rules.
 The antecedents of \textsc{WriteToRegFromVirtMem} and \textsc{WriteToVirtMemFromReg}
@@ -704,22 +723,8 @@ only mention the address space in the index of the
 Hoare double --- not in $P$, or the (virtual) points-to assertions.
 There is no extra condition to discharge that the address being accessed is from
 the current address space.
-\todo[inline,color=green]{WIP: Colin is trying to clarify the value of the modal approach here}
 }
-\todo[inline,color=cyan]{Colin says:
-Ismail, Figure 7 looks broken. Why are there two IAspaces in WriteToRegFromVirtMem? Shouldn't there
-only be one?
-Also in WriteToRegFromVirtMem, why can't the virtual points-to be fractional? It is in the Rocq development,
-and we use it as such in examples.
-In WriteToVirtMemFromReg, vaddr points to a value rvs both before and after the store.
-And also in WriteToVirtMemFromReg, why are all the fractions q? They should be allowed to be different fractions.
-(Also, explaining the fraction notation was one of the questions from reviewers.)
-}
-\todo[inline,color=cyan]{Ismail Addressed:
-Others issues are addressed.
-"(Also, explaining the fraction notation was one of the questions from reviewers.)"
-They are explained earlier in the text. No need. They should go back and read.
-}
+
 \subsubsection{Updating \lstinline|cr3|} 
 Unlike other rules, \TirNameStyle{WriteToRegCtlFromRegModal} updates the root address of the 
 address space determining the validity of resources, from $\rtv$ before the
@@ -734,18 +739,18 @@ because one could frame out assertions in one address space, switch address spac
 address space back into the \emph{new} address space, where they may not hold. 
 % Appendix \ref{sec:issues} gives more details.
 It is often said that the frame rule (below) is one of the key pieces of separation logic.
-\[
+\centerline{$
   \mbox{$\inferrule*[right=Frame]{
     \{P\}\;C\;\{Q\}
   }{
     \{P\ast R\}\;C\;\{Q\ast R\}
   }$}
-  \qquad\textrm{(unsound with address space changes)}
-\]
+  \qquad\begin{array}{c}\textrm{(unsound with address space changes)}\\\\\end{array}
+$}\\
 Such a rule is normally recoverable from Hoare doubles (see, e.g., \citet{Chlipala2011Bedrock,Chlipala2013Bedrock}).
 However, in the presence of address space changes, the traditional frame rule is unsound.
-Consider:
-\begin{mathpar}
+Consider:\\
+\centerline{$
   \inferrule*[right=Frame]{
     \inferrule{\ldots }{
     \{\textsf{Pre}\}
@@ -757,9 +762,11 @@ Consider:
     \texttt{mov}~\texttt{\%cr3},~r%\lstinline|mov %cr3, r| 
     \{a\mapsto_\mathsf{v} x \ast \textsf{Post}\}
   }
-\end{mathpar}
+$}\\
 In this (broken!) hypothetical example,
-both the precondition and the postcondition assert that $a\mapsto_\mathsf{v} x$ in the current address space, but we have no basis for concluding that address translation is preserved by the change of address space. So, this derivation clearly leads to an unsound conclusion. 
+both the precondition and the postcondition assert that $a\mapsto_\mathsf{v} x$ in the current address space, but
+\replace{we have no basis for concluding that address translation is preserved by the change of address space}{
+  the new address space may map $a$ to another value}. So, this derivation clearly leads to an unsound conclusion. 
 The essential problem is that the frame rule is motivated by local reasoning about local updates, but
 a switch of address space is a \emph{global} change that may invalidate information about virtual addresses.
 Thus, framing around arbitrary \lstinline|cr3| updates is unsound --- hence the \emph{global} nature of \textsc{WriteToRegCtlFromRegModal} ---
