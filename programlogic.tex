@@ -33,16 +33,14 @@
   Most code, even in an operating system kernel, only works with a single address space (the current one).
   Explicitly plumbing address space information through a simple linked list specification, simply because some other part of the program
   may manipulate other address spaces, adds significant specification burden.
-  Specifications which need to talk about a particular invariant holding in an arbitrary other address space,
-  or with knowing a certain assertion conceptually holds in multiple specific address spaces, would need to quantify
-  over functions from address space identity to assertions rather than just assertions.
-  Using a modal approach resolves all of these technical and usability\todo{need better word, I'm always wary of using this word in PL}
-  challenges cleanly and uniformly.
+  Specifications which need to talk about a particular invariant holding in a specific other address space (or multiple other address spaces) would need to quantify
+  over \emph{functions} from address space identity to assertions rather than just assertions.
+  Using a modal approach resolves all of these challenges cleanly and uniformly.
   Specifications that are not \emph{about} address space manipulation need not mention an address spaces at all:
-  one can use one's favorite separation logic data structure specifications without restructuring,
+  one can use standard separation logic data structure specifications without restructuring,
   and every assertion can be stated for either the current or specific other address spaces.
-  In short, modalities make it possible for specifications to mention address spaces only when they deal with address spaces,
-  and not when they don't.\todo{wary of this due to the rtv in the double}
+  In short, modalities make it possible for specifications to mention address spaces when necessary,
+  without requiring mention when only one address space is at hand.
 }
 
 We describe a program logic (a separation logic) along the lines suggested \replace{earlier}{above}, where every assertion is relative
@@ -93,18 +91,17 @@ essentially working with separation logic assertions indexed by a choice of page
 This is the (\rocq) type of assertions in our logic.
 Most constructs in \iris's base logic are defined with respect to any BI-algebra (of \coq type \lstinline|bi|), so \add{they} automatically
 carry over to our derived logic.
-\add{Since \textsf{vProp}s are ``just'' \textsc{Iris} predicates on a choice of page table root,
-it may not be obvious what the gain is over simply using \textsc{Iris} directly.
-The gain is not expressive power.
-Every modal logic can be translated straightforwardly to a logic without modalities
-(nearly always a small variation on the \emph{standard translation} from propositional modal logic
-to first-order logic~\cite{blackburn2006modal}\footnote{\add{Itself similar to verification condition generation
-for weakest precondition calculi and Hoare logics.}}) that can directly address the logic's models ---
-but these translations, in addition to making specifications far more verbose,
-generally do not preserve the appealing reasoning principles of modal logics.
-This becomes \replace{most}{more} apparent when discussing our proof rules.
-}
-
+% \add{Since \textsf{vProp}s are ``just'' \textsc{Iris} predicates on a choice of page table root,\todo{this section may be subsumed under first addition to this section, don't need both}
+% it may not be obvious what the gain is over simply using \textsc{Iris} directly.
+% The gain is not expressive power.
+% Every modal logic can be translated straightforwardly to a logic without modalities
+% (nearly always a small variation on the \emph{standard translation} from propositional modal logic
+% to first-order logic~\cite{blackburn2006modal}\footnote{\add{Itself similar to verification condition generation
+% for weakest precondition calculi and Hoare logics.}}) that can directly address the logic's models ---
+% but these translations, in addition to making specifications far more verbose,
+% generally do not preserve the appealing reasoning principles of modal logics.
+% This becomes \replace{most}{more} apparent when discussing our proof rules.
+% }
 However, we must still build up from existing \iris primitives to provide new primitives that depend on the address space --- primarily the notion
 of virtual points-to.
 To define and use virtual points-to assertions, we require two basic assertions that ignore
@@ -112,7 +109,7 @@ the current address space:
 
 \paragraph{Register points-to} 
 The assertion $\textsf{r}\;\mapsto_{\textsf{r}}\{q\}\;\textsf{rv}$ ensures the ownership of the register $\rg$ containing the
-value of the register $\rv$.\todo{Ismail, you changed ``the register value $\rv$'' to ``value of the register $\rv$'' and I changed it back. What you wrote treats $\rv$ as the name of the register, not its value.}
+value of the register $\rv$.
 The fraction $\qfrac$ with value 1 asserts the unique ownership of the register mapping and grants update permission \replace{on}{to} it;
 otherwise, any value $0 < \qfrac <1$ represents partial ownership, granting read-only permission on the mapping.
 
@@ -131,15 +128,15 @@ From this we can derive a more concise physical points-to when the split is unim
 
  %I put a newline in between the following two Definitions as the second Definition seems not proper without the newline
 \begin{figure*}
-  \begin{lstlisting}[language=Coq]
+  \begin{lstlisting}[language=Coq,escapeinside={(*}{*)}]
  Definition $\vaddr\mapsto_{\textsf{t}}\{\textsf{q}\}\; \vpage$ : vProp $\Sigma$ := 
   $\exists_{\textsf{l4e l3e l2e l1e}} \ldotp$  $\ulcorner$ aligned $\vaddr \urcorner \ast$ L4_L1_PointsTo($\vaddr$ l4e l3e l2e l1e paddr) $\ast$ paddr $\mapsto_{p}\{\mathsf{q}\} \vpage$.
  Definition L4_L1_PointsTo (maddr l4e l3e l2e l1e paddr :word 64) : vProp $\Sigma$ := $\lambda$ cr3val.
   $\ulcorner$ entry_present l4e $\land$ entry_present l3e $\land$ entry_present l2e $\land$ entry_present l1e$\urcorner$ $\ast$
-  (l4M52 maddr cr3val) $\sim$ (l4off maddr cr3val) $\mapsto_{a}$ {q1}  l4e  $\ast$
-  (l3M52 maddr l4e) $\sim$ (l3off maddr l4e)  $\mapsto_{a}$ {q2}  l3e $\ast$ 
-  (l2M52 maddr l3e) $\sim$ (l2off maddr l3e) $\mapsto_{a}$ {q3}  l2e $\ast$
-  (l1M52 maddr l2e) $\sim$ (l1off maddr l2e) $\mapsto_{a}$ {q4}  l1e $\ast$ $\ulcorner$ addr_L1(va,l1e) = paddr $\urcorner$.
+  (l4M52 maddr cr3val) $\sim$ (l4off maddr cr3val) $\mapsto_{a}$ {q1}  l4e  $\ast$(*\label{line:l4pointsto}*)
+  (l3M52 maddr l4e) $\sim$ (l3off maddr l4e)  $\mapsto_{a}$ {q2}  l3e $\ast$(*\label{line:l3pointsto}*) 
+  (l2M52 maddr l3e) $\sim$ (l2off maddr l3e) $\mapsto_{a}$ {q3}  l2e $\ast$(*\label{line:l2pointsto}*)
+  (l1M52 maddr l2e) $\sim$ (l1off maddr l2e) $\mapsto_{a}$ {q4}  l1e $\ast$ $\ulcorner$ addr_L1(va,l1e) = paddr $\urcorner$.(*\label{line:l1pointsto}*)
 \end{lstlisting}
 \todo[inline,color=cyan]{Ismail, we can drop the maddr from the l4M52 etc, and the l4e etc. from the l3off etc., right?}
 \vspace{-1em}
@@ -167,14 +164,6 @@ which points to the page holding the physical memory backing the virtual address
 Most of the definition lives directly in \textsf{vProp}, using the separation logic structure lifted from \iris's \textsf{iProp}.
 \looseness=-1
 
-\todo[inline]{This is a section where it's worth explaining the figure in a little more detail, especially as we reuse L4L1PointsTo
-in our own definitions later. I know we discussed at some point, but don't the \texttt{l$n$M52} accessors ignore the \texttt{maddr},
-and don't the \texttt{l$n$off} accessors ignore the entry arguments? If so we can drop those (simplifying the figure), and annotate 
-(e.g., with comments like \lstinline[mathescape]|(*$\textcircled{E}$*)|) each \texttt{l$n$off} in Figure \ref{fig:strongvirtualpointsto}
-with a tag matching a new tag on the corresponding offset chunk of the translated virtual addres in Figure \ref{fig:pagetables}\ldots
-}
-\todo[inline]{Ismail Addressed: current explanation in here is fortified by the changed text in the background section smoothly}
-
 \lstinline|L4_L1_PointsTo| works by
 chaining together the entries for each level, using the sequence of table offsets from the address being translated to index
 each table level, and using the physical page address embedded in each entry.\footnote{
@@ -183,9 +172,14 @@ each table level, and using the physical page address embedded in each entry.\fo
 }
 For example, the first-level address translation to get the L4 entry (\lstinline|l4e|) 
   uses the masks \textsf{l4M52} with the current \lstinline|cr3| to get the physical address of the start of the L4 table
-  and \textsf{l4off} with the virtual address being translated to compute the correct offset within that table.
-  Then \del{at} that physical location \replace{is}{holds} the appropriate entry in the L4 table \textsf{l4e}.
-  Subsequent levels of the page table walk work similarly.
+  and \textsf{l4off} with the virtual address being translated to compute the correct \add{byte} offset within that table \add{just as in the first translation
+  step of Figure \ref{fig:pagetables}}.\footnote{\add{Note the offsets mentioned in Figure \ref{fig:pagetables} are 9-bit indexes into the 512 entries; the byte offset is that times 8.}}
+  \replace{
+    Then {at} that physical location {is} the appropriate entry in the L4 table \textsf{l4e}.
+  }{
+    Thus Line \ref{line:l4pointsto} asserts that the physical address built from the table base and offset points to the L4 entry \textsf{l4e}.
+  }
+  Subsequent levels of the page table walk \add{assertion (Lines \ref{line:l3pointsto}--\ref{line:l1pointsto})} work similarly.
 The statement of these assertions is simplified by the use of our split physical points-to assertions, since
 each level of tables is page-sized. \footnote{We do not address superpages and hugepages in this paper.}
 This helper definition is also more explicit in \textsf{vProp} which binds a value to \lstinline|cr3| and uses it to start the translation process.
@@ -221,7 +215,8 @@ This solution is in fact very close to that of \citet{kolanski08vstte}, who defi
 where the semantics of all assertions are functions from pairs of heaps and page table root values to booleans.\footnote{
   This was a typical explicit construction at the time; their work significantly predates \iris.
 }
-Our solution \replace{removes}{in the next subsection improves on theirs by removing} some restrictions in this definition by further abstracting the handling of address translation.
+Our solution \replace{removes}{in the next subsection improves on theirs, removing} some restrictions in this definition by further abstracting the handling of address translation.
+\looseness=-1
 
 \subsection{Aliasing/Sharing Physical Pages}
   \label{sec:sharingpages}  
@@ -295,7 +290,7 @@ $}
   but the syntax we use captures the details of \texttt{iris.base\_logic.lib.ghost\_map}.}
   There are other rules, but these two are most important for explaining ghost maps.
   \textsc{GhostMapUpdate} says that ownership of the actual ghost map with ghost name $\gamma$ and map contents $\theta$,
-  and a full (non-fractional) token witnessing that $\theta$ maps \textsf{pa} to \textsf{va} permits an update to the ghost map's state,
+  and a \del{full (non-fractional) }token witnessing that $\theta$ maps \textsf{pa} to \textsf{va} permits an update to the ghost map's state,
   changing the map and replacing the token to represent the new value.
   \textsc{GhostMapLookup} allows using the same information to simply conclude that the mapping indicated by the token is true.
   
@@ -318,18 +313,20 @@ will resolve on the hardware to $\paddr$ --- via $\textsf{L}_{4}\_\textsf{L}_{1}
   % map caching virtual-to-physical address translations, and for each entry a read only \emph{partial} ownership of that key-value pair.
   % The resource algebra itself is instantiated as:
   % \[\mathcal{A}\textsf{bsPTableWalk} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \;  ( (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \Loc,\mathord{=}) ))\]
-For clarity, we refer to the specific ghost map summarizing virtual-to-physical translations by \\
-\centerline{$\mathcal{A}\textsf{bsPTableWalk}(\delta,\theta) \stackrel{\triangle}{=} \mathsf{GhostMap}(\delta,\theta)$}\\
+For clarity, we refer to the specific ghost map summarizing virtual-to-physical translations by 
+\mbox{$\mathcal{A}\textsf{bsPTableWalk}(\delta,\theta) \stackrel{\triangle}{=} \mathsf{GhostMap}(\delta,\theta)$}
 (omitting $\delta$ for brevity when only one is in scope)
 and keep this in a per-address-space invariant described shortly.
 We then replace the physical traversal $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure \ref{fig:strongvirtualpointsto}'s virtual points-to definition
 with ownership of the token \ghostmaptoken{\delta}{\vaddr}{\paddr}, %ghost-map ($ \sumwalkabs\vaddr\qfrac\paddr$),
 yielding Figure \ref{fig:virtualpointstosharing}'s definition.
-This new definition guarantees that the ghost map contains an mapping from the virtual address ($\vaddr$) to a physical address ($\paddr$),
-and thus that the per-address-space invariant will contain the physical resources that guarantee \add{that} the hardware resolves the translation.
+This new definition guarantees that the ghost map \add{$\theta$} \replace{contains an mapping from}{maps} the virtual address ($\vaddr$) to a physical address ($\paddr$),
+and thus that the per-address-space invariant \add{described next} will contain the physical resources that guarantee \add{that} the hardware resolves the translation.
+\looseness=-1
 
   \begin{figure*}
   \footnotesize
+\vspace{-1em}
 \centerline{$
 \begin{array}{l}
   \mathcal{I}\textsf{ASpace}(\ptablestore,m)\stackrel{\triangle}{=} \textsf{ASpace\_Lookup}(\ptablestore,m) \ast \\
@@ -346,7 +343,7 @@ $}
 \vspace{-1em}
   \end{figure*}
 
-We place the authorative ownership of the ghost translation $\mathcal{A}\textsf{PTableWalk}$ in a per-address-space invariant
+We place the authorative ownership of the ghost \add{map} translation $\mathcal{A}\textsf{PTableWalk}$ in a per-address-space invariant
 $\mathcal{I}$\textsf{ASpace} (Figure \ref{fig:peraspaceinvariant}). 
 $\mathcal{I}$\textsf{ASpace} alone allows changes to the page tables
 that preserve overall virtual-to-physical translations.
@@ -354,9 +351,13 @@ When combined with the
 fragment stored in the virtual points-to (Figure \ref{fig:virtualpointstosharing}),
 changes in the virtual-to-physical translations become possible without the need to track all virtual points-to assertions.
 
-\todo[inline]{This next paragraph below explains details, but should first explain the big picture: the current address space
-is identified by a paddr, so to state the invariant for the address space named by that paddr we need to look up
-what invariants should hold, then assert that those invariants do hold.}
+\todo[inline,color=cyan]{Explain $\delta{s}$ (Iris ghost name) vs $m$ (logical contents of ghost map) in next 2 paragraphs}
+% \todo[inline]{This next paragraph below explains details, but should first explain the big picture: the current address space
+% is identified by a paddr, so to state the invariant for the address space named by that paddr we need to look up
+% what invariants should hold, then assert that those invariants do hold.}
+\add{One remaining difficulty is ensuring that different address spaces can have independent ghost maps ---
+which we resolve with an additional global ghost map from address-space identifiers (page table roots) to
+the \textsc{Iris} ghost name for that address space's ghost map.}
 In Figure \ref{fig:peraspaceinvariant},
 $\theta$ is the logical map from virtual addresses to the physical addresses they should translate to, 
 for the \emph{current} address space, corresponding to the  currently installed page tables (the ones
@@ -372,10 +373,6 @@ ensuring that the current address space is valid (has an entry in $m$ whose corr
 authoritative map matches $\theta$), and asserting ownership of the appropriate fractional ownership
 of the physical page table walk for each virtual-to-physical translation in $\Theta$ (for the current address space).
 
-\todo[inline]{What's not clear in this next paragraph is the relationship between ASpaceLookup in Figure 5 and the lookup part of Figure 3.
-I think Figure 5's $m$ and Figure 3's $\delta{s}$ are the same, aren't they? If so, we should say so and use the same name.
-If not we should explain why they're different.
-}
 Virtual points-to assertions must also ensure that they are tied to a valid address space, and because they
 use ghost map tokens to ensure the virtual-to-physical translation exists in a specific ghost map, they must also
 name that map. In Figure \ref{fig:virtualpointstosharing}, this is done with a ghost map token for \emph{another} ghost map,
@@ -432,27 +429,27 @@ Real VMMs must
 Doing so requires a way to talk about other address spaces, and means to switch address spaces.
 \begin{figure}
 \footnotesize
-\begin{mathpar}
+\[\begin{array}{c}
     \mbox{$[r](\mathsf{P}) \;: \mathsf{vProp} \; \Sigma \; \stackrel{\triangle}{=} \; \lambda \_,\; \mathsf{P}~\mathsf{r} \vspace{0.5em}$}
-    \and
+    \qquad
     \mbox{$\textsf{Fact P} \stackrel{\triangle}{=} \;\forall \; ,r \; r' \ldotp  \textsf{P r} \dashv\vdash \textsf{P r'}$}
-    \and
+    \qquad
     \inferrule*{ }{\textsf{Fact}\;[r](\textsf{P}) }
-    \and
+    \qquad
     \inferrule*{ }{\textsf{Fact}\;(\textsf{r}\;\mapsto_{\textsf{r}}\{q\}\;\textsf{rv})}
-    \and
+    \\[1.3em]
     \inferrule{ }{\textsf{Fact}\;(\textsf{w} \mapsto_{\textsf{p}} \{q\} \textsf{ v} )}
-    \and
+    \qquad
     \inferrule{ }{(\textsf{P} \vdash \textsf{Q}) \vdash  ([r](\textsf{P}) \vdash  [r](\textsf{Q}))}
-    \and
+    \qquad
     \inferrule{ }{[r](\textsf{P} \ast \textsf{Q}) \dashv\vdash ([r](\textsf{P}) \ast [r](\textsf{Q})}\vspace{0.5em}
-    \and
+    \\[1.3em]
     \inferrule{ }{[r](\textsf{P}\land \textsf{Q}) \dashv\vdash [r](\textsf{P})\land [r](\textsf{Q})}
-    \and
+    \qquad
     \inferrule{ }{[r](\textsf{P}\lor \textsf{Q}) \dashv\vdash [r](\textsf{P})\lor [r](\textsf{Q})}
-    \and
+    \qquad
     \inferrule{ }{\textsf{Fact P} \vdash  [r](\textsf{P}) \dashv\vdash (\textsf{P})} %(\textsf{vProp }\Sigma))\\
-\end{mathpar}
+\end{array}\]
 \vspace{-1em}
   \caption{Other-space Modality and Its Laws}
   \label{fig:modaldef}
