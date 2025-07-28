@@ -49,14 +49,14 @@
 \documentclass[acmsmall,screen,nonacm,review,anonymous]{acmart}
 
 \newif\ifShowRevisions
-\ShowRevisionstrue
+\ShowRevisionsfalse
 \ifShowRevisions
 \usepackage{soul}
 \newcommand{\add}[1]{\textcolor{blue}{#1}}
 \newcommand{\del}[1]{\textcolor{red}{\st{#1}}}
 \newcommand{\replace}[2]{\del{#1}\add{#2}}
 \else
-\newcommand{\add}[1]{{#1}}
+\newcommand{\add}[1]{\textcolor{blue}{#1}}
 \newcommand{\del}[1]{}
 \newcommand{\replace}[2]{\del{#1}\add{#2}}
 \fi
@@ -437,6 +437,7 @@ a guide for artifact evaluators.}{
 \bibliography{vmm}
 
 \appendix
+\input{examples.tex}
 % \section{Translation Lookaside Buffers}
 % \label{apdx:tlb}
 % This section explains the challenges of formal reasoning about TLBs in more detail, including why
@@ -565,8 +566,6 @@ a guide for artifact evaluators.}{
 % % Another useful perspective on this might be the dynamic frames~\cite{parkinson2011relationship} 
 % % view: virtual points-to assertions are self-stable \emph{except} for changes in \lstinline|cr3|, so framing would then naturally require other means of holding \lstinline|cr3| constant (or saving and restoring it).
 % % Virtual points-to assertions could be made self-stable by also giving them partial ownership over \lstinline|cr3| assertions, but this would require explicitly plumbing that ownership from \emph{all} assertions back to any place an address space change might occur; this would seem to be a far graver loss of modularity than this extra quirk in framing discussions.
-
-
 
 
 \end{document}

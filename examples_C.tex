@@ -322,6 +322,11 @@ $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}
 Ismail, why does the implication on line 13 talk about entryv? Is that really what the Rocq proof talks about, after overwriting?
 Are we missing some existential quantification of the value in the conditional branch and lines 19-21?
 }
+\todo[inline,color=cyan]{
+  reading carefully, it says that if entry\_present of pte\_initialize of something holds (which it always will)
+  then the 512 entries are there. So this is basically ``True implies'', but in a shape that's compatible
+  with the other branch/path's invariants
+}
 \vspace{-1em}
 \caption{Ensuring \textsf{entry} points to a valid next-level table, allocating if necessary, returning its virtual address.}
 \label{fig:calltopteinitializeC}
@@ -384,7 +389,7 @@ assertions),
 but only after resolving two critical challenges.
 Two key challenges stand out and end up affecting both the pre- and post-conditions, neither of which has been addressed by prior work.
 First, the update to the memory at (virtual) address \lstinline|entry| depends on subtle ownership invariants:
-if the entry is present then its fractional ownership is shared with a large number of \lstinline|L4_L1_PointsTo| assertions
+if the entry is present then its fractional ownership is shared with a large number of $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ assertions
 from the address space invariant (Figure \ref{fig:peraspaceinvariant}),
 but if the entry is absent the proof requires full ownership to update it. We resolve this by extending the address space invariant
 to make the owned fraction of the entry's memory \emph{dependent on its own contents}.
@@ -626,7 +631,6 @@ pte_t *walkpgdir(pte_t *l4, const void *va) {
   return &l1[L1Offset(va)]; // Return virtual address of L1 entry with a similar index computation(*\label{line:returnl1entryaddr}*)
 } $\specline{\textsf{R}_{\textsf{walk}} \ast \textsf{R}_{\textsf{l1e}} }_{\rtv}$
 \end{lstlisting}
-\todo[inline]{Ismail proof-read this figure for Colin's changes}
 \else
 \todo[inline]{this is dead code, we're using the PLDI flag set to true}
 % \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
@@ -673,6 +677,7 @@ pte_t *walkpgdir(pte_t *l4, const void *va) {
 % ;; clean up the stack 
 % \end{lstlisting}
 \fi
+\vspace{-1em}
 \caption{Walking page-table directory via calls to \textsf{pte\_get\_next\_table} in Figure \ref{fig:calltopteinitializeC}}
 \label{walkpgdirC}
 \vspace{-1em}
@@ -695,7 +700,6 @@ $\begin{array}{l}\left( \begin{array}{l}
       (\textsf{l2p+KERNBASE+8*L2Offset(va)}) \mapsto_{\textsf{vpte,qfrac2}} \textsf{l2p+8*L2Offset(va)} \; \textsf{l2e\_val}
     \end{array} \right)  =\textsf{R}_{\textsf{walk} } 
     \\ \left(\begin{array}{l}  (\textsf{l1p+KERNBASE*8*L1Offset(va)}) \mapsto_{\textsf{vpte,qfrac1}} \textsf{l1p+8*L1Offset(va)}\;\textsf{l1e\_val} \ast  \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l1e\_val})\urcorner \end{array}\right) =\textsf{R}_{\textsf{l1e}}\end{array} $
-\todo[inline]{Ismail: Why isn't there an l1 entry identity map token in Rwalk?}
 \vspace{-1em}
 \caption{\textsf{R}$_{\textsf{walk}}$: Resources obtained from invariant for walking page-table directory with \emph{non-existing entries} via calls to \textsf{pte\_get\_next\_table} in Figure \ref{fig:calltopteinitializeC}}
 \label{fig:rwalkC}
@@ -896,8 +900,7 @@ void vaspace_mappage(pte_t *l4, void *va,uintptr_t fpaddr ) {
  \lor \; \;  \textsf{l1\_entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{l1\_entry} \; (\textsf{set\_pfn}(\textsf{l1e\_val}, \textsf{PTE\_ADDR\_TO\_PFN}(\textsf{fpaddr}))) \ast  \ulcorner \lnot(\textsf{entry\_present l1e\_val}) \urcorner \ast P \end{array} }$
 }
 \end{lstlisting}
-\vspace{-1em}
-\todo[inline,color=cyan]{will switch to l4p+ l4offset of va, so caller has the 512}
+\vspace{-2em}
   \caption{Specification of updating L1 entry to reference a new page (\textsf{fpaddr}).}
 \label{fig:mapping_codeC}
 \end{figure}
@@ -925,12 +928,6 @@ memory store rule.\footnote{In the assembly, \lstinline|fpaddr| is already known
 (setting the present flag) and a single store occurs.}
 \looseness=-1
 
-\todo[inline]{Colin will fix up next paragraph: it's right but also kinda weird, will handle w/ related work pass}
-Unlike the only prior work verifying analogous code for mapping a new page~\cite{kolanski08vstte,kolanski09tphols}, our proof above
-does \emph{not} need to reason directly over the operational semantics,
-making this the first verification we know of for mapping a virtual memory page that
-stays entirely at the program logic level.
-\looseness=-1
 % By incorporating verification of the
 % \lstinline|ensure_L1| function (see Section \ref{sec:traversing}), our verification also directly handles several subtle aspects which
 % were axiomatized in prior work.
