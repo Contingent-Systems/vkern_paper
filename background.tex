@@ -157,7 +157,7 @@ address, but tagged with the physical data addresses, so cache lookups and addre
 % \end{tikzpicture}
 
 \includegraphics[width=\textwidth]{addr_translation.png}
-\vspace{-1em}
+\vspace{-2em}
           \caption{x86-64 \replace{page table lookups}{hardware address translation}.}
         \label{fig:pagetables}
     \end{subfigure}
@@ -240,7 +240,7 @@ control a validity bit (called the \emph{present} bit), a read-write bit (which 
 and a range of additional bits which can be used to control caching, write-through, and more.
 This paper will only consider the present bit (0).
 
-The page tables are managed by the OS, typically by a \emph{virtual memory manager} (VMM).\footnote{Not to be confused with Virtual 
+The page tables are managed by the \replace{OS, typically by a}{OS kernel's} \emph{virtual memory manager} (VMM).\footnote{Not to be confused with Virtual 
 Machine Monitor. We focus on non-hypervisor scenarios, but hardware virtualization extensions for both 
 x86-64 and ARM make use of an additional set of page tables translating what a \emph{guest} considers to be its 
 (virtualized) physical memory to actual physical memory. Our contributions should offer value in this scenario as well.}
@@ -274,7 +274,6 @@ and finding the correct page table to update requires converting between physica
 In the case of changing the mappings for the currently-active set of page tables, 
 \emph{the OS kernel is modifying the tables involved in its
 own access of the tables}.
-
 \add{
   To get a sense of how subtle the required reasoning is, we can consider code such as Figure \ref{fig:pagetablescode},
   used in our evaluation to locate the appropriate L1 entry to map a page into the current address space.
@@ -420,15 +419,16 @@ if a small number of ``glue'' lemmas are proven, \iris
 provides a ready-made separation logic with a number of advanced features, including
 higher-order ghost state and impredicative invariants, for no additional work.
 
-We suppress many details of \iris assertions for brevity, but briefly note
+We suppress \replace{many details of \iris assertions}{some technical\iris details} for brevity, but briefly note
 a few recurring details used heavily in \iris but not necessarily in traditional
 separation logics.
 Because \iris is an embedded framework in \rocq, proofs in \iris-derived
-logics (including ours) often encapsulate raw \rocq assertions: $\ulcorner P \urcorner$ is an embedding
+logics \del{(including ours)} often encapsulate raw \rocq assertions: $\ulcorner P \urcorner$ is an embedding
 of the \rocq assertion $P$ into an \iris assertion (used for things like equality and other
 general pure logical assertions), similar to prior \rocq-embedded program logics~\cite{Chlipala2013Bedrock}. Newly-defined \iris assertions are in fact
 \rocq terms of a particular type, rather than being drawn from a fixed vocabulary.
 \del{We introduce other details as they arise.}
+\looseness=-1
 
 \iris includes two forms of implication. The magic wand operator $\wand$ is an affine implication:
 $A\wand B$ describes a resource which, if combined with a resource satisfying $A$, will satisfy $B$.

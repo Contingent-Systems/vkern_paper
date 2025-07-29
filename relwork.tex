@@ -24,10 +24,12 @@ and \textsc{CertiKOS}~\cite{gu15,gu2016certikos,gu2018certikos,chen2016interrupt
 \textsc{CompCert}'s usermode-oriented memory model~\cite{leroy2008formal,leroy2009formally} which assumes
 updates to one memory address are independent of updates to another ---
 which is not true of page table updates.
-Other work on OS verification either never progressed far enough to address VMM verification
-(\textsc{Verisoft XT}~\cite{cohen2009vcc,cohen2010local,dahlweid2009vcc,cohen2013SOFSEM}), or uses memory-safe languages to enable safe cohabitation 
-of a single address space by all processes (\textsc{Singularity}~\cite{Fahndrich2006language,Hunt2007singularity,Hunt2007sealing,Barnett2011specsharp}, \textsc{Verve}~\cite{Yang2010Verve},
-and \textsc{Tock}~\cite{levy2017multiprogramming}). The latter approach ensures memory safety, but ignores other functional uses of virtual memory
+Other work on OS verification either never progressed \del{far enough} to \del{address} VMM verification
+(\textsc{Verisoft XT}~\cite{cohen2009vcc,cohen2010local,dahlweid2009vcc,cohen2013SOFSEM}),
+or uses memory-safe languages
+\replace{to enable safe cohabitation of a single address space by all processes}{for process isolation instead of address translation}
+(\textsc{Singularity}~\cite{Fahndrich2006language,Hunt2007singularity,Hunt2007sealing,Barnett2011specsharp}, \textsc{Verve}~\cite{Yang2010Verve},
+and \textsc{Tock}~\cite{levy2017multiprogramming})\replace{. The latter approach ensures}{, ensuring} memory safety, but ignor\replace{es}{ing} other functional uses of virtual memory
 hardware, like swapping~\cite{Denning1970VM} or exploiting copy-on-write techniques for dynamic migration of virtual machines~\cite{clark2005live}.
 \looseness=-1
 

@@ -287,8 +287,8 @@ $}
   \iris includes a \emph{ghost map} construction, which we use to track mappings from virtual addresses to the physical addresses they translate to as a piece of ghost state.
   The map includes, for each key in the map (i.e.,
   each virtual address), a token $\ghostmaptoken{\gamma}{k}{v}$ whose ownership is required to update that key-value pair in the ghost map named $\gamma$. The existence of such a token implies that the actual map $\theta$ tracked by a corresponding $\mathsf{GhostMap}(\gamma,\theta)$
-  resource indeed maps $k$ to $v$. These properties are captured by key \iris rules in Figure \ref{fig:ghostmaps}.\footnote{\iris ghost maps lack established notation in the literature,
-  but the syntax we use captures the details of \texttt{iris.base\_logic.lib.ghost\_map}.}
+  resource indeed maps $k$ to $v$. These properties are captured by key \iris rules in Figure \ref{fig:ghostmaps}.\footnote{\iris ghost maps lack established notation\add{;}
+  \del{in the literature, but} the syntax we use captures the details of \texttt{iris.base\_logic.lib.ghost\_map}.}
   There are other rules, but these two are most important for explaining ghost maps.
   \textsc{GhostMapUpdate} says that ownership of the actual ghost map with ghost name $\gamma$ and map contents $\theta$,
   and a \del{full (non-fractional) }token witnessing that $\theta$ maps \textsf{pa} to \textsf{va} permits an update to the ghost map's state,
@@ -330,8 +330,8 @@ and thus that the per-address-space invariant \add{described next} will contain 
 \vspace{-1em}
 \centerline{$
 \begin{array}{l}
-  \mathcal{I}\textsf{ASpace}(\ptablestore,m)\stackrel{\triangle}{=} \textsf{ASpace\_Lookup}(\ptablestore,m) \ast \\
- \qquad\qquad\qquad \bigast{(\vaddr, \textsf{paddr})\in \ptablestore}{\exists\;(\textsf{l4e l3e l2e, l1e, paddr})\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr\textsf{, l4e, l3e, l2e, l1e, paddr})} \\
+  \mathcal{I}\textsf{ASpace}(\ptablestore,m)\stackrel{\triangle}{=} \textsf{ASpace\_Lookup}(\ptablestore,m) \ast 
+  \bigast{(\vaddr, \textsf{pa})\in \ptablestore}{\exists\;(\textsf{l4e l3e l2e, l1e, pa})\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr\textsf{, l4e, l3e, l2e, l1e, pa})} \\
   \textsf{ where } 
    \textsf{ASpace\_Lookup} (\ptablestore,m) \stackrel{\triangle}{=} \lambda\textsf{ cr3val} \ldotp \; \exists \gammaPred \; \ldotp \ulcorner m \; !!\; \textsf{cr3val} = \textsf{Some } \gammaPred \urcorner \ast
     %\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}
@@ -345,12 +345,14 @@ $}
   \end{figure*}
 
 We place the authorative ownership of the ghost \add{map} translation $\mathcal{A}\textsf{PTableWalk}$ in a per-address-space invariant
-$\mathcal{I}$\textsf{ASpace} (Figure \ref{fig:peraspaceinvariant}). 
-$\mathcal{I}$\textsf{ASpace} alone allows changes to the page tables
-that preserve overall virtual-to-physical translations.
-When combined with the
-fragment stored in the virtual points-to (Figure \ref{fig:virtualpointstosharing}),
-changes in the virtual-to-physical translations become possible without the need to track all virtual points-to assertions.
+$\mathcal{I}$\textsf{ASpace} (Figure \ref{fig:peraspaceinvariant}), 
+\replace{$\mathcal{I}$\textsf{ASpace} alone allows}{allowing} changes to the page tables
+that preserve overall virtual-to-physical translations \add{in isolation},
+\add{and also allowing changes to specific the virtual-to-physical translations}
+\replace{W}{w}hen combined with the
+\replace{fragment}{token} stored in the \add{relevant} virtual points-to (Figure \ref{fig:virtualpointstosharing}).
+\del{changes in the virtual-to-physical translations become possible without the need to track all virtual points-to assertions.}
+\looseness=-1
 
 % \todo[inline,color=cyan]{Explain $\delta{s}$ (Iris ghost name) vs $m$ (logical contents of ghost map) in next 2 paragraphs}
 % \todo[inline]{This next paragraph below explains details, but should first explain the big picture: the current address space
