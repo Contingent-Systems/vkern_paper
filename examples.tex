@@ -430,6 +430,16 @@ entry construction via the page-frame portion of the PTE. In other words, the si
 having accompanying resources) until the entry is marked present (and thus the memory returned from \textsf{kalloc}
 moves into the page table invariant.
 
+\add{Note that the C presentation in Figure \ref{fig:calltopteinitializeC}
+omitted the precondition on the implication of Figure \ref{fig:calltopteinitialize}'s Line \ref{line:page_of_caps},
+which is logically equivalent to \textsf{True} since \textsf{entry\_present} checks if the present bit is set in an entry,
+and \textsf{pte\_initialize} sets that bit. The actual invariant has this form here, and in the postcondition
+of \lstinline|pte_initialize| (Figure \ref{pteinitializespec}), to match the conditional form from earlier in
+\lstinline|pte_get_next_table| (which is also provably true when the check of the present bit
+determines that the entry was already valid/present).
+Our proof discharges the conditional at the join point, rather than eagerly in each branch.
+}
+
 \subsubsection{Physical-to-Virtual Conversion with \textsf{P2V}}
 \label{sec:p2v}
 Once we know the entry refers to a physical address in the identity mapping range ($\Xi$)
