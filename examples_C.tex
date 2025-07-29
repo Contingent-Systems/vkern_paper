@@ -579,13 +579,13 @@ for all three level transitions (4 to 3, 3 to 2, 2 to 1).
 The logical parameter \textsf{v} represents the level
 of the entry passed as an argument (c.f. the token $\ghostmaptoken{\textsf{id}}{(\mathsf{entryp})}{\textsf{v}}$ witnessing
 that \textsf{entryp} is part of the page table invariant on Line \ref{line:precondition_entry_out}).
-
 This comes into play with a key subtlety of \lstinline|pte_get_next_table|'s
 specification: its precondition
 includes a virtual {pte-points-to} (discussed earlier, Line \ref{line:get_next_vpte_preconditionC})
 but its postcondition does not yield new virtual points-to assertions!
-Instead it merely computes the base virtual address of the next table, and returns adequate tokens
-(discussed in Section \ref{subsec:identitymappingsC}, explicit on Line \ref{line:childrenC})
+It merely computes the base virtual address of the next table, and returns adequate tokens
+% (discussed in Section \ref{subsec:identitymappingsC}, explicit on
+(Line \ref{line:childrenC})
 for the \emph{caller} to construct a vpte-points-to for any entry of the next table level.
 \looseness=-1
 
