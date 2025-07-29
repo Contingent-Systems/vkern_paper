@@ -3,7 +3,7 @@
 We will discuss two streams of related work: OS verification, and 
 program logics with modalities.
 
-\subsection{OS Kernel Verification}
+\paragraph{OS Kernel Verification}
 There has been relatively little prior work on formal verification of virtual memory.
 \replace{Instead, m}Most OS verification work \replace{has focused on minimizing}{minimizes} reasoning about virtual memory management.
 The original \textsc{Verisoft} project~\cite{alkassar2008verisoft,alkassar2010pervasive,alkassar2008formal,dalinger2005verification,hillebrand2005address,alkassar2008formal,starostin2010formal} 
@@ -14,8 +14,9 @@ with an idiosyncratic format. \replace{It turns out that s}{S}ubsequent OS verif
 uses hardware models that do not.} \del{also treats page tables this way, but
 unsoundly given that \replace{other projects}{their} target hardware \del{that} \emph{does} run the kernel with address translation:}
 \add{Thus} they \emph{trust}
-that the particular page table manipulations do not, for example, unmap kernel code\footnote{\add{A ``fun'' bug one author encountered in
-an industrial prototype kernel.}}
+that the particular page table manipulations do not, for example, unmap kernel code
+% \footnote{\add{A ``fun'' bug one author encountered in
+% an industrial prototype kernel.}}
  (which can crash the machine even if done ``temporarily'').
 % \footnote{A bug
 % one author has personally encountered in a research kernel, though not one discussed here.}).
@@ -49,31 +50,34 @@ of the L1 entry (which they assumed existed), thereby skipping the physical-to-v
 }{
  did not tackle evaluations that would benefit from modality.
 }
-\looseness=-1
-
 \add{
  Our work improves significantly on the technical capabilities of ther logic and
  evaluates on kernel code that is more complete and more challenging than theirs.
+}
+\looseness=-1
+
+\add{
  Our modal approach makes it possible to specify address space changes cleanly, which their logic cannot do at all.
- Our use of virtual pte-points-to assertions enables nearly the same proof rules\todo{if this stays, we should typeset one of the vpte-pointsto rules to justify this}
+ Our use of virtual pte-points-to assertions enables nearly the same proof rules
  as standard memory accesses, and constructing virtual points-to information within the logic
  (c.f.\ the logical entailment between $\textsf{R}_\textsf{walk}$ and $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$)
- rather than reasoning semantically about when the model state supports new virtual points-to assertions.
+ whereas Kolanski and Klein must reason semantically about when the model state supports new virtual points-to assertions.
 }
 
 \add{
-While Kolanski and Klein verify the critical step of updating an already-located L1 entry to map a new page
+Kolanski and Klein verify the critical step of updating an already-located L1 entry to map a new page
 (ARM assembly corresponding roughly to Lines \ref{line:l1entry_storeC} and \ref{line:l1entry_setpresent}
-in our Figure \ref{fig:mapping_codeC}), they ignore the essential code
+in our Figure \ref{fig:mapping_codeC}), but ignore the essential code
 preceding that step --- which as our \lstinline|walkpgdir| and \lstinline|pte_get_next_table| verifications
 demonstrate, side-steps a significant amount of complexity and critical reasoning tasks.
-We have verified the entirety of the software page table walk up to mapping a new page, aside from a trusted physical memory allocator.\footnote{
- \add{Which works quite similarly to verified \lstinline|malloc|~\cite{Chlipala2013Bedrock,wickerson2010explicit}}
+We have verified the entirety of the software page table walk up to mapping a new page, aside from a trusted physical memory allocator resembling
+\lstinline|malloc|~\cite{Chlipala2013Bedrock,wickerson2010explicit}.
 }
  As a consequence of tackling this larger verification challenge, we are also the first to formally specify large
  segments of the self-referential portion of an OS kernel's virtual memory management invariants (per Sections \ref{sec:p2vC} and \ref{sec:selfconditional}),
  and to reason about converting back from physical addresses to virtual addresses efficiently.
 }
+\looseness=-1
 
 Due to a lack of fractional permissions in their formalism, they incidentally pick up other limitations orthogonal to their
 foundational focus: by requiring
@@ -109,10 +113,10 @@ memory.
  only with usermode threading (in a single process). \textsc{CertiKOS} and \textsc{seL4} trust assembly primitives for
  context switches, in addition to not modeling address translation for executing code.
 }
-\todo[inline]{author response talks about syeda and klein here briefly, and it fits, but we also want the longer discussion}
+% \todo[inline]{author response talks about syeda and klein here briefly, and it fits, but we also want the longer discussion}
 
-\paragraph{Translation Lookaside Buffers}
-As noted in Section \ref{sec:backgroundonmachinemodel}, we do not formally model or reason about TLBs.
+\del{Translation Lookaside Buffers}
+As noted in Section \ref{sec:backgroundonmachinemodel}, we do not formally model or reason about \add{translation lookaside buffers} \add{(}TLBs\add{)}.
 \replace{TLB flushes are required only when addresses are removed from a virtual address space, or when changing
 virtual address spaces.}{
  TLB flushes are necessary when a page is \emph{un}mapped, or when switching address spaces.
@@ -153,13 +157,14 @@ addresses to the inconsistent set, which is too imprecise for finer-grained unma
 The right \replace{eventual}{general} solution would be to combine our work
 and \add{an extension of} theirs, \add{a substantial project} which we leave to future work\replace{,}{.}\del{ as combining both the models and reasoning principles would be highly non-trivial.}
 
-\subsection{Program Logics with Modalities}
-Modalities have long been a staple of program logics, at least as far back as Dijkstra's weakest precondition calculus~\cite{dijkstra1975guarded}
+\paragraph{Program Logics with Modalities}
+Modalities have long been a staple of program logics, at least \replace{as far back as}{since} Dijkstra's weakest precondition calculus~\cite{dijkstra1975guarded}
 and Pratt's observation the Hoare triples
 could be decomposed using the weakest-precondition modality of dynamic logic~\cite{pratt1976semantical},
 in a form quite similar to what \iris uses today~\cite{jung2018iris}.
 Variants of Nakano's later modality~\cite{nakano2000modality} have long been used to deal with step-indexing 
 for impredicative and recursive features of logics and type systems~\cite{Appel2007,hobor2010theory,birkedal2011step,birkedal2013intensional,jung2018iris}.
+\looseness=-1
 
 As noted earlier, our other-space modality derives from hybrid logic~\cite{areces2001hybrid,blackburn1995hybrid,gargov1993modal,goranko1996hierarchies},
 where modalities are indexed by \emph{nominals} which are names for specific individual states in a Kripke model.
