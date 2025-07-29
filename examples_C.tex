@@ -317,15 +317,6 @@ $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}
 % ;;next = (pte_t *) next_virt_addr;
 % ;;clean up the stack and return next
 % \end{lstlisting}
-\todo[inline]{
-Ismail, why does the implication on line 13 talk about entryv? Is that really what the Rocq proof talks about, after overwriting?
-Are we missing some existential quantification of the value in the conditional branch and lines 19-21?
-}
-\todo[inline,color=cyan]{
-  reading carefully, it says that if entry\_present of pte\_initialize of something holds (which it always will)
-  then the 512 entries are there. So this is basically ``True implies'', but in a shape that's compatible
-  with the other branch/path's invariants
-}
 \vspace{-1em}
 \caption{Ensuring \textsf{entry} points to a valid next-level table, allocating if necessary, returning its virtual address.}
 \label{fig:calltopteinitializeC}
@@ -549,7 +540,7 @@ void pte_initialize(pte_t *entry) {
 
 If the entry is not set, \lstinline|pte_initialize|  
 allocates a physical page for use as the next-level table.
-\lstinline|pte_initialize| is shown in Figure \ref{pteinitializespecC}: it simply calls
+\lstinline|pte_initialize| (Figure \ref{pteinitializespecC}) calls
 \lstinline|kalloc| to allocate a physical page (Figure \ref{pteinitializespecC} Line \ref{line:call_to_kallocC}),
 and installs it into the entry (Line \ref{line:kalloc_install}).
 The page-allocator's \textsf{kalloc}
@@ -581,7 +572,6 @@ return to \lstinline|pte_get_next_table|, where it will validate the conditional
 Then the assertions that hold after Line \ref{line:now_we_know} of Figure \ref{fig:calltopteinitializeC}
 are enough to establish the same page table invariants which hold in the case where the entry was already valid,
 by updating the current address space's entry.
-\todo[inline]{still feel like this was a little too high level}
 
 
 
