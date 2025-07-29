@@ -435,7 +435,7 @@ hence the comment of Line \ref{line:now_we_know}).
 \footnotesize
 \[
 \begin{array}{l}
-  \mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)\stackrel{\triangle}{=} \textsf{ASpace\_Lookup}_{\textsf{id}}(\ptablestore,\Xi,m) \ast \mathsf{GhostMap}(\mathsf{id},\Xi)\ast\\
+  \mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)\stackrel{\triangle}{=} \textsf{ASpace\_Lookup}_{\textsf{id}}(\ptablestore,\Xi,m) \ast\\  %\mathsf{GhostMap}(\mathsf{id},\Xi)\ast\\
   \left(\bigast{(\vaddr, \textsf{paddr})\in \ptablestore}{\exists\;(\textsf{l4e, l3e, l2e, l1e, paddr})\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr\textsf{, l4e, l3e, l2e, l1e, paddr})}\right)\ast \\
   \bigast{(\paddr,\mathsf{level}) \in \Xi}{\exists\; (\textsf{qfrac, q, val,}\vaddr) \ldotp \ulcorner \vaddr = \paddr + \textsf{KERNBASE} \; \textsf{level} > 1\urcorner \ast  \underbrace{\fracghostmaptoken{\delta}{\vaddr}{\paddr}{\qfrac} }_\text{\textcircled{1} Ghost translation} \ast \underbrace{\paddr \mapsto_{\mathsf{p}}\{\textsf{qfrac}\}\; \vale}_\text{\textcircled{2} Physical location}} \ast\\
    \qquad\underbrace{ \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner}_\text{\textcircled{3} Entry validity}\ast 
