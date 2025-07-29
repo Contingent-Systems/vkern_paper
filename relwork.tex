@@ -72,12 +72,11 @@ preceding that step --- which as our \lstinline|walkpgdir| and \lstinline|pte_ge
 demonstrate, side-steps a significant amount of complexity and critical reasoning tasks.
 We have verified the entirety of the software page table walk up to mapping a new page, aside from a trusted physical memory allocator resembling
 \lstinline|malloc|~\cite{Chlipala2013Bedrock,wickerson2010explicit}.
-}
- As a consequence of tackling this larger verification challenge, we are also the first to formally specify large
+ As a consequence of tackling this larger verification challenge, our work is the first to formally specify large
  segments of the self-referential portion of an OS kernel's virtual memory management invariants (per Sections \ref{sec:p2vC} and \ref{sec:selfconditional}),
- and to reason about converting back from physical addresses to virtual addresses efficiently.
-}
+ and to reason about converting from physical addresses to virtual addresses efficiently.
 \looseness=-1
+}
 
 Due to a lack of fractional permissions in their formalism, they incidentally pick up other limitations orthogonal to their
 foundational focus: by requiring
@@ -93,26 +92,30 @@ other logical bases as well, such as \textsc{PulseCore}~\cite{ebner2025pulsecore
  
 \replace{Unlike our work, Kolanski and Klein prove very useful embedding theorems stating that code that does not modify page table 
 entries can be verified in a VM-ignorant program logic, and that proofs in that logic can be embedded into the VM-aware logic 
-(essentially by interpreting ``normal'' points-to relations as virtual points-to facts).}{
+(essentially by interpreting ``normal'' points-to relations as virtual points-to facts).
+}{
  Kolanski and Klein prove that updates to any memory locations that are not part of the page tables
- do not affect the interpretation of other memory addresses.
+ do not affect the interpretation of other memory addresses, just like on real hardware.
  This implies that programs that do not modify memory mappings could be reasoned about without
  concern for mappings.
 }
-While we have not \add{formally} proven such a result \add[of our machine model, it holds (just as for real hardware)],
-an analagous result \replace{{should} hold}{holds} of our work: consider that the doubles for the \texttt{mov} instructions
-that access memory behave just as one would expect for a VM-ignorant logic~\cite{Chlipala2013Bedrock}.
-With our general approach to virtual points-to assertions being inspired by Kolanski and Klein, \emph{both}
- our approach and theirs could in principle be extended to account for pageable points-to assertions by adding \del{additional}
-disjunctions to an extended points-to definition; embedding ``regular'' separation logic into such a variant
-is the appropriate next step to extend reasoning to usermode programs running with a kernel that may demand-page the program's
-memory.
-
-\add{
- No prior work has dealt with combined address space changes and context switching. \textsc{XCAP}~\cite{ni2007contexts} deals
- only with usermode threading (in a single process). \textsc{CertiKOS} and \textsc{seL4} trust assembly primitives for
- context switches, in addition to not modeling address translation for executing code.
+\replace{While we have not proven {such a result},
+an analagous result \replace{{should} hold}{holds} of our work:}{
+ An analagous result should holds of our model (though we have not proven it).
 }
+\replace{ consider that the doubles for the}{Informally this is visible in the rules for}
+\texttt{mov} instructions,
+\replace{that access memory behave just as one would expect for}{which are nearly identical to rules in a} VM-ignorant logic~\cite{Chlipala2013Bedrock,ni2007contexts}.
+\replace{With our general approach to virtual points-to assertions being inspired by Kolanski and Klein, \emph{both}
+ our approach and theirs could in principle}{
+  In principle both our approach and Kolanski and Klein's could
+ } be extended to account for pageable points-to assertions by adding \del{additional}
+disjunctions to an extended points-to definition\add{,}\del{; embedding ``regular'' separation logic into such a variant
+is} \add{which would be}
+ the appropriate next step to extend reasoning to usermode programs running with a kernel that may demand-page the program's
+memory.
+\looseness=-1
+
 % \todo[inline]{author response talks about syeda and klein here briefly, and it fits, but we also want the longer discussion}
 
 \del{Translation Lookaside Buffers}
@@ -143,8 +146,10 @@ As a result, multicore extensions of \textsc{seL4}~[?] and \textsc{CertiKOS}~[?]
  used to trigger those IPIs.
 }
 
-The only other attempt to verify a change of address space was by \citet{syeda2018program,syeda2020formal}, whose focus was on TLB maintenance (which we
-do not model). However, they verified only the 4 instructions to switch address spaces and update the TLB on an ARM processor, in isolation
+The only \replace{other attempt to verify a change of address space was by}{work to tackle TLB code verification was}
+\citet{syeda2018program,syeda2020formal},
+\replace{whose focus was on TLB maintenance (which we do not model)}{who are also the only prior work on verifying address-space-aware context switching}.
+However, they verified only the 4 instructions to switch address spaces and update the TLB on an ARM processor, in isolation
 (i.e., not the full context switch including changing stacks with address spaces).
 The specification they proved for those instructions did not address program invariants that may be valid in one address space and not the other,
 so is not flexible enough to extend directly to a full context switching primitive as in Figure \ref{fig:swtchC}\replace{,}{.}
@@ -156,6 +161,13 @@ addresses to the inconsistent set, which is too imprecise for finer-grained unma
 }
 The right \replace{eventual}{general} solution would be to combine our work
 and \add{an extension of} theirs, \add{a substantial project} which we leave to future work\replace{,}{.}\del{ as combining both the models and reasoning principles would be highly non-trivial.}
+\add{
+ No other prior work has considered address space changes during context switching. \textsc{XCAP}~\cite{ni2007contexts}
+ and Bedrock~\cite{Chlipala2011Bedrock,Chlipala2013Bedrock,Chlipala2015webapp} deal
+ only with usermode threading (in a single process). \textsc{CertiKOS} and \textsc{seL4} trust assembly primitives for
+ context switches, and do  not model address translation for executing code.
+ \looseness=-1
+}
 
 \paragraph{Program Logics with Modalities}
 Modalities have long been a staple of program logics, at least \replace{as far back as}{since} Dijkstra's weakest precondition calculus~\cite{dijkstra1975guarded}
