@@ -28,19 +28,25 @@
   immediately directly accessible.
 }
 \add{
-  Many approaches which could handle these problems in principle, such as tagging pointers with the relevant address space.
+  Many approaches could handle these problems in principle, such as tagging pointers with the relevant address space.
   But such approaches introduce other complexities.
   Most code, even in an operating system kernel, only works with a single address space (the current one).
   Explicitly plumbing address space information through a simple linked list specification, simply because some other part of the program
   may manipulate other address spaces, adds significant specification burden.
   Specifications which need to talk about a particular invariant holding in a specific other address space (or multiple other address spaces) would need to quantify
   over \emph{functions} from address space identity to assertions rather than just assertions.
+}
+
+\add{
   Using a modal approach resolves all of these challenges cleanly and uniformly.
-  Specifications that are not \emph{about} address space manipulation need not mention an address spaces at all:
-  one can use standard separation logic data structure specifications without restructuring,
-  and every assertion can be stated for either the current or specific other address spaces.
-  In short, modalities make it possible for specifications to mention address spaces when necessary,
-  without requiring mention when only one address space is at hand.
+  Specifications that are not \emph{about} address space manipulation need not mention address spaces in assertions.
+  One can use standard separation logic data structure specifications without restructuring or
+  adding explicit address space
+  tracking,
+  but every assertion can be still stated for either the current or specific other address spaces as needed.
+  In short, modalities make it possible for specifications to mention address spaces when
+  it is important to the code, and not when it is unimportant to the code.
+  \looseness=-1
 }
 
 We describe a program logic (a separation logic) along the lines suggested \replace{earlier}{above}, where every assertion is relative
