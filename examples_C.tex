@@ -883,12 +883,12 @@ void vaspace_mappage(pte_t *l4, void *va,uintptr_t fpaddr ) {
   if (!pteaddr->present){ (*\label{line:mappage_pte_present_startC}*)
     /*The entry is not present(*\label{line:mappage_pte_present_endC}*)*/
     pteaddr->pfn = PTE_ADDR_TO_PFN(fpaddr); /*Store updated entry back to L1 entry (*\label{line:l1entry_storeC}*)*/
-    $\specline{ \textsf{l1\_entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{l1\_entry} \; (\textsf{set\_pfn}(\textsf{l1e\_val}, \textsf{PTE\_ADDR\_TO\_PFN}(\textsf{fpaddr}))) \ast  \ulcorner \lnot(\textsf{entry\_present l1e\_val}) \urcorner \ast \textsf{P}}$
+    $\specline{ \textsf{l1\_entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{l1\_entry} \; (\textsf{set\_pfn}(\textsf{l1e\_val}, \textsf{ADDR\_TO\_PFN}(\textsf{fpaddr}))) \ast  \ulcorner \lnot(\textsf{entry\_present l1e\_val}) \urcorner}$
     /*Set the present bit in entry*/
     pteaddr->present = 1;(*\label{line:l1entry_setpresent}*)
   }
-  $\specline{ \begin{array}{l}\textsf{l1\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l1\_entry} \; \textsf{l1e\_val} \ast \ulcorner (\textsf{entry\_present l1e\_val}) \urcorner \ast \textsf{P} \\
- \lor \; \;  \textsf{l1\_entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{l1\_entry} \; (\textsf{set\_pfn}(\textsf{l1e\_val}, \textsf{PTE\_ADDR\_TO\_PFN}(\textsf{fpaddr}))) \ast  \ulcorner \lnot(\textsf{entry\_present l1e\_val}) \urcorner \ast P \end{array} }$
+  $\specline{ \begin{array}{l}\textsf{l1\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l1\_entry} \; \textsf{l1e\_val} \ast \ulcorner (\textsf{entry\_present l1e\_val}) \urcorner \\
+ \lor \; \;  \textsf{l1\_entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{l1\_entry} \; (\textsf{set\_pfn}(\textsf{l1e\_val}, \textsf{ADDR\_TO\_PFN}(\textsf{fpaddr}))) \ast  \ulcorner \lnot(\textsf{entry\_present l1e\_val}) \urcorner  \end{array} }$
 }
 \end{lstlisting}
 \vspace{-2em}

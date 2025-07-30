@@ -223,8 +223,8 @@ The translation process or algorithm is \replace{sometimes}{often} referred to a
 While Figure \ref{fig:pagetables} and most of our constants (how many levels, which virtual address bits index which
 table levels) are specific to \replace{the}{common} x86-64 \replace{architecture}{CPUs},
 \replace{
-ARMv8 (a.k.a.\ texttt{aarch64}), RISC-V, and PowerPC use similar hierarchical page tables for address translation.
-RISC-V's \texttt{sv48} paging configuration~\cite[\S 4.5]{riscv-privileged} and AArch64's 4-level paging configuration
+ARMv8 (a.k.a. aarch64), RISC-V, and PowerPC use similar hierarchical page tables for address translation.
+RISC-V's sv48 paging configuration~?? and AArch64's 4-level paging configuration
 both split 64-bit virtual addresses at the same points to index into the respective tables, so most of what follows
 is equally applicable to those architectures (the only difference is that page table entries place control bits of write access, etc.,
 in different orders).
@@ -419,7 +419,7 @@ if a small number of ``glue'' lemmas are proven, \iris
 provides a ready-made separation logic with a number of advanced features, including
 higher-order ghost state and impredicative invariants, for no additional work.
 
-We suppress \replace{many details of \iris assertions}{some technical\iris details} for brevity, but briefly note
+We suppress \replace{many details of Iris assertions}{some technical \iris details} for brevity, but briefly note
 a few recurring details used heavily in \iris but not necessarily in traditional
 separation logics.
 Because \iris is an embedded framework in \rocq, proofs in \iris-derived
@@ -497,7 +497,7 @@ the \emph{standard translation}~\cite{blackburn2006modal} of propositional modal
 has been thoroughly studied. \textsc{Iris}'s support for higher-order impredicative quantification means
 this applies to our modalities as well --- they do not strictly speaking make \textsc{Iris} more expressive.
 But while propositional modal logics are no more expressive than first-order logic (with just two variables!),
-the primary goal of a modal logic is not expressive power but intuitive readable specifications.
+the primary goal of a modal logic is not raw expressive power but intuitive specifications and proof rules.
 Temporal logics are used because they simplify specifications (vs. having explicit time variables
 in every base asertion) and reasoning principles (because the modal correspondents of quantification over
 time is used in a highly structured way).

@@ -15,9 +15,7 @@ uses hardware models that do not.} \del{also treats page tables this way, but
 unsoundly given that \replace{other projects}{their} target hardware \del{that} \emph{does} run the kernel with address translation:}
 \add{Thus} they \emph{trust}
 that the particular page table manipulations do not, for example, unmap kernel code
-% \footnote{\add{A ``fun'' bug one author encountered in
-% an industrial prototype kernel.}}
- (which can crash the machine even if done ``temporarily'').
+ (which can crash the machine even if done ``temporarily'').\footnote{\add{A ``fun'' bug one author encountered in an industrial prototype kernel.}}
 % \footnote{A bug
 % one author has personally encountered in a research kernel, though not one discussed here.}).
 This is true for \textsc{seL4}~\cite{Klein2009seL4,seL4TOCS,Sewell2013translation}, whose formal machine model omits address translation,
