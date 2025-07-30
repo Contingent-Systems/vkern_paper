@@ -1447,7 +1447,7 @@ fragmental ownership of the ghost-map ($ \sumwalkabs\vaddr\qfrac\paddr$),
 
 
 We place the authorative ownership $\mathcal{A}\textsf{PTableWalk}$ of the ghost-map in a per-address-space invariant
-($\mathcal{I}$\textsf{ASpace} in Figure \ref{fig:peraspaceinvariant}) whose ownership, when combined with the
+($ I$\textsf{ASpace} in Figure \ref{fig:peraspaceinvariant}) whose ownership, when combined with the
 fraction stored in the virtual points-to, permits changes in the virtual-to-physical translations.
 By itself, it allows changes to the page tables as long as they do not change the overall mappings from virtual
 to physical addresses.
@@ -1457,7 +1457,7 @@ to physical addresses.
   \begin{figure*}
 \[
 \begin{array}{l}
-  \mathcal{I}\textsf{ASpace}(\ptablestore,m)\stackrel{\triangle}{=} \textsf{ASpace\_Lookup}(\ptablestore,m) \ast \\
+   I\textsf{ASpace}(\ptablestore,m)\stackrel{\triangle}{=} \textsf{ASpace\_Lookup}(\ptablestore,m) \ast \\
  \qquad\qquad\qquad \bigast{(\vaddr, \textsf{paddr})\in \ptablestore}{\exists\;(\textsf{l4e l3e l2e, l1e, paddr})\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr\textsf{, l4e, l3e, l2e, l1e, paddr})} \\
   \textsf{ where } \\
    \textsf{ASpace\_Lookup} (\ptablestore,m) \stackrel{\triangle}{=} \lambda\textsf{ cr3val} \ldotp \; \exists \gammaPred \; \ldotp \ulcorner m \; !!\; \textsf{cr3val} = \textsf{Some } \gammaPred \urcorner \ast
@@ -1490,7 +1490,7 @@ The global map itself is tracked by a resource algebra
 \[\mathcal{A}\textsf{spaces} \stackrel{\triangle}{=} \textsc{Auth} (\; \mathcal{W}_{64} \;\rightarrow_{\textrm{fin}} \;  ( (\textsc{Frac }, \mathord{+}) \times (\textsc{Agree } \textsc{GhostName},\mathord{=}) )) \]
 
 
-$\mathcal{I}\textsf{ASpace}(\Theta,m)$ is then the resources for the current address space:
+$ I\textsf{ASpace}(\Theta,m)$ is then the resources for the current address space:
 It ensures that the current address space is valid (it has an entry in $m$, whose corresponding
 authoritative map matches $\Theta$), and asserts ownership of the appropriate fractional ownership
 of the physical page table walk for each virtual-to-physical translation in $\Theta$ (for the current address space).
@@ -1501,7 +1501,7 @@ of the physical page table walk for each virtual-to-physical translation in $\Th
 Figure \ref{fig:logicaladdrspace} depicts the relationships between these pieces, for a single
 address space.
 The invariant for the currently active address space (solid round square labelled as 
-$\mathcal{I}$\textsf{ASpace} in Figure \ref{fig:logicaladdrspace}) asserts authorative ownership (i.e. 
+$ I$\textsf{ASpace} in Figure \ref{fig:logicaladdrspace}) asserts authorative ownership (i.e. 
 update capability), $\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$, of the ghost map $\Theta$
 describing virtual-to-physical address translations
 -- shown as a solid-round-head arrow to $\mathcal{A}\textsf{PTableWalk}$.
@@ -1524,7 +1524,7 @@ ghost page-table-walk mapping ($\sumwalkabs\vaddr\qfrac\paddr$),
 \paragraph{From A Single Address Space to Many}
 In principle the resources from each individual address space should be collected into a single
 shared invariant, and for each memory access,
-a fragment of this corresponding to $\mathcal{I}\textsf{ASpace}(\Theta,m)$
+a fragment of this corresponding to $ I\textsf{ASpace}(\Theta,m)$
 for the current address space should be extracted from this global resource, used to prove correctness of the
 memory access, and put back.
 In this paper we focus on the middle section, explicity identifying resources for each
@@ -1770,16 +1770,16 @@ not used by the first instruction in sequence through and on to subsequent instr
 %
 %
 \inferrule[WriteToRegFromVirtMem]{
-  \{P \ast \mathcal{I}\textsf{ASpace}\ast \mathcal{I}\textsf{ASpace} \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}_{\textsf{rtv}}\;\overline{is}
+  \{P \ast  I\textsf{ASpace}\ast  I\textsf{ASpace} \ast r_d \mapsto_{r}  \textsf{v} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v,rtv}} \textsf{v} \}_{\textsf{rtv}}\;\overline{is}
 }{
-  \{P \ast \mathcal{I}\textsf{ASpace}\ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v} \}_{\textsf{rtv}}
+  \{P \ast  I\textsf{ASpace}\ast r_d \mapsto_{r}  \textsf{rvd} \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v} \}_{\textsf{rtv}}
   \textsf{mov}~\textsf{r}_d,~[\textsf{r}_a];\;\overline{is}
 }
 \\
 \inferrule[WriteToVirtMemFromReg]{
-  \{P \ast \mathcal{I}\textsf{ASpace}\ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v} \}_{\textsf{rtv}}\;\overline{ is}  
+  \{P \ast  I\textsf{ASpace}\ast r_s \mapsto_{r}\{q\}  \textsf{rvs}  \ast r_a \mapsto_{r} \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v} \}_{\textsf{rtv}}\;\overline{ is}  
 }{
-  \{P \ast \mathcal{I}\textsf{ASpace}\ast r_s \mapsto_{r}\{q\}  \textsf{rvs}   \ast r_a \mapsto_{r}\{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{rvs} \}_{\textsf{rtv}}
+  \{P \ast  I\textsf{ASpace}\ast r_s \mapsto_{r}\{q\}  \textsf{rvs}   \ast r_a \mapsto_{r}\{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{rvs} \}_{\textsf{rtv}}
   \textsf{ mov}~[\textsf{r}_a],~\textsf{r}_s;\;\overline{is}
 }
 \\
@@ -1791,9 +1791,9 @@ not used by the first instruction in sequence through and on to subsequent instr
   %
 }\\
 \inferrule[WriteToRegCtlFromRegModal]{
-  \{[\textsf{rtv}](P \ast \mathcal{I}\textsf{ASpace})\ast \mathcal{I}\textsf{ASpace} \ast R\ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}  \}_{\textsf{rvs}} \overline{is}
+  \{[\textsf{rtv}](P \ast  I\textsf{ASpace})\ast  I\textsf{ASpace} \ast R\ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}  \}_{\textsf{rvs}} \overline{is}
 }{
-  \{P \ast \mathcal{I}\textsf{ASpace} \ast [\textsf{rvs}](R \ast\mathcal{I}\textsf{ASpace})\ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}   \}_{\textsf{rtv}}
+  \{P \ast  I\textsf{ASpace} \ast [\textsf{rvs}](R \ast I\textsf{ASpace})\ast r_s \mapsto_{r}\{q\}  \textsf{ rvs}   \}_{\textsf{rtv}}
   \textsf{mov}~\textsf{cr3},~r_s;\;\overline{is}
   %
 }\\
@@ -1831,7 +1831,7 @@ each use a virtual-pointsto assertion ($\textsf{vaddr} \mapsto_{\textsf{v},\text
 and are nearly-standard (assembly) separation logic rules for memory accesses.
 However, because we split the physical resources for the page table walk from the
 virtual points-to itself (in order to permit the physical page tables to be freely modified
-as long as they preserve virtual-to-physical translations), the rule requires $\mathcal{I}\textsf{ASpace}$
+as long as they preserve virtual-to-physical translations), the rule requires $ I\textsf{ASpace}$
 for the current address space to be carried through.
 While doing the proof of soundness for this rule,
 the token ($\sumwalkabs\vaddr\qfrac\paddr$) from the virtual points-to
@@ -1898,21 +1898,21 @@ known-valid page table walks and update the appropriate L1 page table entry.
 \newcommand{\specline}[1]{{\color{blue}\left\{#1\right\}}}
 \begin{figure}\footnotesize
   \begin{lstlisting}
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m)  \ast  \texttt{r14}\mapsto_{\textsf{r}} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{\textsf{r}} \_ \ast \ulcorner \texttt{aligned va} \land  \theta \; !!\; \vaddr = \texttt{None}\urcorner}_{\rtv}$
+$\specline{\textsf{P} \ast  I\texttt{ASpace}(\theta,m)  \ast  \texttt{r14}\mapsto_{\textsf{r}} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{\textsf{r}} \_ \ast \ulcorner \texttt{aligned va} \land  \theta \; !!\; \vaddr = \texttt{None}\urcorner}_{\rtv}$
 call ensure_L1_page
-$\specline{\exists (\entryf ,\;\entrytr,\; \entrytw,\; \entryo,\;\textsf{pte\_addr },\paddr) \; \ldotp\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{\textsf{r}} \textsf{ pte\_addr} \; \ast }_{\rtv}$
+$\specline{\exists (\entryf ,\;\entrytr,\; \entrytw,\; \entryo,\;\textsf{pte\_addr },\paddr) \; \ldotp\textsf{P} \ast  I\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \_ \ast \texttt{rdi}\mapsto_{r} \vaddr \ast \texttt{rax}\mapsto_{\textsf{r}} \textsf{ pte\_addr} \; \ast }_{\rtv}$
 $\specline{ \ulcorner  \texttt{addr\_L1 }(\vaddr, \entryo) = \paddr \urcorner \ast \ulcorner \texttt{entry\_present } \entryf \land \texttt{entry\_present } \entrytr \land  \texttt{entry\_present } \entrytw \urcorner \; \ast}_{\rtv}$
 $\specline{\nfpointsto{\mask\vaddr\maskfour\rtv}{\mask\vaddr\maskfouroff\rtv}\entryf\qone\naddr \; \ast}_{\rtv}$ 
 $\specline{  \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\masktwo\entrytr}{\mask\vaddr\masktwooff\entrytr}\paddr\qthree\entryo \;\ast}_{\rtv}$
 $\specline{\texttt{pte\_addr} \mapsto_{\texttt{vpte}} \paddr \;(\texttt{wzero 64}) \ast \texttt{rax}\mapsto_{\textsf{r}} \texttt{pte\_addr}  }_{\rtv}$
 ;; Returns the virtual address of the L1 entry in rax
 mov %r14, rax ;; Save that before another call
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{\textsf{r}} \vaddr \ast \texttt{rax}\mapsto_{\textsf{r}} \textsf{ pte\_addr} \; \ast }_{\rtv}$
+$\specline{\textsf{P} \ast  I\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{\textsf{r}} \vaddr \ast \texttt{rax}\mapsto_{\textsf{r}} \textsf{ pte\_addr} \; \ast }_{\rtv}$
 $\specline{ \nfpointsto{\mask\vaddr\maskfour\rtv}{\mask\vaddr\maskfouroff\rtv}\entryf\qone\naddr \ast \ulcorner \texttt{entry\_present } \entryf \land \texttt{entry\_present } \entrytr \land  \texttt{entry\_present } \entrytw \urcorner \ast}_{\rtv}$ 
 $\specline{  \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\masktwo\entrytr}{\mask\vaddr\masktwooff\entrytr}\paddr\qthree\entryo \;\ast}_{\rtv}$
 $\specline{\texttt{pte\_addr} \mapsto_{\texttt{vpte}} \paddr \;(\texttt{wzero 64}) \ast \texttt{rax}\mapsto_{\textsf{r}} \texttt{pte\_addr}  }_{\rtv}$
 call alloc_phys_page_or_panic
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{\textsf{r}} \vaddr \;\ast}_{\rtv}$
+$\specline{\textsf{P} \ast  I\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{\textsf{r}} \vaddr \;\ast}_{\rtv}$
 $\specline{ \nfpointsto{\mask\vaddr\maskfour\rtv}{\mask\vaddr\maskfouroff\rtv}\entryf\qone\naddr \ast}_{\rtv}$ 
 $\specline{  \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\masktwo\entrytr}{\mask\vaddr\masktwooff\entrytr}\paddr\qthree\naddr \;\ast}_{\rtv}$
 $\specline{\texttt{pte\_addr} \mapsto_{\texttt{vpte}} \paddr\; (\texttt{wzero 64})  \ast \ulcorner \texttt{entry\_present } \entryf \land \texttt{entry\_present } \entrytr \land  \texttt{entry\_present } \entrytw \urcorner}_{\rtv}$
@@ -1920,22 +1920,22 @@ $\specline{\exists \texttt{ fpaddr} \ldotp \ulcorner \texttt{aligned fpaddr} \ur
 ;; Calculate new L1 entry
 ;; update the page table entry, mapping the page
 mov [r14], rax
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{\textsf{r}} \vaddr \;\ast}_{\rtv}$
+$\specline{\textsf{P} \ast  I\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{\textsf{r}} \vaddr \;\ast}_{\rtv}$
 $\specline{ \nfpointsto{\mask\vaddr\maskfour\rtv}{\mask\vaddr\maskfouroff\rtv}\entryf\qone\naddr \ast}_{\rtv}$ 
 $\specline{  \nfpointsto{\mask\vaddr\maskthree\entryf}{\mask\vaddr\maskthreeoff\entryf}\entrytr\qtwo\naddr \ast \nfpointsto{\mask\vaddr\masktwo\entrytr}{\mask\vaddr\masktwooff\entrytr}\paddr\qthree\entryo \;\ast}_{\rtv}$
 $\specline{\texttt{pte\_addr} \mapsto_{\texttt{vpte}} \paddr \;(\texttt{fpaddr+3}) \; \ast \ulcorner \texttt{entry\_present } \entryf \land \texttt{entry\_present } \entrytr \land  \texttt{entry\_present } \entrytw \urcorner }_{\rtv}$
 $\specline{\ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{\textsf{r}} \texttt{fpaddr+3} \ast \texttt{fpaddr} \mapsto_{\textsf{p}} (\texttt{wzero 64}) \ast \ulcorner \texttt{entry\_present fpaddr+3}\urcorner}_{\rtv}$
 $\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \sqsubseteq $
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{\textsf{r}} \vaddr \ast }_{\rtv}$
+$\specline{\textsf{P} \ast  I\texttt{ASpace}(\theta,m) \ast  \texttt{r14}\mapsto_{\textsf{r}} \texttt{pte\_addr} \ast \texttt{rdi}\mapsto_{\textsf{r}} \vaddr \ast }_{\rtv}$
 $\specline{\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr,\entryf,\entrytr,\entrytw,\fpaddr+3) \ast \ulcorner \theta \;!!\;\vaddr = \texttt{None}\urcorner \; \ast}_{\rtv}$
 $\specline{\ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{rax}\mapsto_{\textsf{r}} \texttt{fpaddr+3} \ast \texttt{fpaddr} \mapsto_{\textsf{p}} (\texttt{wzero 64}) }_{\rtv}$
 $\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \sqsubseteq $
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace} (<[\vaddr:=\texttt{fpaddr}]> \theta,m) \ast}_{\rtv}$
+$\specline{\textsf{P} \ast  I\texttt{ASpace} (<[\vaddr:=\texttt{fpaddr}]> \theta,m) \ast}_{\rtv}$
 $\specline{\ulcorner \texttt{aligned fpaddr} \urcorner \ast \texttt{fpaddr} \mapsto_{\textsf{p}} \textsf{ wzero 64} \ast \sumapaces\rtv\delta  \ast\sumwalkabs\vaddr\qfrac\fpaddr}_{\rtv}$
 $\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \sqsubseteq $
-  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace} (<[\vaddr:=\texttt{fpaddr}]> \theta,m) \ast \vaddr \mapsto_{\textsf{vpte}}\; \{\qfrac\} \;\fpaddr \textsf{ wzero 64}}_{\rtv}$
+  $\specline{\textsf{P} \ast  I\texttt{ASpace} (<[\vaddr:=\texttt{fpaddr}]> \theta,m) \ast \vaddr \mapsto_{\textsf{vpte}}\; \{\qfrac\} \;\fpaddr \textsf{ wzero 64}}_{\rtv}$
 $\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \sqsubseteq $
-  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace} (<[\vaddr:=\texttt{fpaddr}]> \theta,m) \ast \vaddr \mapsto_{\textsf{v}}\; \{\qfrac\} \textsf{wzero 64}}_{\rtv}$
+  $\specline{\textsf{P} \ast  I\texttt{ASpace} (<[\vaddr:=\texttt{fpaddr}]> \theta,m) \ast \vaddr \mapsto_{\textsf{v}}\; \{\qfrac\} \textsf{wzero 64}}_{\rtv}$
 \end{lstlisting}
   \caption{Specification and proof of distilled code for mapping a new page.}
 \label{fig:mapping_code}
@@ -2035,7 +2035,7 @@ A critical piece of \emph{trusted} code in verified OS kernels is the assembly c
 ;; load-space in rsi
 ;; No need to save/restore caller-save regs
 ;; Save yielding context
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast [\rtv'+56](\mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother})}_{\rtv}$
+$\specline{\textsf{P} \ast  I\texttt{ASpace}(\theta,m) \ast [\rtv'+56]( I\texttt{ASpace}(\theta,m) \ast \texttt{Pother})}_{\rtv}$
 $\specline{ \texttt{rsi}\mapsto_{\textsf{r}} \rtv' \ast \texttt{rdi}\mapsto_{\textsf{r}} \_ \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} \ast  \texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} }_{\rtv}$
 $\specline{\texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
 $\specline{\texttt{rdi+0} \mapsto_{\textsf{v}} \_ \ast \texttt{rdi+8} \mapsto_{\textsf{v}} \_ \ast \texttt{rdi+16} \mapsto_{\textsf{v}} \_ \ast \texttt{rdi+24} \mapsto_{\textsf{v}} \_ \ast \texttt{rdi+32} \mapsto_{\textsf{v}} \_}_{\rtv}$
@@ -2046,13 +2046,13 @@ mov 16[rdi], rbp
 mov 24[rdi], r12
 mov 32[rdi], r13
 mov 40[rdi], r14
-mov 48[rdi], r15$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast [\rtv'+56](\mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother})}_{\rtv}$
+mov 48[rdi], r15$\specline{\textsf{P} \ast  I\texttt{ASpace}(\theta,m) \ast [\rtv'+56]( I\texttt{ASpace}(\theta,m) \ast \texttt{Pother})}_{\rtv}$
 $\specline{ \texttt{rdi}\mapsto_{\textsf{r}} \_ \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} \ast  \texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} }_{\rtv}$
 $\specline{\texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
 $\specline{\texttt{rdi+0} \mapsto_{\textsf{v}} \texttt{rbxv} \ast \texttt{rdi+8} \mapsto_{\textsf{v}} \texttt{rspv} \ast \texttt{rdi+16} \mapsto_{\textsf{v}} \texttt{rbpv} \ast \texttt{rdi+24} \mapsto_{\textsf{v}} \texttt{r12v} \ast}_{\rtv}$
 $\specline{ \texttt{rdi+32} \mapsto_{\textsf{v}} \texttt{r13v} \ast \texttt{rdi+40} \mapsto_{v} \texttt{r14v} \ast \texttt{rdi+48} \mapsto_{\textsf{v}} \texttt{r15v}\ast \texttt{rdi+56} \mapsto_{\textsf{v}} \_}_{\rtv}$
 mov 56[%
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast [\rtv'+56](\mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother})}_{\rtv}$
+$\specline{\textsf{P} \ast  I\texttt{ASpace}(\theta,m) \ast [\rtv'+56]( I\texttt{ASpace}(\theta,m) \ast \texttt{Pother})}_{\rtv}$
 $\specline{ \texttt{rdi}\mapsto_{\textsf{r}} \_ \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} \ast  \texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} }_{\rtv}$
 $\specline{\texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
 $\specline{\texttt{rdi+0} \mapsto_{\textsf{v}} \texttt{rbxv} \ast \texttt{rdi+8} \mapsto_{\textsf{v}} \texttt{rspv} \ast \texttt{rdi+16} \mapsto_{\textsf{v}} \texttt{rbpv} \ast \texttt{rdi+24} \mapsto_{\textsf{v}} \texttt{r12v} \ast }_{\rtv}$
@@ -2068,20 +2068,20 @@ mov r12, 24[rsi]
 mov r13, 32[rsi]
 mov r14, 40[rsi]
 mov r15, 48[rsi]
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast [\rtv'+56](\mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother})}_{\rtv}$
+$\specline{\textsf{P} \ast  I\texttt{ASpace}(\theta,m) \ast [\rtv'+56]( I\texttt{ASpace}(\theta,m) \ast \texttt{Pother})}_{\rtv}$
 $\specline{ \texttt{rdi}\mapsto_{\textsf{r}} \_ \ast \texttt{rbx}\mapsto_{\textsf{r}} \rtv'+0 \ast  \texttt{rsp}\mapsto_{\textsf{r}} \rtv'+8 \ast \texttt{rbp}\mapsto_{\textsf{r}} \rtv'+16 }_{\rtv}$
 $\specline{\texttt{r12}\mapsto_{\textsf{r}} \rtv'+24 \ast \texttt{r13}\mapsto_{\textsf{r}} \rtv'+32 \ast \texttt{r14}\mapsto_{\textsf{r}} \rtv'+40 \ast \texttt{r15}\mapsto_{\textsf{r}} \rtv'+48}_{\rtv}$
 $\specline{\texttt{rdi+0} \mapsto_{\textsf{v}} \texttt{rbxv} \ast \texttt{rdi+8} \mapsto_{\textsf{v}} \texttt{rspv} \ast \texttt{rdi+16} \mapsto_{\textsf{v}} \texttt{rbpv} \ast \texttt{rdi+24} \mapsto_{\textsf{v}} \texttt{r12v} \ast }_{\rtv}$
 $\specline{\texttt{rdi+32} \mapsto_{\textsf{v}} \texttt{r13v} \ast \texttt{rdi+40} \mapsto_{\textsf{v}} \texttt{r14v} \ast \texttt{rdi+48} \mapsto_{\textsf{v}} \texttt{r15v}\ast \texttt{rdi+56} \mapsto_{\textsf{v}} \rtv}_{\rtv}$
 ;; Switch to the new address space
 mov cr3, 56[rsi]
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast [\rtv'+56](\mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother}) }_{\rtv}$
+$\specline{\textsf{P} \ast  I\texttt{ASpace}(\theta,m) \ast [\rtv'+56]( I\texttt{ASpace}(\theta,m) \ast \texttt{Pother}) }_{\rtv}$
 $\specline{ \texttt{rdi}\mapsto_{\textsf{r}} \_ \ast \texttt{rbx}\mapsto_{r} \rtv'+0 \ast  \texttt{rsp}\mapsto_{\textsf{r}} \rtv'+8 \ast \texttt{rbp}\mapsto_{\textsf{r}} \rtv'+16 }_{\rtv}$
 $\specline{\texttt{r12}\mapsto_{\textsf{r}} \rtv'+24 \ast \texttt{r13}\mapsto_{\textsf{r}} \rtv'+32 \ast \texttt{r14}\mapsto_{\textsf{r}} \rtv'+40 \ast \texttt{r15}\mapsto_{\textsf{r}} \rtv'+48}_{\rtv}$
 $\specline{\texttt{rdi+0} \mapsto_{\textsf{v}} \texttt{rbxv} \ast \texttt{rdi+8} \mapsto_{\textsf{v}} \texttt{rspv} \ast \texttt{rdi+16} \mapsto_{\textsf{v}} \texttt{rbpv} \ast  \texttt{rdi+24} \mapsto_{\textsf{v}} \texttt{r12v} \ast }_{\rtv}$
 $\specline{\texttt{rdi+32} \mapsto_{\textsf{v}} \texttt{r13v} \ast \texttt{rdi+40} \mapsto_{\textsf{v}} \texttt{r14v} \ast \texttt{rdi+48} \mapsto_{\textsf{v}} \texttt{r15v}\ast \texttt{rdi+56} \mapsto_{\textsf{v}} \rtv}_{\rtv}$
 $\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \sqsubseteq $
-$\specline{ [\rtv](\texttt{Pcurrent}) \ast \mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother}}_{\rtv'+56}$
+$\specline{ [\rtv](\texttt{Pcurrent}) \ast  I\texttt{ASpace}(\theta,m) \ast \texttt{Pother}}_{\rtv'+56}$
 \end{lstlisting}
 \caption{Basic task switch code that switches address spaces.}
 \label{fig:swtch}
@@ -2099,7 +2099,7 @@ Because this code does not directly update the instruction pointer, it is worth 
 Likewise, part of the invariant of the stack of the second thread, the one being restored, is that the return address on \emph{that} stack requires the saved callee-save registers stored in that context to be in registers as its precondition.
 
 The wrinkle, and the importance of the modal treatment of assertions, is that the target thread's precondition is \emph{relative to its address space}, not the address space of the calling thread shown as 
-\[[\rtv'+56](\mathcal{I}\texttt{ASpace}(\theta,m) \ast \texttt{Pother})\]
+\[[\rtv'+56]( I\texttt{ASpace}(\theta,m) \ast \texttt{Pother})\]
 in the specfication. 
 Thus the precondition of this code,
 in context, would include that the initial stack pointer (before \lstinline|rsp| is updated)

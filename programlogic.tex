@@ -330,7 +330,7 @@ and thus that the per-address-space invariant \add{described next} will contain 
 \vspace{-1em}
 \centerline{$
 \begin{array}{l}
-  \mathcal{I}\textsf{ASpace}(\ptablestore,m)\stackrel{\triangle}{=} \textsf{ASpace\_Lookup}(\ptablestore,m) \ast 
+   I\textsf{ASpace}(\ptablestore,m)\stackrel{\triangle}{=} \textsf{ASpace\_Lookup}(\ptablestore,m) \ast 
   \bigast{(\vaddr, \textsf{pa})\in \ptablestore}{\exists\;(\textsf{l4e l3e l2e, l1e, pa})\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr\textsf{, l4e, l3e, l2e, l1e, pa})} \\
   \textsf{ where } 
    \textsf{ASpace\_Lookup} (\ptablestore,m) \stackrel{\triangle}{=} \lambda\textsf{ cr3val} \ldotp \; \exists \gammaPred \; \ldotp \ulcorner m \; !!\; \textsf{cr3val} = \textsf{Some } \gammaPred \urcorner \ast
@@ -345,8 +345,8 @@ $}
   \end{figure*}
 
 We place the authorative ownership of the ghost \add{map} translation $\mathcal{A}\textsf{PTableWalk}$ in a per-address-space invariant
-$\mathcal{I}$\textsf{ASpace} (Figure \ref{fig:peraspaceinvariant}), 
-\replace{$\mathcal{I}$\textsf{ASpace} alone allows}{allowing} changes to the page tables
+$ I$\textsf{ASpace} (Figure \ref{fig:peraspaceinvariant}), 
+\replace{$ I$\textsf{ASpace} alone allows}{allowing} changes to the page tables
 that preserve overall virtual-to-physical translations \add{in isolation},
 \add{and also allowing changes to specific the virtual-to-physical translations}
 \replace{W}{w}hen combined with the
@@ -382,7 +382,7 @@ Just as the ghost name $\delta$ names the ghost map with contents $\theta$,
 $\delta{s}$ names a ghost map, whose contents appear as $m$ in Figure \ref{fig:peraspaceinvariant} (the association of $\delta{s}$ to $m$
 is a global invariant not shown).
 }
-$\mathcal{I}\textsf{ASpace}(\theta,m)$ then \add{performs 3 roles:
+$ I\textsf{ASpace}(\theta,m)$ then \add{performs 3 roles:
 it associates the current address space's root with an appropriate \textsc{Iris} ghost name $\delta$;
 it tracks authoritatively that $\delta$'s logical contents match $\theta$; and it}
 stores the physical resources for the current address space mappings \add{(via the iterated $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$)}.
@@ -406,7 +406,7 @@ global (unique) ghost map named by $\delta{s}$.}
 % Figure \ref{fig:logicaladdrspace} depicts the relationships between these pieces, for a single
 % address space.
 % The invariant for the currently active address space (solid round square labelled as 
-% $\mathcal{I}$\textsf{ASpace} in Figure \ref{fig:logicaladdrspace}) asserts authorative ownership (i.e. 
+% $ I$\textsf{ASpace} in Figure \ref{fig:logicaladdrspace}) asserts authorative ownership (i.e. 
 % update capability), $\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$, of the ghost map $\Theta$
 % describing virtual-to-physical address translations
 % -- shown as a solid-round-head arrow to $\mathcal{A}\textsf{PTableWalk}$.
@@ -429,7 +429,7 @@ global (unique) ghost map named by $\delta{s}$.}
 % \paragraph{From A Single Address Space to Many}
 % In principle the resources from each individual address space should be collected into a single
 % shared invariant, and for each memory access,
-% a fragment of this corresponding to $\mathcal{I}\textsf{ASpace}(\Theta,m)$
+% a fragment of this corresponding to $ I\textsf{ASpace}(\Theta,m)$
 % for the current address space should be extracted from this global resource, used to prove correctness of the
 % memory access, and put back.
 % In this paper we focus on the middle section, explicity identifying resources for each
@@ -629,18 +629,18 @@ antecedent of the rule.}
  % \\
 \inferrule[\footnotesize WriteToRegFromVirtMem]{
   \left\{ \begin{array}{l}
-    P \ast \mathcal{I}\textsf{ASpace}\ast  \textsf{rip} \mapsto_{\textsf{r}} \; {\textsf{iv} + \textsf{MovLen}(\textsf{r}_d,[\textsf{r}_a])} \ast \arcr
+    P \ast  I\textsf{ASpace}\ast  \textsf{rip} \mapsto_{\textsf{r}} \; {\textsf{iv} + \textsf{MovLen}(\textsf{r}_d,[\textsf{r}_a])} \ast \arcr
     r_d \mapsto_{r}  \textsf{ v} \ast r_a \mapsto_{r} \; \{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \;\{q\} \textsf{ v}
   \end{array} \right\}_{\textsf{rtv}}\;\overline{is}
 }{
-  \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{ iv} \ast r_d \mapsto_{r}  \textsf{ rvd} \ast r_a \mapsto_{r} \;\{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{ v} \}_{\textsf{rtv}}\;
+  \{P \ast  I\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{ iv} \ast r_d \mapsto_{r}  \textsf{ rvd} \ast r_a \mapsto_{r} \;\{q\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{ v} \}_{\textsf{rtv}}\;
   \textsf{mov}~\textsf{r}_d,~[\textsf{r}_a];\;\overline{is}
 }
 \\
 \inferrule[\footnotesize WriteToVirtMemFromReg]{
-  \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{ iv} + \textsf{MovLen}(\textsf{r}_d,[\textsf{r}_a])  \ast r_s \mapsto_{r}\;\{q_1\}  \textsf{ rvs}  \ast r_a \mapsto_{r} \; \{q_2\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{ v} \}_{\textsf{rtv}}\;\overline{ is}  
+  \{P \ast  I\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{ iv} + \textsf{MovLen}(\textsf{r}_d,[\textsf{r}_a])  \ast r_s \mapsto_{r}\;\{q_1\}  \textsf{ rvs}  \ast r_a \mapsto_{r} \; \{q_2\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{ v} \}_{\textsf{rtv}}\;\overline{ is}  
 }{
-  \{P \ast \mathcal{I}\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{ iv} \ast r_s \mapsto_{r} \;\{q_1\}  \textsf{ rvs}   \ast r_a \mapsto_{r} \; \{q_2\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{ rvs} \}_{\textsf{rtv}}
+  \{P \ast  I\textsf{ASpace}\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{ iv} \ast r_s \mapsto_{r} \;\{q_1\}  \textsf{ rvs}   \ast r_a \mapsto_{r} \; \{q_2\} \textsf{ vaddr} \ast \textsf{vaddr} \mapsto_{\textsf{v}} \textsf{ rvs} \}_{\textsf{rtv}}
   \textsf{ mov}~[\textsf{r}_a],~\textsf{r}_s;\;\overline{is}
 }
 \\
@@ -652,9 +652,9 @@ antecedent of the rule.}
   %\lstinline|mov %cr3, r| 
 %}\\
 \inferrule[\footnotesize WriteToRegCtlFromRegModal]{
-  \{[\textsf{rtv}](P \ast \mathcal{I}\textsf{ASpace})\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{ iv + 4} \ast \mathcal{I}\textsf{ASpace} \ast R\ast r_s \mapsto_{r} \;\{q\}  \textsf{ rvs}  \}_{\textsf{rvs}} \;\overline{is}
+  \{[\textsf{rtv}](P \ast  I\textsf{ASpace})\ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{ iv + 4} \ast  I\textsf{ASpace} \ast R\ast r_s \mapsto_{r} \;\{q\}  \textsf{ rvs}  \}_{\textsf{rvs}} \;\overline{is}
 }{
-  \{P \ast \mathcal{I}\textsf{ASpace} \ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{ iv} \ast [\textsf{rvs}](R \ast\mathcal{I}\textsf{ASpace})\ast r_s \mapsto_{r}\; \{q\}  \textsf{ rvs}   \}_{\textsf{rtv}} \;
+  \{P \ast  I\textsf{ASpace} \ast \textsf{rip} \mapsto_{\textsf{r}} \textsf{ iv} \ast [\textsf{rvs}](R \ast I\textsf{ASpace})\ast r_s \mapsto_{r}\; \{q\}  \textsf{ rvs}   \}_{\textsf{rtv}} \;
   \textsf{mov}~\textsf{cr3},~r_s;\;\overline{is}
   %\lstinline|mov %cr3, r| 
 }
@@ -676,7 +676,7 @@ antecedent of the rule.}
 
 \subsubsection{Accessing Virtual Addresses}
 Figure \ref{fig:wpdamd} includes two  rules for accessing memory at an address stored in a register $r_a$. 
-\add{Setting aside $P$, $\mathcal{I}\textsf{ASpace}$, and the instruction pointer \lstinline|rip|,}
+\add{Setting aside $P$, $ I\textsf{ASpace}$, and the instruction pointer \lstinline|rip|,}
 \del{Ultimately, any memory access needs to ensure the relevant address translation would succeed,
 which can be ensured by what we informally call the page-table-walk points-to collection
 ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure ??). }
@@ -701,13 +701,13 @@ as in any system of Hoare doubles~\cite{Chlipala2013Bedrock,ni2007contexts}.
 \replace{However, }{First,}
 because we split the physical resources for the page table walk from the
 virtual points-to itself (\replace{in order to permit the physical page tables to be freely modified
-as long as they preserve virtual-to-physical translations}{per the discussion of Section \ref{sec:sharingpages}}), the rule requires $\mathcal{I}\textsf{ASpace}$
+as long as they preserve virtual-to-physical translations}{per the discussion of Section \ref{sec:sharingpages}}), the rule requires $ I\textsf{ASpace}$
 for the current address space to be carried through.
 The soundness proofs for these rules extract
 the token ($\fracghostmaptoken{\delta}{\vaddr}{\paddr}{\qfrac}$) from the virtual points-to,
 use that to extract the physical page-table-traversal points-to collection describing
 the page table walk for the relevant address ($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$)
-from the invariant ($\mathcal{I}\mathsf{ASpace}$), prove that the page table walk succeeds
+from the invariant ($ I\mathsf{ASpace}$), prove that the page table walk succeeds
 and that memory or registers are updated appropriately, before re-packing the invariant and virtual points-to resources.
 \looseness=-1
 
@@ -731,7 +731,7 @@ the current address space.
 Unlike other rules, \TirNameStyle{WriteToRegCtlFromRegModal} updates the root address of the 
 address space determining the validity of resources, from $\rtv$ before the
 \lstinline|mov| to $\textsf{rvs}$ afterwards. The global effects of this rule are reflected in moving
-\del{bare} assertions \add{for the current address space ($P$ and $\mathcal{I}\mathsf{ASpace}$)} under an other-space modality for \add{the initial
+\del{bare} assertions \add{for the current address space ($P$ and $ I\mathsf{ASpace}$)} under an other-space modality for \add{the initial
 (outgoing) address space} $\rtv$, and moving the new address space's assertions out of
 the corresponding modality \add{(since after the \lstinline|mov|, those will hold in the
 new current address space)}.

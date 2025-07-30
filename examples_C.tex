@@ -63,12 +63,12 @@ current address space) has previously been formally verified with respect to a m
 
 \begin{figure}\footnotesize
 \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\Xi,m) \ast [\rtv'](\mathcal{I}\texttt{ASpace}(\theta',\Xi',m') \ast \texttt{Pother}) \ast \texttt{rsi}\mapsto_{\textsf{r}} restore \ast \texttt{rdi}\mapsto_{\textsf{r}} save\ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} }_{\rtv}$(*\label{line:start_swtch_pre}*)
+$\specline{\textsf{P} \ast  I\texttt{ASpace}(\theta,\Xi,m) \ast [\rtv']( I\texttt{ASpace}(\theta',\Xi',m') \ast \texttt{Pother}) \ast \texttt{rsi}\mapsto_{\textsf{r}} restore \ast \texttt{rdi}\mapsto_{\textsf{r}} save\ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} }_{\rtv}$(*\label{line:start_swtch_pre}*)
 $\specline{\texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} \ast \texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
 $\specline{\mathsf{ContextAt}(save,\_) \ast \mathsf{ContextAt}(restore,[\mathsf{rbxv}',\ldots,\rtv']) }_{\rtv}$(*\label{line:end_swtch_pre}*)
 mov 0[rdi], rbx(*\label{line:start_save}*) ... ;; also save rsp, rbp, r12, r13, r14, to offsets 8, 16, 24, 32, and 40 from rdi
 ... mov 48[rdi], r15
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\Xi,m) \ast [\rtv'](\mathcal{I}\texttt{ASpace}(\theta',\Xi',m') \ast \texttt{Pother})  \ast  \texttt{rsi}\mapsto_{\textsf{r}} restore \ast \texttt{rdi}\mapsto_{\textsf{r}} save \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} }_{\rtv}$
+$\specline{\textsf{P} \ast  I\texttt{ASpace}(\theta,\Xi,m) \ast [\rtv']( I\texttt{ASpace}(\theta',\Xi',m') \ast \texttt{Pother})  \ast  \texttt{rsi}\mapsto_{\textsf{r}} restore \ast \texttt{rdi}\mapsto_{\textsf{r}} save \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} }_{\rtv}$
 $\specline{ \texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} \ast \texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
 $\specline{\mathsf{ContextAt}(save,[\mathsf{rbxv,\ldots,\rtv}]) \ast \mathsf{ContextAt}(restore,[\mathsf{rbxv}',\ldots,\rtv']) }_{\rtv}$
 mov 56[%rdi], %cr3 $\specline{\ldots \ast \texttt{rdi+56} \mapsto_{\textsf{v}} \rtv \ast \ldots }_{\rtv}$   (*\label{line:end_save}*) 
@@ -76,12 +76,12 @@ mov rbx, 0[rsi] (*\label{line:start_restore}*)
 mov rsp, 8[rsi] ;; Switch to new stack, which may not be mapped in the current address space!(*\label{line:stack_switch}*)
 ... ;; load rbp, r12, r13, r14, from offsets 16, 24, 32, and 40 from rsi
 mov r15, 48[rsi]
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\Xi,m) \ast [\rtv'](\mathcal{I}\texttt{ASpace}(\theta',\Xi',m') \ast \texttt{Pother})  \ast  \texttt{rsi}\mapsto_{\textsf{r}} restore \ast \texttt{rdi}\mapsto_{\textsf{r}} save \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv}' }_{\rtv}$
+$\specline{\textsf{P} \ast  I\texttt{ASpace}(\theta,\Xi,m) \ast [\rtv']( I\texttt{ASpace}(\theta',\Xi',m') \ast \texttt{Pother})  \ast  \texttt{rsi}\mapsto_{\textsf{r}} restore \ast \texttt{rdi}\mapsto_{\textsf{r}} save \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv}' }_{\rtv}$
 $\specline{\texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv}' \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv}' \ast \texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v}' \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v}' \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v}' \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}'}_{\rtv}$
 $\specline{\mathsf{ContextAt}(save,[\mathsf{rbxv,\ldots,\rtv}]) \ast \mathsf{ContextAt}(restore,[\mathsf{rbxv}',\ldots,\rtv']) }_{\rtv}$
 mov cr3, 56[rsi] ;; <-- Switch to the new address space (*\label{line:end_restore}*)
-$\specline{ [\rtv](\textsf{P} \ast \mathcal{I}\texttt{ASpace}(\theta,\Xi,m) \ast \mathsf{ContextAt}(save,[\mathsf{rbxv,\ldots,\rtv}]) \ast \mathsf{ContextAt}(restore,[\mathsf{rbxv}',\ldots,\rtv']))  }_{\rtv}$ (*\label{line:modality_switchC}*)
-$\specline{ \mathcal{I}\texttt{ASpace}(\theta',\Xi',m') \ast \texttt{Pother} \ast  \texttt{rsi}\mapsto_{\textsf{r}} restore \ast \texttt{rdi}\mapsto_{\textsf{r}} save \ast \ldots }_{\rtv'}$
+$\specline{ [\rtv](\textsf{P} \ast  I\texttt{ASpace}(\theta,\Xi,m) \ast \mathsf{ContextAt}(save,[\mathsf{rbxv,\ldots,\rtv}]) \ast \mathsf{ContextAt}(restore,[\mathsf{rbxv}',\ldots,\rtv']))  }_{\rtv}$ (*\label{line:modality_switchC}*)
+$\specline{  I\texttt{ASpace}(\theta',\Xi',m') \ast \texttt{Pother} \ast  \texttt{rsi}\mapsto_{\textsf{r}} restore \ast \texttt{rdi}\mapsto_{\textsf{r}} save \ast \ldots }_{\rtv'}$
 \end{lstlisting}
 \vspace{-1em}
 \caption{Basic task switch code that switches address spaces.}
@@ -147,7 +147,7 @@ and a return address for the target thread on the target thread's stack.
 % But the target thread's precondition is \emph{relative to its address space}, 
 % not the address space of the calling thread! This is reflected by
 % the other-space modality
-% $[\rtv'](\mathcal{I}\texttt{ASpace}(\theta,\Xi,m) \ast \texttt{Pother})$
+% $[\rtv']( I\texttt{ASpace}(\theta,\Xi,m) \ast \texttt{Pother})$
 % in the specfication. 
 For a given call site, \textsf{P} would be instantiated to require that the initial stack pointer (before \lstinline|rsp| is updated)
 has a return address expecting the then-current callee-save register values in the \emph{current} (initial) address space
@@ -236,7 +236,7 @@ of the proofs and kernel invariant, before concluding with the top-level verific
    @return next: a virtual pointer to the base of a valid level n table */
 pte_t *pte_get_next_table(pte_t *entry) {
   pte_t *next;
-  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entryp}\mapsto\textsf{v}\},m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \mathsf{entry} \mapsto_r \mathsf{entryp+KERNBASE} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{entryp})}{\textsf{level}}}_{\rtv}$(*\label{line:precondition_entry_out}*)
+  $\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entryp}\mapsto\textsf{v}\},m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \mathsf{entry} \mapsto_r \mathsf{entryp+KERNBASE} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{entryp})}{\textsf{level}}}_{\rtv}$(*\label{line:precondition_entry_out}*)
   $\specline{ \textsf{entryp+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entryp entryv} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entryv})\urcorner}_{\rtv}$ (*\label{line:get_next_vpte_preconditionC}*)
   $\specline{\ulcorner\textsf{entry\_present(entryv)}\urcorner \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(entryv.pfn) + i * 8}}{\textsf{v-1}} }_{\rtv} $(*\label{line:precondition_conditional}*) 
   /* Reading the page table is entry justified by the virtual pte-points-to */
@@ -248,7 +248,7 @@ pte_t *pte_get_next_table(pte_t *entry) {
     $\specline{ \textsf{entryp+KERNBASE} \mapsto_{\textsf{vpte,qfrac}}  \textsf{entryp} \; \textsf{pte\_initialized(pfn\_set(entryv nextpaddr))} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entryv})  \urcorner }_{\rtv}$
     $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entryv nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$(*\label{line:available_child_tokens}*) (*\label{line:alloc_path_endC}*)
   } (*\label{line:end_of_allocation_pathC}*)
-  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entryp}\mapsto\textsf{v} \}),m) \ast \textsf{entryp} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+  $\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entryp}\mapsto\textsf{v} \}),m) \ast \textsf{entryp} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
   $\specline{ \textsf{entryp+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entryp} \; \textsf{(pte\_initialized (entryv.pfn))} \urcorner }_{\rtv}$
   $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (entryv.pfn)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:childrenC}*)
   uintptr_t next_phys_addr = PTE_PFN_TO_ADDR(entry->pfn); // Fetch physical address of next table (*\label{line:finalpieceS}*)(*\label{line:extract_pfn}*)
@@ -262,35 +262,35 @@ pte_t *pte_get_next_table(pte_t *entry) {
 ;;pte_t *pte_get_next_table(pte_t *entry) {
 ... ;; setting up the stack
 ;; pte_t *next;
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry}\},m)  \ast \texttt{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{entry}\},m)  \ast \texttt{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$ (*\label{line:get_next_vpte_precondition}*)
 $\specline{\ulcorner\textsf{entry\_present(entry\_val)}\urcorner \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(entry\_val.pfn) + i * 8}}{\textsf{v-1}} }_{\rtv} $ (*\label{line:conditional_children}*)
 mov    -0x8[rbp],rdi
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{entry\},m)   \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{\_}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{entry\},m)   \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{\_}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$
 $\specline{\ulcorner\textsf{entry\_present(entry\_val)}\urcorner \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(entry\_val.pfn) + i * 8}}{\textsf{v-1}} }_{\rtv} $
 mov     rdi, r8
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})\urcorner}_{\rtv}$
 $\specline{\ulcorner\textsf{entry\_present(entry\_val)}\urcorner \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(entry\_val.pfn) + i * 8}}{\textsf{v-1}} }_{\rtv} $
 mov    [r8],rdi (*\label{line:read_entry_contents}*)
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+$\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  \ast  \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val}  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
 $\specline{\ulcorner\textsf{entry\_present(entry\_val)}\urcorner \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(entry\_val.pfn) + i * 8}}{\textsf{v-1}} }_{\rtv} $
 and    0x1,rdi (* \label{line:mask_present} *)
 mov    rdi,rax
 cmp    0x0,rax ;;  if (!entry->present) {(* \label{line:check_entry_present} *)
 jne    161 <pte_get_next_table+0xa1> (* \label{line:check_entry_present_jump} *) ;; Jump if the present bit is not zero
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val \& 0x1} }_{\rtv}$
+$\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{entry\_val \& 0x1} }_{\rtv}$
 $\specline{  \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  \ast \texttt{rax}  \mapsto_{\textsf{r}} \textsf{entry\_val \& 0x1} \ast \ulcorner\textsf{entry\_val \& 0x1}=\textsf{0x0}\urcorner}_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow  \lnot(\textsf{entry\_val \& 0x1}=\textsf{0x1})  \urcorner }_{\rtv}$ (*\label{line:before_concluding_qfrac1}*)
 mov    rbp,rdi (*\label{line:alloc_path_start}*)
 sub    0x10, rdi ;; Store the value of rbp minus 16 bytes (address of (*\textsf{next}*)) into rdi (*\label{line:pass_addrof_next}*)
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{rbp - 16} }_{\rtv}$
+$\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry} \ast \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{next} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{rbp - 16} }_{\rtv}$
 $\specline{  \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta} }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$ (*\label{line:after_concluding_qfrac1}*)
 callq  70 <pte_initialize> ;;pte_initialize(entry);(* \label{line:call_to_pte_initialize} *)
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  }_{\rtv}$
+$\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  }_{\rtv}$
 $\specline{  \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta} }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entry entry\_val} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
 $\specline{\ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present (pfn\_set (entry\_val nextpaddr))}  \urcorner   }_{\rtv}$
@@ -298,7 +298,7 @@ $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{pfn\_set(entry\_val nex
 $\specline{ \begin{array}{l}\textsf{entry\_present (pte\_initialized (pfn\_set(entryv nextpaddr)))} \wand  \\ \;\;\;\;\;\;\;\;\  \forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}} \end{array}  }$ (*\label{line:page_of_caps}*)
 ... ;;entry value updates: entry->pfn = nextpaddr; entry->present = 1; (*\label{line:install_new_entry}*)
 ... ;;now we know that entry is initialized, so we satisfy the condition to access children list
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  }_{\rtv}$
+$\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entry} \},m)  \ast \textsf{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{entry}  }_{\rtv}$
 $\specline{  \textsf{entry} \mapsto_{\textsf{id}} \textsf{v} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta} }_{\rtv}$
 $\specline{ \textsf{entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}}  \textsf{pte\_initialized(pfn\_set(entryv nextpaddr))} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entry\_val})  \urcorner }_{\rtv}$
 $\specline{ \texttt{rbp-16} \mapsto_{\textsf{v}} \textsf{pte\_initialized(pfn\_set(entry\_val nextpaddr))}  \ast rax \mapsto_{r} \textsf{table\_root (pte\_initialized (pfn\_set(entry\_val nextpaddr)))}  }_{\rtv}$
@@ -435,7 +435,7 @@ hence the comment of Line \ref{line:now_we_know}).
 \footnotesize
 \[
 \begin{array}{l}
-  \mathcal{I}\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)\stackrel{\triangle}{=} \textsf{ASpace\_Lookup}_{\textsf{id}}(\ptablestore,\Xi,m) \ast\\  %\mathsf{GhostMap}(\mathsf{id},\Xi)\ast\\
+   I\textsf{ASpace}_{\textsf{id}}(\ptablestore,\Xi,m)\stackrel{\triangle}{=} \textsf{ASpace\_Lookup}_{\textsf{id}}(\ptablestore,\Xi,m) \ast\\  %\mathsf{GhostMap}(\mathsf{id},\Xi)\ast\\
   \left(\bigast{(\vaddr, \textsf{paddr})\in \ptablestore}{\exists\;(\textsf{l4e, l3e, l2e, l1e, paddr})\ldotp \textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}(\vaddr\textsf{, l4e, l3e, l2e, l1e, paddr})}\right)\ast \\
   \bigast{(\paddr,\mathsf{level}) \in \Xi}{\exists\; (\textsf{qfrac, q, val,}\vaddr) \ldotp \ulcorner \vaddr = \paddr + \textsf{KERNBASE} \; \textsf{level} > 1\urcorner \ast  \underbrace{\fracghostmaptoken{\delta}{\vaddr}{\paddr}{\qfrac} }_\text{\textcircled{1} Ghost translation} \ast \underbrace{\paddr \mapsto_{\mathsf{p}}\{\textsf{qfrac}\}\; \vale}_\text{\textcircled{2} Physical location}} \ast\\
    \qquad\underbrace{ \ulcorner \textsf{qfrac} = 1 \leftrightarrow \; \lnot\textsf{entry\_present }(\vale) \urcorner}_\text{\textcircled{3} Entry validity}\ast 
@@ -522,11 +522,11 @@ its relevant assertions have already been borrowed by the caller.
 \begin{figure}\footnotesize
   \begin{lstlisting}[language=C,mathescape,escapeinside={(*}{*)}]
 /* @param entry: virtual address of a non-present entry to initialize with a new physical page */
-$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \lnot(\textsf{entry\_present entryv}) \ast \textsf{entryp+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{entryp entryv} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{entryp})}{\textsf{level}} }$
+$\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \lnot(\textsf{entry\_present entryv}) \ast \textsf{entryp+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{entryp entryv} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{entryp})}{\textsf{level}} }$
 void pte_initialize(pte_t *entry) {
   pte_t *local = kalloc(); // Allocate a full zeroed page for 512 8-byte entries(*\label{line:call_to_kallocC}*)
   entry->pfn = PTE_ADDR_TO_PFN((uintptr_t) local);(*\label{line:kalloc_install}*)
-  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \lnot(\textsf{entry\_present entryv}) \ast \textsf{entryp+KERNBASE} \mapsto_{\mathsf{vpte,1}} \mathsf{entryp} \; \textsf{pfn\_set(entryv nextpaddr)}}$
+  $\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \lnot(\textsf{entry\_present entryv}) \ast \textsf{entryp+KERNBASE} \mapsto_{\mathsf{vpte,1}} \mathsf{entryp} \; \textsf{pfn\_set(entryv nextpaddr)}}$
   $\specline{\ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \forall_{i\in\textsf{0..511}}\ldotp ()\textsf{table\_root (pte\_initialized (pfn\_set (entry\_val nextpaddr))) + i * 8}) \mapsto_{\textsf{id}} \textsf{level-1}   }_{\rtv}$(*\label{line:initialize_post}*)A
 }
 \end{lstlisting}
@@ -597,19 +597,19 @@ for the \emph{caller} to construct a vpte-points-to for any entry of the next ta
 /* @param l4: the (virtual) address of the L4 page table tree
    @param va: virtual address to be translated and mapped */
 pte_t *walkpgdir(pte_t *l4, const void *va) {
-  $\specline{\textsf{P} \ast \ulcorner\textsf{l4p}=\textsf{rtv}\urcorner\ast\ulcorner\textsf{rtv+KERNBASE}=\textsf{l4}\urcorner \ast \ghostmaptoken{\textsf{id}}{(\textsf{l4p}+8*\textsf{L4Offset}(\textsf{va}))}{\textsf{4}} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}}_{\rtv}$(*\label{line:walkpgdir_pre}*)
+  $\specline{\textsf{P} \ast \ulcorner\textsf{l4p}=\textsf{rtv}\urcorner\ast\ulcorner\textsf{rtv+KERNBASE}=\textsf{l4}\urcorner \ast \ghostmaptoken{\textsf{id}}{(\textsf{l4p}+8*\textsf{L4Offset}(\textsf{va}))}{\textsf{4}} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}}_{\rtv}$(*\label{line:walkpgdir_pre}*)
   pte_t *l4_entry = &l4[L4Offset(va)]; // Virtual address of L4 entry(*\label{line:start_l4_calcC}*)
-  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{l4p+8*L4Offset(va)}\},m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+  $\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{l4p+8*L4Offset(va)}\},m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
   $\specline{\textsf{entry\_present(l4e\_val)} \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{(\textsf{table\_root(l4e\_val)+ i * 8})}{\textsf{3}} }_{\rtv} $
   $\specline{ \textsf{l4p+KERNBASE+L4Offset(va)} \mapsto_{\textsf{vpte,qfrac4}} \textsf{(l4p+L4Offset(va)) l4e\_val} \ast \ulcorner  \textsf{qfrac4} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}_{\rtv}$    
   pte_t *l3 = pte_get_next_table(l4_entry); (*\label{line:first_getnext_callC}*) 
   /*pte_get_next_table may have allocated a new page which updates entry value*/
-  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{l4p+8*L4Offset(va)}\},m)  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+  $\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{l4p+8*L4Offset(va)}\},m)  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
   $\specline{\forall_{i\in\textsf{0..511}} \ghostmaptoken{\textsf{id}}{(\textsf{table\_root(l4e\_val'.pfn) + i * 8})}{\textsf{3}}  \ast \ulcorner\textsf{l3-KERNBASE}=\textsf{table\_root(l4e\_val'.pfn)}\urcorner} $(*\label{line:l3tokens}*)
   $\specline{ \textsf{l4p+KERNBASE+L4Offset(va)} \mapsto_{\textsf{vpte,qfrac4}} \textsf{(l4p+L4Offset(va)) l4e\_val} \ast \ulcorner  \textsf{qfrac4} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}_{\rtv}$(*\label{line:first_pte_pointstoC}*)
   pte_t *l3_entry = &l3[L3Offset(va)]; /* Virtual address of L3 entry*/(*\label{line:l3offset}*)
   $\specline{\ulcorner\textsf{l3}+\textsf{L3Offset(va)*8} = \textsf{l3p} \land \textsf{table\_root(l4e\_val'.pfn)}  = \textsf{l3} \urcorner }_{\rtv}$
-  $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{l4p+8*L4Offset(va)},\textsf{l3p+8*L3Offset(va)}\},m)  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+  $\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{l4p+8*L4Offset(va)},\textsf{l3p+8*L3Offset(va)}\},m)  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
   $\specline{\forall_{i\in\textsf{0..511}\setminus\{\textsf{L3Offset(va)}\}} \; \ghostmaptoken{\textsf{id}}{(\textsf{table\_root(l4e\_val.pfn}) \textsf{ + i * 8})} {\textsf{3}} }_{\rtv}$
   $\specline{ \textsf{l4p+KERNBASE+L4Offset(va)} \mapsto_{\textsf{vpte,qfrac4}} \textsf{(l4p+L4Offset(va)) l4e\_val} \ast \ulcorner  \textsf{qfrac4} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}_{\rtv}$(*\label{line:ex_l4_vpteC}*)
   $\specline{ \textsf{l3p+KERNBASE+L3Offset(va)} \mapsto_{\textsf{vpte,qfrac3}} \textsf{(l3p+L3Offset(va)) l3e\_val} \ast \ulcorner  \textsf{qfrac3} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l3e\_val})\urcorner}_{\rtv}$(*\label{line:ex_l3_vpteC}*)
@@ -625,7 +625,7 @@ pte_t *walkpgdir(pte_t *l4, const void *va) {
 % \begin{lstlisting}[mathescape,escapeinside={(*}{*)}]
 % ;;pte_t *walkpgdir(pte_t *l4, const void *va) {
 % ... ;; Stack setup
-% $\specline{\textsf{P} \ast \ulcorner\textsf{rtv+KERNBASE}=\textsf{l4}\urcorner \ast \forall_{i\in\textsf{0..511}}\ghostmaptoken{\textsf{id}}{(\textsf{rtv}+i*8)}{\textsf{4}} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}}_{\rtv}$
+% $\specline{\textsf{P} \ast \ulcorner\textsf{rtv+KERNBASE}=\textsf{l4}\urcorner \ast \forall_{i\in\textsf{0..511}}\ghostmaptoken{\textsf{id}}{(\textsf{rtv}+i*8)}{\textsf{4}} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}}_{\rtv}$
 % ;;set up the stack for root address and virtual address    
 % ;;pte_t *l4_entry = &l4[L4EX(va)]; // Virtual address of L4 entry(*\label{line:start_l4_calc}*)
 % mov    -0x8[rbp],rsi
@@ -635,7 +635,7 @@ pte_t *walkpgdir(pte_t *l4, const void *va) {
 % shl    0x3,rdi        ;; Multiply by 8
 % add    rdi,rsi        ;; Add to l4 (virtual) table base(*\label{line:end_l4_calc}*)
 % mov    rsi,-0x18[rbp] ;; Store to local variable l4_entry; logical l4_entry is physical, program variable is virtual
-% $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{l4\_entry}\},m) \ast \forall_{i\in\textsf{0..511}\setminus\{\textsf{L4EX(va)}\}}\ghostmaptoken{\textsf{id}}{(\textsf{rtv}+i*8)}{\textsf{4}}\ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+% $\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{l4\_entry}\},m) \ast \forall_{i\in\textsf{0..511}\setminus\{\textsf{L4EX(va)}\}}\ghostmaptoken{\textsf{id}}{(\textsf{rtv}+i*8)}{\textsf{4}}\ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 % $\specline{\textsf{entry\_present(l4e\_val)} \wand \forall_{i\in\textsf{0..511}} \; \ghostmaptoken{\textsf{id}}{\textsf{table\_root(l4e\_val)+ i * 8}}{\textsf{3}} }_{\rtv} $
 % $\specline{ \textsf{l4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l4\_entry l4e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}_{\rtv}$    
 % ;;pte_t *pdp = pte_get_next_table(l4_entry);
@@ -643,13 +643,13 @@ pte_t *walkpgdir(pte_t *l4, const void *va) {
 % ...
 % callq  c0 <pte_get_next_table>(*\label{line:first_getnext_call}*)
 % ;;save the physical next table address in rax
-% $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{l4\_entry}\},m)  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+% $\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{l4\_entry}\},m)  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 % $\specline{\forall_{i\in\textsf{0..511}} \ghostmaptoken{\textsf{id}}{\textsf{table\_root(l4e\_val'.pfn) + i * 8}}{\textsf{3}}  \ast \ulcorner\textsf{pdp-KERNBASE}=\textsf{table\_root(l4e\_val'.pfn)}\urcorner} $
 % $\specline{ \textsf{l4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l4\_entry l4e\_val'} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val})\urcorner}_{\rtv}$(*\label{line:first_pte_pointsto}*)
 % $\specline{\texttt{rax}  \mapsto_{\textsf{r}} \textsf{table\_root(l4e\_val'.pfn)} }_{\rtv}$ ;; pte_get_next_table may have allocated a new page, updating entry
 % ;;pte_t *pdp_entry = &pdp[PDPEX(va)]; // Virtual address of L3 entry
 % $\specline{\ulcorner\textsf{pdp}+\textsf{PDPEX(va)*8} = \textsf{pdp\_entry} \land \textsf{table\_root(l4e\_val'.pfn)}  = \textsf{pdp} \urcorner }_{\rtv}$
-% $\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{l4\_entry},\textsf{pdp\_entry}\},m)  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
+% $\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{l4\_entry},\textsf{pdp\_entry}\},m)  \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
 % $\specline{\forall_{i\in\textsf{0..511}\setminus\{\textsf{PDPEX(va)}\}} \; \textsf{table\_root(l4\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{3} }_{\rtv}$
 % $\specline{ \textsf{l4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac4}}\textsf{l4\_entry}\; \textsf{l4e\_val'} \ast \ulcorner  \textsf{qfrac4} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l4e\_val'})\urcorner}_{\rtv}$(*\label{line:ex_l4_vpte}*)
 % $\specline{ \textsf{pdp\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac3}}\textsf{pdp\_entry}\; \textsf{l3e\_val} \ast \ulcorner  \textsf{qfrac3} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l3e\_val})\urcorner}_{\rtv}$(*\label{line:ex_l3_vpte}*)
@@ -658,7 +658,7 @@ pte_t *walkpgdir(pte_t *l4, const void *va) {
 % ... ;; Similar assembly to reach next level
 % ;;pte_t *pd_entry = &pd[PDEX(va)]; // Virtual address of L2 entry
 % ;;pte_t *pt = pte_get_next_table(pd_entry);
-% $\specline{ \left( \begin{array}{l} \textsf{pdp}+\textsf{PDPEX(va)} = \textsf{pdp\_entry} \land \textsf{table\_root(l4\_entry}_{\textsf{pfn}})  = \textsf{pdp} \\ \textsf{pd}+\textsf{PDEX(va)} = \textsf{pd\_entry} \land \textsf{table\_root(pml3\_entry}_{\textsf{pfn}})  = \textsf{pd} \\ \textsf{pt}+\textsf{PDPEX(va)} = \textsf{pt\_entry} \land \textsf{table\_root(pml2\_entry}_{\textsf{pfn}})  = \textsf{pt} \\  \textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{l4\_entry},\textsf{pdp\_entry},\textsf{pd\_entry},\textsf{pt\_entry}\},m)  \\ \ghostmaptoken{\delta{}s}{\rtv}{\delta} \\
+% $\specline{ \left( \begin{array}{l} \textsf{pdp}+\textsf{PDPEX(va)} = \textsf{pdp\_entry} \land \textsf{table\_root(l4\_entry}_{\textsf{pfn}})  = \textsf{pdp} \\ \textsf{pd}+\textsf{PDEX(va)} = \textsf{pd\_entry} \land \textsf{table\_root(pml3\_entry}_{\textsf{pfn}})  = \textsf{pd} \\ \textsf{pt}+\textsf{PDPEX(va)} = \textsf{pt\_entry} \land \textsf{table\_root(pml2\_entry}_{\textsf{pfn}})  = \textsf{pt} \\  \textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{l4\_entry},\textsf{pdp\_entry},\textsf{pd\_entry},\textsf{pt\_entry}\},m)  \\ \ghostmaptoken{\delta{}s}{\rtv}{\delta} \\
 % \ghostmaptoken{\textsf{id}}{(\mathsf{l4\_entry})}{\textsf{4}}\ast \ghostmaptoken{\textsf{id}}{(\mathsf{plm3\_entry})}{\textsf{3}} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{plm2\_entry})}{\textsf{2}}  \\ \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(l4\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{3}  \\ \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(pdp\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{2}  \\ \forall_{i\in\textsf{0..511}} \; \textsf{table\_root(pd\_entry}_{\textsf{pfn}}) \textsf{ + i * 8} \mapsto_{\textsf{id}} \textsf{1}  \\  \textsf{l4\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l4e\_val} \\  \textsf{pdp\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l3e\_val} \\  \textsf{pd\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l2e\_val} \\   \textsf{pt\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l1e\_val} \ast \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l1e\_val})\urcorner    \end{array} \right)  =\textsf{R}_{\textsf{walk}}}$
 % ;;access and return L1 entry
 % ;;return &pt[PTEX(va)]; // Virtual address of L1 entry
@@ -681,8 +681,8 @@ $\begin{array}{l}\left( \begin{array}{l}
     \land \textsf{table\_root(l4e\_val}_{\textsf{pfn}})  = \textsf{l3} 
     \land \textsf{table\_root(l3e\_val}_{\textsf{pfn}})  = \textsf{l2} 
     \land \textsf{table\_root(l2e\_val}_{\textsf{pfn}})  = \textsf{l1} \urcorner  \ast \\
-    % \textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{l4p},\textsf{l3p},\textsf{l2p},\textsf{l1p}\},m)  \ast  
-    \textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{l4p+8*L4Offset(va)},\textsf{l3p+8*L3Offset(va)},\textsf{l2p+8*L2Offset(va)},\textsf{l1p+8*L1Offset(va)}\},m)  \ast  \\
+    % \textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{l4p},\textsf{l3p},\textsf{l2p},\textsf{l1p}\},m)  \ast  
+    \textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus\{\textsf{l4p+8*L4Offset(va)},\textsf{l3p+8*L3Offset(va)},\textsf{l2p+8*L2Offset(va)},\textsf{l1p+8*L1Offset(va)}\},m)  \ast  \\
       \ghostmaptoken{\textsf{id}}{(\mathsf{l4p+8*L4Offset(va)})}{\textsf{4}}\ast \ghostmaptoken{\textsf{id}}{(\mathsf{l3p+8*L3Offset(va)})}{\textsf{3}} \ast \\ \ghostmaptoken{\textsf{id}}{(\mathsf{l2p+8*L2Offset(va)})}{\textsf{2}}  \ast \ghostmaptoken{\textsf{id}}{(\mathsf{l1p+8*L1Offset(va)})}{\textsf{1}} \ast \\
       \ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast (\textsf{l4p+KERNBASE+8*L4Offset(va)}) \mapsto_{\textsf{vpte,qfrac4}} (\textsf{l4p+8*L4Offset(va)}) \; \textsf{l4e\_val}  \ast \\
       (\textsf{l3p+KERNBASE+8*L3Offset(va)}) \mapsto_{\textsf{vpte,qfrac3}} \textsf{l3p+8*L3Offset(va)}\;\textsf{l3e\_val}  \ast\\
@@ -800,7 +800,7 @@ for a newly-mapped page, as we discuss next.
 %
 %;;}
 %...
-%$\specline{\textsf{P} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)  \ast \texttt{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{\_} \ast \sumpv\paddr\qfrac\true  \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$ 
+%$\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m)  \ast \texttt{rbp-8} \mapsto_{\textsf{v}} \textsf{entry} \ast \texttt{r8}  \mapsto_{\textsf{r}} \textsf{\_} \ast \texttt{rdi}  \mapsto_{\textsf{r}} \textsf{\_} \ast \sumpv\paddr\qfrac\true  \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$ 
 %mov    rax,-0x18[rbp]
  % 
 %;;uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr);
@@ -877,7 +877,7 @@ Unmapping is the reverse of the logic we discuss here.
    @param va: virtual address to be translated and mapped
    @param fpaddr: physical address of a zeroed page to map if va is not already mapped */
 void vaspace_mappage(pte_t *l4, void *va,uintptr_t fpaddr ) {
-  $\specline{\textsf{P} \ast \ghostmaptoken{\mathsf{\textsf{id}}}{(\textsf{l4p+8*L4Offset(va)})}{4} \ast \mathcal{I}\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \ulcorner\theta \; !!\; \vaddr = \texttt{None}\urcorner}_{\rtv}$ (*\label{line:mappage_pre}*)
+  $\specline{\textsf{P} \ast \ghostmaptoken{\mathsf{\textsf{id}}}{(\textsf{l4p+8*L4Offset(va)})}{4} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \ulcorner\theta \; !!\; \vaddr = \texttt{None}\urcorner}_{\rtv}$ (*\label{line:mappage_pre}*)
   pte_t *pteaddr = walkpgdir(l4, va); (*\label{line:call_walkpgdirC}*)
   $\specline{ \textsf{R}_{\textsf{walk}} \ast \textsf{R}_{\textsf{l1e}} }$
   if (!pteaddr->present){ (*\label{line:mappage_pte_present_startC}*)
