@@ -527,7 +527,7 @@ void pte_initialize(pte_t *entry) {
   pte_t *local = kalloc(); // Allocate a full zeroed page for 512 8-byte entries(*\label{line:call_to_kallocC}*)
   entry->pfn = PTE_ADDR_TO_PFN((uintptr_t) local);(*\label{line:kalloc_install}*)
   $\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \lnot(\textsf{entry\_present entryv}) \ast \textsf{entryp+KERNBASE} \mapsto_{\mathsf{vpte,1}} \mathsf{entryp} \; \textsf{pfn\_set(entryv nextpaddr)}}$
-  $\specline{\ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \forall_{i\in\textsf{0..511}}\ldotp ()\textsf{table\_root (pte\_initialized (pfn\_set (entry\_val nextpaddr))) + i * 8}) \mapsto_{\textsf{id}} \textsf{level-1}   }_{\rtv}$(*\label{line:initialize_post}*)A
+  $\specline{\ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \forall_{i\in\textsf{0..511}}\ldotp ()\textsf{table\_root (pte\_initialized (pfn\_set (entry\_val nextpaddr))) + i * 8}) \mapsto_{\textsf{id}} \textsf{level-1}   }_{\rtv}$(*\label{line:initialize_post}*)
 }
 \end{lstlisting}
 \vspace{-2em}
