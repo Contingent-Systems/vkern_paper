@@ -768,21 +768,6 @@ both for ensuring partial page table walk reaching the
 L1 entry (l1e) by asserting that higher levels of the page table exist (R$_{\textsf{walk}}$ in Figure \ref{fig:rwalk}), 
 and for allowing access to the memory of the L1 entry via virtual address (R$_{\textsf{l1e}}$ in Figure \ref{fig:rwalk}).
 
-\del{
-A PTE points-to, as we already brifly mentioned, is defined just like the normal virtual points-to of Figure \ref{fig:virtualpointstosharing}, except the physical address (here, \textsf{pa}) is explicit in the assertion 
-rather than existentially quantified:\\
-\centerline{$
-    \vaddr\mapsto_{\textsf{vpte,q}} \; \paddr \; \vpage : \mathsf{vProp}~\Sigma \stackrel{\triangle}{=} 
-    \exists \delta\ldotp
-	(\lambda \mathit{cr3val}\ldotp
-	\ghostmaptoken{\delta{}s}{\mathit{cr3val}}{\delta}) \ast 
-  \fracghostmaptoken{\delta}{\vaddr}{\paddr}{\qfrac} \ast \paddr \mapsto_{\mathsf{p}} \vpage
-$}\\
-This supports rules for accessing memory
-at that virtual address, but exposing the physical location being modified
-makes this convenient to use for page table modifications, since we must ensure
-the modified data is at the specific physical location that will be used as the L1 entry.
-}
 % After obtaining a virtual address \textsf{pte\_addr} in \textsf{rax} backed 
 % by the physical memory for the L1 entry that will be used to translate the virtual addresses
 % we are mapping, we save it to \textsf{r14} to be updated later in Line 9.
