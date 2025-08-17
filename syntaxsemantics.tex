@@ -197,41 +197,17 @@ Programs in our logic are instruction sequences \instrs, which are formed by eit
 sequence with an additional instruction (\iseq\instr\instrs).
 We model (and later, give program logic rules for) instructions for register \replace{moves}{loads and stores}, and reading and writing memory.
 The latter require page table walks.
-% Figure \ref{fig:coq_addr_translation} gives a slightly simplified version of our address translation code in monadic style:
-% starting from the root page table address \textsf{rtv}, the virtual address \textsf{w} is either resolved to a physical address or an error is returned.
-% The full set of possible errors is not relevant to this paper; our logic is tailored for kernel code which should not fault,
-% so our proof rules guarantee no memory failures occur --- that the page table walk for any dereferenced address will succeed.
-
-% Page-table walk shown in Figure \ref{fig:pagetables} is realized with physical memory \texttt{load}s and \textsf{store}s for the entries in the 
-% page-tables which are simply modelled as lookup and updates to an instance of a memory map with 64 bit entries. In the address translation,
-% we see a physical memory $\mathsf{load}$ (i.e. physical memory map ($\sigma.\mathcal{M}$) for each level) for each level of page-table-walk 
-% concluded with alignment of the returned address for each \textit{successful} page-table-walk traversal which is what our reasoning principles 
-% only consider.
-
 The most important instructions that we model are memory-accessing variants of the x86-64 \lstinline|mov| instruction, which we format in Intel syntax
 (destination on the left, source on the right).
 Thus, a store to memory is $\textsf{mov}~[r_m]~r_r$, and a load from memory is $\textsf{mov}~r_r~[r_m]$.
-% \[
-% \begin{array}{l}
-%   \hbox{(\TirNameStyle{WriteToMemFromReg})} \qquad
-%   \textsf{mov}~[r_m]~r_r \\
-%   \hbox{(\TirNameStyle{WriteToRegFromMem})} \qquad 
-%   \textsf{mov}~r_r~[r_m]
-%   \end{array}
-%   \]
 Operationally, each first translates the virtual address stored in the register $r_m$ to a physical address \add{(a page table walk)},
 then either updates the memory at that physical location with the contents of $r_r$ (for store)
 or updates $r_r$ with the contents of that memory (for load).
-% The semantics of each is realized by first translating the virtual-memory address of a memory location stored in $r_m$ to a physical memory location
-% per the description in Section \ref{sec:backgroundonmachinemodel},
-% then either updating those memory contents with the contents of register $r_r$ (\TirNameStyle{WriteToMemFromReg}) 
-% or loading the value at that physical memory location into the register $r_r$
-% (\TirNameStyle{WriteToRegFromMem}). 
 Our formalization includes
 additional \lstinline|mov| variants (e.g., accessing memory at constant offsets from the base register, or moves between registers),
 basic integer and bitwise operations (\lstinline|add|,
 \lstinline|and|, bit shifts, etc.) with their effects on \lstinline|rflags|, jumps and some (not all) conditional jumps, \lstinline|call|, \lstinline|ret|, \lstinline|push|,
 and \lstinline|pop|.
-The semantics model updates to the instruction pointer, though we elide that register (\lstinline|rip|)
-from specifications in the paper for clarity.
+% The semantics model updates to the instruction pointer, though we elide that register (\lstinline|rip|)
+% from specifications in the paper for clarity.
 \looseness=-1

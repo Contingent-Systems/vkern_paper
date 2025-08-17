@@ -235,10 +235,11 @@ in different orders).
 }
 
 The entries \add{(e.g., L4 Entry in Figure \ref{fig:pagetables})} of each table are 64 bits wide,
-but each points to a physical address aligned to 4KB (4096 byte) boundaries, which leaves 12 bits to spare to 
-control a validity bit (called the \emph{present} bit), a read-write bit (which permits write access through the entry if and only if it is set),
+but each points to a physical address aligned to 4KB (4096 byte) boundaries, leaving 12 bits to spare to 
+control a validity bit (called the \emph{present} bit), a read-write bit (enabling write access),
 and a range of additional bits which can be used to control caching, write-through, and more.
 This paper will only consider the present bit (0).
+\looseness=-1
 
 The page tables are managed by the \replace{OS, typically by a}{OS kernel's} \emph{virtual memory manager} (VMM).\footnote{Not to be confused with Virtual 
 Machine Monitor. We focus on non-hypervisor scenarios, but hardware virtualization extensions for both 
@@ -249,20 +250,14 @@ page tables, which the OS registers with the CPU by storing the (page-aligned)
 physical address of the root of the page table tree (the start of the L4 table shown as $\mathsf{root}$ in Figure \ref{fig:pagetables}) in a specific register (\texttt{cr3}) as part of switching to a new process. 
 Using different mappings, which map only disjoint portions of physical memory (with some exceptions in the next section) 
 is how the OS ensures memory isolation between processes.
-
 If an instruction is executed that accesses a virtual address that either has no mapping, or does not have a mapping permitting 
 the kind of access that was performed (e.g., the instruction was a memory write, but the relevant address range was marked read-only in
 the relevant page table entry), the hardware triggers a \emph{page fault}, transferring control to a \emph{page fault handler} registered 
 with the hardware by the OS, allowing it to take corrective action.
 If no mapping was supposed to exist, this is a program bug (e.g., dereferencing virtual address 0 / NULL)
 and the faulting program should be terminated. But this can also be used for
-\replace{
-specialized functionality and optimizations, such as \emph{paging} (saving room in physical RAM and deferring
-unnecessary IO by only reading program code from disk when it is accessed, or even swapping memory that has not
-recently been accessed to disk, to read back in when a page fault indicates access).
-}{
-  other purposes such as demand paging to save on IO and better-manage physical memory~\cite{doeppner2010operating}.
-}
+other purposes such as demand paging to save on IO and better-manage physical memory~\cite{doeppner2010operating}.
+\looseness=-1
 
 The key pieces of VMM functionality are
 adding a new page mapping (whether the mapped page contains zeros, file data, or swap data), and removing an existing 
@@ -303,12 +298,13 @@ own access of the tables}.
 \looseness=-1
 
 
-Virtual memory concerns propagate to the OS scheduler, which deals with multiple 
-address spaces, so must keep track of which virtual addresses are valid (and in what way) in which address spaces. 
+Virtual memory affects the OS scheduler, which deals with multiple 
+address spaces, so must track which virtual addresses are valid in which address spaces. 
 Some virtual addresses are valid in only a single address space (e.g., a code address for a particular usermode 
 process), while others are valid in all address spaces (e.g., kernel data structure pointers). 
 The VMM must maintain some of these assumptions on behalf of the rest of the kernel, for example by guaranteeing that 
 a certain range of virtual addresses (corresponding to the kernel's code and data) are valid in every address space.
+\looseness=-1
 
 % \paragraph{\add{Mapping a New Page}}
 % \add{Mapping a new page into a virtual address space is a key piece fo functionality, and also a key challenge for verification.
@@ -433,11 +429,13 @@ general pure logical assertions), similar to prior \rocq-embedded program logics
 $A\wand B$ describes a resource which, if combined with a resource satisfying $A$, will satisfy $B$.
 Notably, this implication involves no changes to ghost state. \iris, building on the Views framework~\cite{Dinsdale-Young2013Views},
 also includes a \emph{view shift} operator $\vs$ which models updates to ghost state: $A \vs B$
-means resources satisfying $A$ may be transformed into resources satisfying $B$, intuitively by updating only ghost state.\footnote{\iris
-experts may note that this is \emph{technically} mildly misleading given how \iris's update modalities and weakest precondition
-are defined, but
-this is adequate intuition for non-experts in \iris to follow their use.
-}
+means resources satisfying $A$ may be transformed into resources satisfying $B$, intuitively by updating only ghost state
+(a slight simplification of \iris's update modalities, but adequate intuition for non-\iris-experts).
+% .\footnote{\iris
+% experts may note that this is \emph{technically} mildly misleading given how \iris's update modalities and weakest precondition
+% are defined, but
+% this is adequate intuition for non-experts in \iris to follow their use.
+% }
 View shifts are essentially logical entailment plus ghost updates.
 \looseness=-1
 
