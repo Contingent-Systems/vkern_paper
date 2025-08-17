@@ -27,12 +27,12 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      inkscape:zoom="1.0690236"
-     inkscape:cx="384.93071"
-     inkscape:cy="561.25984"
+     inkscape:cx="385.39841"
+     inkscape:cy="561.72754"
      inkscape:window-width="1277"
-     inkscape:window-height="1377"
+     inkscape:window-height="1356"
      inkscape:window-x="1281"
-     inkscape:window-y="5"
+     inkscape:window-y="26"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1" />
   <defs
@@ -734,14 +734,14 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:100;font-stretch:normal;font-size:3.52778px;font-family:'Noto Sans';-inkscape-font-specification:'Noto Sans Thin';text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:none;stroke:#000000;stroke-width:0.3;stroke-dasharray:none;stroke-opacity:1"
-       x="35.040314"
+       x="27.631973"
        y="65.372093"
        id="text1-52-3"><tspan
          sodipodi:role="line"
          id="tspan1-58-3"
          style="font-style:normal;font-variant:normal;font-weight:100;font-stretch:normal;font-size:3.52778px;font-family:'Noto Sans';-inkscape-font-specification:'Noto Sans Thin';stroke-width:0.3;stroke-dasharray:none"
-         x="35.040314"
-         y="65.372093">L4 Base Address</tspan></text>
+         x="27.631973"
+         y="65.372093">L4 Base Physical Address</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:100;font-stretch:normal;font-size:3.52778px;font-family:'Noto Sans';-inkscape-font-specification:'Noto Sans Thin';text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:none;stroke:#000000;stroke-width:0.3;stroke-dasharray:none;stroke-opacity:1"
@@ -826,14 +826,6 @@
            x="156.1617"
            y="60.784019">L4 Table</tspan></text>
     </g>
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.427058;stroke-dasharray:none;stroke-opacity:1"
-       d="m 32.492696,60.854167 v 6.5"
-       id="path1-6-1" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.427058;stroke-dasharray:none;stroke-opacity:1"
-       d="m 62.390631,61.11875 v 6.5"
-       id="path1-6-1-2" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.3;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Triangle)"
        d="m 72.022498,26.977498 c -0.7425,0.495001 -1.484999,0.990001 -9.198896,1.361253 -7.713897,0.371253 -22.398603,0.618748 -30.071109,1.031254 -7.672506,0.412506 -8.332493,0.989994 -8.621242,2.805025 -0.288749,1.81503 -0.206251,4.86747 0.330008,6.599974 0.53626,1.732504 1.526241,2.144996 2.516239,2.557495"
