@@ -423,11 +423,10 @@ We suppress \replace{many details of Iris assertions}{some technical \iris detai
 a few recurring details used heavily in \iris but not necessarily in traditional
 separation logics.
 Because \iris is an embedded framework in \rocq, proofs in \iris-derived
-logics \del{(including ours)} often encapsulate raw \rocq assertions: $\ulcorner P \urcorner$ is an embedding
+logics often encapsulate raw \rocq assertions: $\ulcorner P \urcorner$ is an embedding
 of the \rocq assertion $P$ into an \iris assertion (used for things like equality and other
 general pure logical assertions), similar to prior \rocq-embedded program logics~\cite{Chlipala2013Bedrock}. Newly-defined \iris assertions are in fact
 \rocq terms of a particular type, rather than being drawn from a fixed vocabulary.
-\del{We introduce other details as they arise.}
 \looseness=-1
 
 \iris includes two forms of implication. The magic wand operator $\wand$ is an affine implication:
@@ -457,7 +456,7 @@ View shifts are essentially logical entailment plus ghost updates.
 % $P \wand \textsf{wp}\;C\;\{v\ldotp Q\}$.\footnote{An idea with long history~\cite{pratt1976semantical}.}
 % This is a natural fit for assembly-level verification, where the \emph{Hoare double}
 
-An important limitation \del{here} is that to date, every separation logic
+An important limitation is that to date, every separation logic
 has assumed that all pointer addresses are meant for use in a single address space, which avoided the
 problem of tracking that certain points-to assertions are true only for certain address spaces, but not others.
 
@@ -490,7 +489,7 @@ other worlds.
 \add{This is somewhat different from the accessibility relation modalities more common in verification, but also well-established,
 tracing its origin back to Arthur Prior~\cite{areces2006hybrid}, just as many temporal logics do.}
 
-This explicit naming of alternate worlds increases the power of \add{propositional} modal logics~\cite{blackburn1995hybrid}, and is \del{actually}
+This explicit naming of alternate worlds increases the power of \add{propositional} modal logics~\cite{blackburn1995hybrid}, and is 
 necessary for completeness in classical separation logics~\cite{brotherston2014parametric}.
 \add{However typically modal logics can always be ``compiled'' into logics with suitable quantifiers:
 the \emph{standard translation}~\cite{blackburn2006modal} of propositional modal logics into first-order logic

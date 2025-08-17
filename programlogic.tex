@@ -294,10 +294,10 @@ $}
   The map includes, for each key in the map (i.e.,
   each virtual address), a token $\ghostmaptoken{\gamma}{k}{v}$ whose ownership is required to update that key-value pair in the ghost map named $\gamma$. The existence of such a token implies that the actual map $\theta$ tracked by a corresponding $\mathsf{GhostMap}(\gamma,\theta)$
   resource indeed maps $k$ to $v$. These properties are captured by key \iris rules in Figure \ref{fig:ghostmaps}.\footnote{\iris ghost maps lack established notation\add{;}
-  \del{in the literature, but} the syntax we use captures the details of \texttt{iris.base\_logic.lib.ghost\_map}.}
+   the syntax we use captures the details of \texttt{iris.base\_logic.lib.ghost\_map}.}
   There are other rules, but these two are most important for explaining ghost maps.
   \textsc{GhostMapUpdate} says that ownership of the actual ghost map with ghost name $\gamma$ and map contents $\theta$,
-  and a \del{full (non-fractional) }token witnessing that $\theta$ maps \textsf{pa} to \textsf{va} permits an update to the ghost map's state,
+  and a token witnessing that $\theta$ maps \textsf{pa} to \textsf{va} permits an update to the ghost map's state,
   changing the map and replacing the token to represent the new value.
   \textsc{GhostMapLookup} allows using the same information to simply conclude that the mapping indicated by the token is true.
   
@@ -357,7 +357,6 @@ that preserve overall virtual-to-physical translations \add{in isolation},
 \add{and also allowing changes to specific the virtual-to-physical translations}
 \replace{W}{w}hen combined with the
 \replace{fragment}{token} stored in the \add{relevant} virtual points-to (Figure \ref{fig:virtualpointstosharing}).
-\del{changes in the virtual-to-physical translations become possible without the need to track all virtual points-to assertions.}
 \looseness=-1
 
 % \todo[inline,color=cyan]{Explain $\delta{s}$ (Iris ghost name) vs $m$ (logical contents of ghost map) in next 2 paragraphs}
@@ -372,17 +371,6 @@ In Figure \ref{fig:virtualpointstosharing}, the extra ghost map token for $\delt
 quantified --- is the correct ghost name for the current address space. That is then the ghost map named
 in the ghost virtual-to-physical translation token of Figure \ref{fig:virtualpointstosharing}.
 }
-\del{In Figure ??,
-$\theta$ is the logical map from virtual addresses to the physical addresses they should translate to, 
-for the \emph{current} address space, corresponding to the  currently installed page tables (the ones
-indicated by \texttt{cr3}). In Figure ??, the existentially quantified $\delta$
-is the ghost name for this map (again, for the current address space).
-Because our logic is the first to address the existence of multiple address spaces,
-it must ensure that $\theta$ actually corresponds to the intended ghost map for the current address space.
-This requires looking up the ghost name (i.e., $\delta$) for the current address space,
-which is handled by $m$ --- another logical map (tied to ghost state shortly)
-from various page table roots to ghost names for the per-address-space ghost maps discussed above.
-}
 \add{
 Just as the ghost name $\delta$ names the ghost map with contents $\theta$,
 $\delta{s}$ names a ghost map, whose contents appear as $m$ in Figure \ref{fig:peraspaceinvariant} (the association of $\delta{s}$ to $m$
@@ -392,59 +380,8 @@ $ I\textsf{ASpace}(\theta,m)$ then \add{performs 3 roles:
 it associates the current address space's root with an appropriate \textsc{Iris} ghost name $\delta$;
 it tracks authoritatively that $\delta$'s logical contents match $\theta$; and it}
 stores the physical resources for the current address space mappings \add{(via the iterated $\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$)}.
-\del{ensuring that the current address space is valid (has an entry in $m$ whose corresponding
-authoritative map matches $\theta$), and asserting ownership of the appropriate fractional ownership
-of the physical page table walk for each virtual-to-physical translation in $\Theta$ (for the current address space).}
 
-\del{
-Virtual points-to assertions must also ensure that they are tied to a valid address space, and because they
-use ghost map tokens to ensure the virtual-to-physical translation exists in a specific ghost map, they must also
-name that map. In Figure \ref{fig:virtualpointstosharing}, this is done with a ghost map token for \emph{another} ghost map,
-one shared across the kernel, holding $m$. Our virtual points-to assertion existentially quantifies the address-space-specific
-ghost map $\delta$ mapping virtual addresses to physical addresses, and ensures it exists with a token for the distinguished
-global (unique) ghost map named by $\delta{s}$.}
-% the ghost map of virtual-to-physical translations for a particular address space (the ghost name $\delta$ in Figure \ref{fig:virtualpointstosharing}).
-% % for each address space must be locateable from a representation of the specific address space:
-% % This means we also require a way to locate the map for the current address space from 
-% We support lookup by the current root page table pointer stored in \lstinline|cr3|.
-\looseness=-1
   
-% Figure \ref{fig:logicaladdrspace} depicts the relationships between these pieces, for a single
-% address space.
-% The invariant for the currently active address space (solid round square labelled as 
-% $ I$\textsf{ASpace} in Figure \ref{fig:logicaladdrspace}) asserts authorative ownership (i.e. 
-% update capability), $\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$, of the ghost map $\Theta$
-% describing virtual-to-physical address translations
-% -- shown as a solid-round-head arrow to $\mathcal{A}\textsf{PTableWalk}$.
-% Each virtual points-to assertion (dashed round square labelled as \textsf{Virtual PointsTo}
-%  in Figure \ref{fig:peraspaceinvariant})
-% asserts fragmental ownership of the ghost map $\Theta$, $\sumwalkabs\vaddr\qfrac\paddr$,
-% shown via the dashed-diamond-head arrow to $\mathcal{A}\textsf{PTableWalk}$. Specifically, it asserts that
-% the virtual address the virtual points-to assertion concerns corresponds to some physical address.
-% There exists only one persistent authorative ownership 
-% ($\ownGhost\gammaPred{\authfull{\ptableabswalk\ptablestore}}$) which collects the fragmental 
-% ghost page-table-walk mapping ($\sumwalkabs\vaddr\qfrac\paddr$),
-%  shown as double-ended solid arrow 1 to N imposing the update protocol.
-
-% \begin{figure}
-%    \includegraphics[width=0.75\columnwidth]{logical_addr_space.png}
-%   \caption{Logical Resources of Address-Space Abstraction (1 Address Space)}
-%   \label{fig:logicaladdrspace}
-%   \end{figure}
-
-% \paragraph{From A Single Address Space to Many}
-% In principle the resources from each individual address space should be collected into a single
-% shared invariant, and for each memory access,
-% a fragment of this corresponding to $ I\textsf{ASpace}(\Theta,m)$
-% for the current address space should be extracted from this global resource, used to prove correctness of the
-% memory access, and put back.
-% In this paper we focus on the middle section, explicity identifying resources for each
-% address space. The reason for this is that in practice, this global resource is also
-% the place where kernel-specific assumptions, such as guaranteeing that certain virtual address range
-% was mapped in all address spaces, would be enforced. This paper focuses on the
-% reasoning principles behind the virtual memory access, and we leave the use of this within a larger
-% kernel to future work. We do, however, deal with the existence of multiple address spaces in examples (Section \ref{sec:experiment}).
-
 \subsection{Address Space Management}
 \label{sec:aspacemanagement}
 % So far, we have introduced logical abstractions for a single address space, but VMMs
@@ -498,7 +435,7 @@ space in which it is considered, \add{that} it distributes over various logical 
 consequence.
 We call \textsf{vProp} assertions whose truth is independent of the current address space
 \textsf{Fact}s; these include other-space assertions, physical memory points-tos, and register assertions.
-\textsf{Fact}s can \add{freely} move in and out of other address space modalities\del{ freely}.
+\textsf{Fact}s can \add{freely} move in and out of other address space modalities.
 \looseness=-1
 
 In general, per-address-space invariants should be collected in a larger
@@ -683,12 +620,7 @@ antecedent of the rule.}
 \subsubsection{Accessing Virtual Addresses}
 Figure \ref{fig:wpdamd} includes two  rules for accessing memory at an address stored in a register $r_a$. 
 \add{Setting aside $P$, $ I\textsf{ASpace}$, and the instruction pointer \lstinline|rip|,}
-\del{Ultimately, any memory access needs to ensure the relevant address translation would succeed,
-which can be ensured by what we informally call the page-table-walk points-to collection
-($\textsf{L}_{4}\_\textsf{L}_{1}\_\textsf{PointsTo}$ in Figure ??). }
 \TirNameStyle{WriteToRegFromVirtMem} and \TirNameStyle{WriteToVirtMemFromReg}
-\del{each use a virtual-pointsto assertion ($\textsf{vaddr} \mapsto_{\textsf{v}} \textsf{v}$),
-and }
 are nearly-standard (assembly) separation logic rules for memory accesses~\add{\cite{Chlipala2013Bedrock,ni2007contexts}}.
 \add{For example, \textsc{WriteToRegFromVirtMem}'s specification
 reflects that it reads from the (virtual) memory address \textsf{vaddr} stored in the address
@@ -719,7 +651,6 @@ and that memory or registers are updated appropriately, before re-packing the in
 
 \replace{T}{Second, t}he memory access rules --- as with all rules in our logic ---
 \replace{model updates to}{increment} the instruction pointer \lstinline|rip| \add{by the length of the encoded instruction.}
-\del{using a metafunction \textsf{MovLen}.}
 \textsf{MovLen} returns how long the instruction encoding for the corresponding \lstinline|mov| is;
 x86-64 instruction encodings are often longer for instructions using registers that are absent from the 32-bit
 x86 ISA that preceded x86-64.
@@ -737,7 +668,7 @@ the current address space.
 Unlike other rules, \TirNameStyle{WriteToRegCtlFromRegModal} updates the root address of the 
 address space determining the validity of resources, from $\rtv$ before the
 \lstinline|mov| to $\textsf{rvs}$ afterwards. The global effects of this rule are reflected in moving
-\del{bare} assertions \add{for the current address space ($P$ and $ I\mathsf{ASpace}$)} under an other-space modality for \add{the initial
+assertions \add{for the current address space ($P$ and $ I\mathsf{ASpace}$)} under an other-space modality for \add{the initial
 (outgoing) address space} $\rtv$, and moving the new address space's assertions out of
 the corresponding modality \add{(since after the \lstinline|mov|, those will hold in the
 new current address space)}.
