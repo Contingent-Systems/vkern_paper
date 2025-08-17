@@ -390,7 +390,8 @@ Real VMMs must
 Doing so requires a way to talk about other address spaces, and means to switch address spaces.
 \begin{figure}
 \footnotesize
-\[\begin{array}{c}
+% \[\begin{array}{c}
+\centerline{$
     \mbox{$[r](\mathsf{P}) \;: \mathsf{vProp} \; \Sigma \; \stackrel{\triangle}{=} \; \lambda \_,\; \mathsf{P}~\mathsf{r} \vspace{0.5em}$}
     \qquad
     \mbox{$\textsf{Fact P} \stackrel{\triangle}{=} \;\forall \; ,r \; r' \ldotp  \textsf{P r} \dashv\vdash \textsf{P r'}$}
@@ -398,19 +399,24 @@ Doing so requires a way to talk about other address spaces, and means to switch 
     \inferrule*{ }{\textsf{Fact}\;[r](\textsf{P}) }
     \qquad
     \inferrule*{ }{\textsf{Fact}\;(\textsf{r}\;\mapsto_{\textsf{r}}\{q\}\;\textsf{rv})}
-    \\[1.3em]
+  $}
+\vspace{0.5em}
+\centerline{$
     \inferrule{ }{\textsf{Fact}\;(\textsf{w} \mapsto_{\textsf{p}} \{q\} \textsf{ v} )}
     \qquad
     \inferrule{ }{(\textsf{P} \vdash \textsf{Q}) \vdash  ([r](\textsf{P}) \vdash  [r](\textsf{Q}))}
     \qquad
     \inferrule{ }{[r](\textsf{P} \ast \textsf{Q}) \dashv\vdash ([r](\textsf{P}) \ast [r](\textsf{Q})}\vspace{0.5em}
-    \\[1.3em]
+  $}
+\vspace{0.5em}
+\centerline{$
     \inferrule{ }{[r](\textsf{P}\land \textsf{Q}) \dashv\vdash [r](\textsf{P})\land [r](\textsf{Q})}
     \qquad
     \inferrule{ }{[r](\textsf{P}\lor \textsf{Q}) \dashv\vdash [r](\textsf{P})\lor [r](\textsf{Q})}
     \qquad
     \inferrule{ }{\textsf{Fact P} \vdash  [r](\textsf{P}) \dashv\vdash (\textsf{P})} %(\textsf{vProp }\Sigma))\\
-\end{array}\]
+$}
+% \end{array}\]
 \vspace{-1em}
   \caption{Other-space Modality and Its Laws}
   \label{fig:modaldef}
@@ -672,9 +678,8 @@ assertions \add{for the current address space ($P$ and $ I\mathsf{ASpace}$)} und
 (outgoing) address space} $\rtv$, and moving the new address space's assertions out of
 the corresponding modality \add{(since after the \lstinline|mov|, those will hold in the
 new current address space)}.
-
-Note that the \emph{global} aspect is important, as a na\"ive frame rule would be unsound for updates to \lstinline|cr3|,
-because one could frame out assertions in one address space, switch address spaces, and bring those assertions from the \emph{old}
+The \emph{global} aspect is important. A na\"ive frame rule would be unsound for \lstinline|cr3| updates:
+one could frame out assertions in one address space, switch address spaces, and bring those assertions from the \emph{old}
 address space back into the \emph{new} address space, where they may not hold. 
 % Appendix \ref{sec:issues} gives more details.
 It is often said that the frame rule (below) is one of the key pieces of separation logic.

@@ -99,9 +99,9 @@ In C this code would be given the signature
 Saving the context is a straightforward matter of storing each register into the \lstinline|save| context.
 Restoring the \lstinline|restore| context is the tricky bit, because both the stack pointer and address space must be restored.
 Confusingly, a single dynamic execution of this function begins execution in one thread,
-and returns in another thread --- because the execution switches stacks, and thus returns on the second thread's stack.\footnote{This is the function in UNIX 6th Edition 
-with the infamous ``You are not expected to understand this'' comment~\cite{lions1996lions},
-though Doeppner~\cite{doeppner2010operating} and others, offer detailed explanations.}
+and returns in another thread --- because the execution switches stacks, and thus returns on the second thread's stack.%\footnote{This is the function in UNIX 6th Edition 
+% with the infamous ``You are not expected to understand this'' comment~\cite{lions1996lions},
+% though Doeppner~\cite{doeppner2010operating} and others, offer detailed explanations.}
 Hence this is used, for example, when the scheduler has chosen a new thread to execute for a voluntary (non-preempted)
 context switch, and will call
 the code with \lstinline|save| pointing to a reserved storage space for the current thread, and
@@ -915,10 +915,8 @@ Line \ref{line:mappage_pte_present_startC} is similar: $\mathsf{R}_{\textsf{l1e}
 fractional permission for the L1 entry, so as it is not present, by Line \ref{line:l1entry_storeC}
 it is known that full permission is held to update that entry.
 Lines \ref{line:l1entry_storeC} and \ref{line:l1entry_setpresent} are verified using the pte-points-to
-memory store rule.\footnote{In the assembly proof, this is a bitwise-and of the word-aligned\lstinline|fpaddr| with 1
-(setting the present flag), yielding a single.
-\looseness=-1
-}
+memory store rule. In the assembly proof, this is a bitwise-and of the word-aligned \lstinline|fpaddr| with 1
+(setting the present flag), yielding a single store.
 \looseness=-1
 
 % By incorporating verification of the
