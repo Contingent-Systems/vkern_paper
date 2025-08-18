@@ -107,7 +107,6 @@ context switch, and will call
 the code with \lstinline|save| pointing to a reserved storage space for the current thread, and
 \lstinline|restore| pointing to the context of the next thread to execute.
 We will ignore non-integer registers; others are handled similarly.
-
 In Figure \ref{fig:swtchC}, Lines \ref{line:start_save}--\ref{line:end_save} store the callee-save registers (per the System V AMD64 ABI calling conventions) of the calling
 thread into the context data structure pointed to by \lstinline|rdi| (at virtual address $save$).
 This is justified by the $\textsf{ContextAt}(save,\_)$ assertion in the precondition (Line \ref{line:end_swtch_pre}), which expands
@@ -132,12 +131,14 @@ reading from a fixed offset of a register, as needed in Line \ref{line:end_resto
 This rule also globally moves assertions into and out-of other-space assertions, to reflect that
 assertions holding in the outgoing address space \rtv{} generally will not hold in the incoming address space $\rtv'$
 and vice versa. Thus the precondition has assertions for the new thread under an other-space modality for the new address space,
-and the postcondition has assertions for the old thread under an other-space modality for the old address space.\footnote{
-  The \textsf{ContextAt} assertions \emph{both} end up under the other-space modality for the old thread.
-  A real kernel would want to transfer both out, but justifying this is highly kernel-specific,
-  and particularly post-Spectre-and-Meltdown is quite varied.
-  \looseness=-1
-}
+and the postcondition has assertions for the old thread under an other-space modality for the old address space.%\footnote{
+  % The \textsf{ContextAt} assertions \emph{both} end up under the other-space modality for the old thread.
+  % A real kernel would want to transfer both out, but justifying this is highly kernel-specific,
+  % and particularly post-Spectre-and-Meltdown is quite varied.
+  %\looseness=-1
+%}
+Both \textsf{ContextAt} assertions end up under the old other-space modality, but in a real kernel would
+transfer out based on kernel-specific invariants.
 \looseness=-1
 
 The specification above does not directly discuss the relationship between instruction pointers and registers --- and does not need to
@@ -232,7 +233,7 @@ of the proofs and kernel invariant, before concluding with the top-level verific
 \begin{figure}\footnotesize
 \ifPLDI
 \begin{lstlisting}[language=C,mathescape,escapeinside={(*}{*)}]
-/* @param entry: virtual address of level n+1 entry which should point to the base of a level n table
+/* @param entry: virtual address of level n+1 entry which should point to a level-n table base
    @return next: a virtual pointer to the base of a valid level n table */
 pte_t *pte_get_next_table(pte_t *entry) {
   pte_t *next;
@@ -245,7 +246,7 @@ pte_t *pte_get_next_table(pte_t *entry) {
     pte_initialize(entry); // Allocate a zeroed physical page and install in entry(*\label{line:call_to_pte_initializeC}\label{line:page_of_capsC}*)
     entry->present = 1; // Install newly-allocated level n table, mark present(*\label{line:install_new_entryC}*)
     /*Now we know that entry is initialized, so we satisfy the condition to access children list */(*\label{line:now_we_know}*)
-    $\specline{ \textsf{entryp+KERNBASE} \mapsto_{\textsf{vpte,qfrac}}  \textsf{entryp} \; \textsf{pte\_initialized(pfn\_set(entryv nextpaddr))} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entryv})  \urcorner }_{\rtv}$
+    $\specline{ \textsf{entryp+KERNBASE} \mapsto_{\textsf{vpte,qfrac}}  \textsf{entryp} \; \textsf{pte\_initialized(pfn\_set(entryv nextpaddr))} \ast \ulcorner  \textsf{qfrac} = 1 \urcorner }_{\rtv}$
     $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entryv nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$(*\label{line:available_child_tokens}*) (*\label{line:alloc_path_endC}*)
   } (*\label{line:end_of_allocation_pathC}*)
   $\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entryp}\mapsto\textsf{v} \}),m) \ast \textsf{entryp} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
@@ -335,9 +336,9 @@ table entry.
 \looseness=-1
 
 On Line \ref{line:read_entry_contentsC}, the code checks the present bit of the entry.
-If the bit is unset, there is no level-$n$ table, so one must be allocated via \lstinline|pte_initialize| (explained shortly\footnote{
-  Briefly, it allocates a fresh physical page, and initializes the memory pointed to by \lstinline|entry| with that physical address.
-}) and marked present.
+If the bit is unset, there is no level-$n$ table, so one must be allocated via \lstinline|pte_initialize| (explained shortly,
+but it essentially
+allocates a fresh physical page, and initializes the memory pointed to by \lstinline|entry| with that physical address) and marked present.
 By Line \ref{line:finalpieceS} the entry is known to be valid and contain the physical address of
 the base of a level $n$ table. That address is then extracted (Line \ref{line:extract_pfn}),
 converted to a virtual address (Line \ref{line:p2vC}), and returned to the caller.
@@ -673,7 +674,9 @@ pte_t *walkpgdir(pte_t *l4, const void *va) {
 \end{figure}
 
 \begin{figure}\footnotesize
-$\begin{array}{l}\left( \begin{array}{l}
+$\begin{array}{l}
+\textsf{R}_{\textsf{walk} }=
+\left( \begin{array}{l}
   \ulcorner
     \textsf{l3}+8*\textsf{L3Offset(va)} = \textsf{l3\_entry}
     \land \textsf{l2}+8*\textsf{L2Offset(va)} = \textsf{l2\_entry}
@@ -687,10 +690,11 @@ $\begin{array}{l}\left( \begin{array}{l}
       \ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast (\textsf{l4p+KERNBASE+8*L4Offset(va)}) \mapsto_{\textsf{vpte,qfrac4}} (\textsf{l4p+8*L4Offset(va)}) \; \textsf{l4e\_val}  \ast \\
       (\textsf{l3p+KERNBASE+8*L3Offset(va)}) \mapsto_{\textsf{vpte,qfrac3}} \textsf{l3p+8*L3Offset(va)}\;\textsf{l3e\_val}  \ast\\
       (\textsf{l2p+KERNBASE+8*L2Offset(va)}) \mapsto_{\textsf{vpte,qfrac2}} \textsf{l2p+8*L2Offset(va)} \; \textsf{l2e\_val}
-    \end{array} \right)  =\textsf{R}_{\textsf{walk} } 
-    \\ \left(\begin{array}{l}  (\textsf{l1p+KERNBASE*8*L1Offset(va)}) \mapsto_{\textsf{vpte,qfrac1}} \textsf{l1p+8*L1Offset(va)}\;\textsf{l1e\_val} \ast  \ulcorner  \textsf{qfrac} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l1e\_val})\urcorner \end{array}\right) =\textsf{R}_{\textsf{l1e}}\end{array} $
+    \end{array} \right)   
+    \\
+    \textsf{R}_{\textsf{l1e}}=(\textsf{l1p+KERNBASE*8*L1Offset(va)}) \mapsto_{\textsf{vpte,qf1}} \textsf{l1p+8*L1Offset(va)}\;\textsf{l1e\_val} \ast  \ulcorner  \textsf{qf1} = 1 \leftrightarrow \; \lnot(\textsf{entry\_present l1e\_val})\urcorner\end{array} $
 \vspace{-1em}
-\caption{\textsf{R}$_{\textsf{walk}}$: Resources obtained from invariant for walking page-table directory with \emph{non-existing entries} via calls to \textsf{pte\_get\_next\_table} in Figure \ref{fig:calltopteinitializeC}}
+\caption{\textsf{R}$_{\textsf{walk}}$: Resources obtained from invariant during a software page table walk in Figure \ref{fig:calltopteinitializeC}}
 \label{fig:rwalkC}
 \vspace{-1em}
 \end{figure}
@@ -884,11 +888,10 @@ void vaspace_mappage(pte_t *l4, void *va,uintptr_t fpaddr ) {
     /*The entry is not present(*\label{line:mappage_pte_present_endC}*)*/
     pteaddr->pfn = PTE_ADDR_TO_PFN(fpaddr); /*Store updated entry back to L1 entry (*\label{line:l1entry_storeC}*)*/
     $\specline{ \textsf{l1\_entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{l1\_entry} \; (\textsf{set\_pfn}(\textsf{l1e\_val}, \textsf{ADDR\_TO\_PFN}(\textsf{fpaddr}))) \ast  \ulcorner \lnot(\textsf{entry\_present l1e\_val}) \urcorner}$
-    /*Set the present bit in entry*/
-    pteaddr->present = 1;(*\label{line:l1entry_setpresent}*)
+    pteaddr->present = 1;(*\label{line:l1entry_setpresent}*) // Set the present bit in entry
   }
-  $\specline{ \begin{array}{l}\textsf{l1\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l1\_entry} \; \textsf{l1e\_val} \ast \ulcorner (\textsf{entry\_present l1e\_val}) \urcorner \\
- \lor \; \;  \textsf{l1\_entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{l1\_entry} \; (\textsf{set\_pfn}(\textsf{l1e\_val}, \textsf{ADDR\_TO\_PFN}(\textsf{fpaddr}))) \ast  \ulcorner \lnot(\textsf{entry\_present l1e\_val}) \urcorner  \end{array} }$
+  $\specline{ \begin{array}{l}(\textsf{l1\_entry+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{l1\_entry} \; \textsf{l1e\_val} \ast \ulcorner (\textsf{entry\_present l1e\_val}) \urcorner) \lor \\
+ \textsf{l1\_entry+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{l1\_entry} \; (\textsf{set\_pfn}(\textsf{l1e\_val}, \textsf{ADDR\_TO\_PFN}(\textsf{fpaddr}))) \ast  \ulcorner \lnot(\textsf{entry\_present l1e\_val}) \urcorner  \end{array} }$
 }
 \end{lstlisting}
 \vspace{-2em}
@@ -898,9 +901,11 @@ void vaspace_mappage(pte_t *l4, void *va,uintptr_t fpaddr ) {
 
 
 For brevity this example is specialized to the case where $\vaddr$ is known to not be mapped:
-the precondition on Line \ref{line:mappage_pre} includes $\theta \; !!\; \vaddr = \texttt{None}$.\footnote{
-  The generalization to handling either case and returning an error is straightforward.
-}
+the precondition on Line \ref{line:mappage_pre} includes $\theta \; !!\; \vaddr = \texttt{None}$;
+generalization to returning an error if it is already mapped is straightforward.
+% .\footnote{
+%   The generalization to handling either case and returning an error is straightforward.
+% }
 The precondition on Line \ref{line:mappage_pre}, directly entails
 the precondition of the \lstinline|walkpgdir| call.\footnote{The proof of \lstinline|vaspace_mappage|'s caller
 would extract this single identity map token for the specific L4 entry from a set of 512 that are
