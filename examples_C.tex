@@ -195,7 +195,12 @@ This algorithm is complex and corresponds to a significant amount of assembly co
 To assist with readability, we present C code for this process, with assertions adjusted slightly to refer to
 C program variables rather than registers. The actual verification was carried out on x86-64 assembly
 \emph{generated from this source code}.
-Listings of the assembly fragments with inline assertions appear in Appendix \ref{sec:experiment_appendix}. %\ref{apdx:asm}.
+Listings of the assembly fragments with inline assertions appear in
+\ifARXIV
+Appendix \ref{sec:experiment_appendix}.
+\else
+our technical report~\cite{kuru2025modal}.
+\fi
 Whether in C or assembly,
 the page table traversal involved in mapping a new page is very challenging functionality to verify.
 Loading the current table root from \lstinline|cr3| is straightforward (a \lstinline|mov| instruction).
