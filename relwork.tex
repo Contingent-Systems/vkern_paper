@@ -14,9 +14,7 @@ with an idiosyncratic format. \replace{It turns out that s}{S}ubsequent OS verif
 uses hardware models that do not.} 
 \add{Thus} they \emph{trust}
 that the particular page table manipulations do not, for example, unmap kernel code
- (which can crash the machine even if done ``temporarily'').%\footnote{\add{A ``fun'' bug one author encountered in an industrial prototype kernel.}}
-% \footnote{A bug
-% one author has personally encountered in a research kernel, though not one discussed here.}).
+ (which can crash the machine even if done ``temporarily'').
 This is true for \textsc{seL4}~\cite{Klein2009seL4,seL4TOCS,Sewell2013translation}, whose formal machine model omits address translation,
 and \textsc{CertiKOS}~\cite{gu15,gu2016certikos,gu2018certikos,chen2016interrupts}, whose refinement proofs rely on
 \textsc{CompCert}'s usermode-oriented memory model~\cite{leroy2008formal,leroy2009formally} which assumes
@@ -98,7 +96,7 @@ entries can be verified in a VM-ignorant program logic, and that proofs in that 
 }
 \replace{While we have not proven {such a result},
 an analagous result \replace{{should} hold}{holds} of our work:}{
- An analagous result should holds of our model (though we have not proven it).
+ An analagous result should hold of our model (though we have not proven it).
 }
 \replace{ consider that the doubles for the}{Informally this is visible in the rules for}
 \texttt{mov} instructions,

@@ -100,10 +100,25 @@
 % \acmPrice{15.00}
 % \acmISBN{978-1-4503-XXXX-X/18/06}
 
+%\setcopyright{cc}
+%\setcctype{by-nd}
+%\acmJournal{PACMPL}
+%\acmYear{2025} \acmVolume{9} \acmNumber{OOPSLA2} \acmArticle{356} \acmMonth{10} \acmPrice{}\acmDOI{10.1145/3763134}
+%%% The following is specific to OOPSLA2 '25 and the paper
+%%% 'Modal Abstractions for Virtualizing Memory Addresses'
+%%% by Ismail Kuru and Colin S. Gordon.
+%%%
 \setcopyright{cc}
 \setcctype{by-nd}
+\acmDOI{10.1145/3763134}
+\acmYear{2025}
 \acmJournal{PACMPL}
-\acmYear{2025} \acmVolume{9} \acmNumber{OOPSLA2} \acmArticle{356} \acmMonth{10} \acmPrice{}\acmDOI{10.1145/3763134}
+\acmVolume{9}
+\acmNumber{OOPSLA2}
+\acmArticle{356}
+\acmMonth{10}
+\received{2025-03-25}
+\received[accepted]{2025-08-12}
 
 
 %%
@@ -157,7 +172,7 @@
 
 \usepackage{lipsum}
 \usepackage[utf8]{inputenc}
-\usepackage{todonotes}
+%\usepackage{todonotes}
 \usepackage{blindtext}
 \usepackage{listings}
 \lstset{
@@ -170,7 +185,8 @@
   emphstyle=\color{green},
   emph={[2]cr3},
   emphstyle={[2]\color{violet}},
-  morecomment=[l]{;;}
+  morecomment=[l]{;;},
+  xleftmargin={2em},
 }
 % Hack for Colin to edit in low light: https://tex.stackexchange.com/questions/40495/invert-background-and-text-colours-across-whole-document-with-pdflatex
 %Commands definitions

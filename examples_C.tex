@@ -66,7 +66,7 @@ current address space) has previously been formally verified with respect to a m
 $\specline{\textsf{P} \ast  I\texttt{ASpace}(\theta,\Xi,m) \ast [\rtv']( I\texttt{ASpace}(\theta',\Xi',m') \ast \texttt{Pother}) \ast \texttt{rsi}\mapsto_{\textsf{r}} restore \ast \texttt{rdi}\mapsto_{\textsf{r}} save\ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} }_{\rtv}$(*\label{line:start_swtch_pre}*)
 $\specline{\texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} \ast \texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
 $\specline{\mathsf{ContextAt}(save,\_) \ast \mathsf{ContextAt}(restore,[\mathsf{rbxv}',\ldots,\rtv']) }_{\rtv}$(*\label{line:end_swtch_pre}*)
-mov 0[rdi], rbx(*\label{line:start_save}*) ... ;; also save rsp, rbp, r12, r13, r14, to offsets 8, 16, 24, 32, and 40 from rdi
+mov 0[rdi], rbx(*\label{line:start_save}*) ... ;; also save rsp, rbp, r12, r13, r14, to offsets 8, 16, ... and 40 from rdi
 ... mov 48[rdi], r15
 $\specline{\textsf{P} \ast  I\texttt{ASpace}(\theta,\Xi,m) \ast [\rtv']( I\texttt{ASpace}(\theta',\Xi',m') \ast \texttt{Pother})  \ast  \texttt{rsi}\mapsto_{\textsf{r}} restore \ast \texttt{rdi}\mapsto_{\textsf{r}} save \ast \texttt{rbx}\mapsto_{\textsf{r}} \texttt{rbxv} }_{\rtv}$
 $\specline{ \texttt{rsp}\mapsto_{\textsf{r}} \texttt{rspv} \ast \texttt{rbp}\mapsto_{\textsf{r}} \texttt{rbpv} \ast \texttt{r12}\mapsto_{\textsf{r}} \texttt{r12v} \ast \texttt{r13}\mapsto_{\textsf{r}} \texttt{r13v} \ast \texttt{r14}\mapsto_{\textsf{r}} \texttt{r14v} \ast \texttt{r15}\mapsto_{\textsf{r}} \texttt{r15v}}_{\rtv}$
@@ -250,14 +250,14 @@ pte_t *pte_get_next_table(pte_t *entry) {
     (*\label{line:refined_fractional_ownership}*)(*\label{line:pass_addrof_nextC}*)(*\label{line:alloc_path_startC}*)$\specline{ \textsf{entryp+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entryp entryv} \ast \ulcorner  \textsf{qfrac} = 1 \land \lnot(\textsf{entry\_present entryv})  \urcorner }_{\rtv}$ (*\label{line:after_concluding_qfrac1C}*)
     pte_initialize(entry); // Allocate a zeroed physical page and install in entry(*\label{line:call_to_pte_initializeC}\label{line:page_of_capsC}*)
     entry->present = 1; // Install newly-allocated level n table, mark present(*\label{line:install_new_entryC}*)
-    /*Now we know that entry is initialized, so we satisfy the condition to access children list */(*\label{line:now_we_know}*)
+    /*Now we know that entry is initialized, and the condition to access children list holds*/(*\label{line:now_we_know}*)
     $\specline{ \textsf{entryp+KERNBASE} \mapsto_{\textsf{vpte,qfrac}}  \textsf{entryp} \; \textsf{pte\_initialized(pfn\_set(entryv nextpaddr))} \ast \ulcorner  \textsf{qfrac} = 1 \urcorner }_{\rtv}$
     $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (pfn\_set(entryv nextpaddr)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$(*\label{line:available_child_tokens}*) (*\label{line:alloc_path_endC}*)
   } (*\label{line:end_of_allocation_pathC}*)
   $\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi\setminus \{ \mathsf{entryp}\mapsto\textsf{v} \}),m) \ast \textsf{entryp} \mapsto_{\textsf{id}} \textsf{\_} \ast \ghostmaptoken{\delta{}s}{\rtv}{\delta}  }_{\rtv}$
   $\specline{ \textsf{entryp+KERNBASE} \mapsto_{\textsf{vpte,qfrac}} \textsf{entryp} \; \textsf{(pte\_initialized (entryv.pfn))} \urcorner }_{\rtv}$
   $\specline{\forall_{i\in \textsf{0 ... 511} } \ldotp  \ghostmaptoken{\textsf{id}}{((\textsf{table\_root (pte\_initialized (entryv.pfn)))}) + \textsf{i * 8})}{\textsf{v-1}}  }$ (*\label{line:childrenC}*)
-  uintptr_t next_phys_addr = PTE_PFN_TO_ADDR(entry->pfn); // Fetch physical address of next table (*\label{line:finalpieceS}*)(*\label{line:extract_pfn}*)
+  uintptr_t next_phys_addr = PTE_PFN_TO_ADDR(entry->pfn); // Fetch physical addr of next table (*\label{line:finalpieceS}*)(*\label{line:extract_pfn}*)
   uintptr_t next_virt_addr = (uintptr_t) P2V(next_phys_addr); // Convert to virtual address (*\label{line:p2vC}*)
   next = (pte_t *) next_virt_addr;(*\label{line:finalpieceE}*)
   return next;
@@ -527,12 +527,12 @@ its relevant assertions have already been borrowed by the caller.
 
 \begin{figure}\footnotesize
   \begin{lstlisting}[language=C,mathescape,escapeinside={(*}{*)}]
-/* @param entry: virtual address of a non-present entry to initialize with a new physical page */
-$\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \lnot(\textsf{entry\_present entryv}) \ast \textsf{entryp+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{entryp entryv} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{entryp})}{\textsf{level}} }$
+/* @param entry: virtual address of non-present entry to initialize with a new physical page*/
+$\specline{I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \lnot(\textsf{entry\_present entryv}) \ast \textsf{entryp+KERNBASE} \mapsto_{\textsf{vpte,1}} \textsf{entryp entryv} \ast \ghostmaptoken{\textsf{id}}{(\mathsf{entryp})}{\textsf{level}} }$
 void pte_initialize(pte_t *entry) {
   pte_t *local = kalloc(); // Allocate a full zeroed page for 512 8-byte entries(*\label{line:call_to_kallocC}*)
   entry->pfn = PTE_ADDR_TO_PFN((uintptr_t) local);(*\label{line:kalloc_install}*)
-  $\specline{\textsf{P} \ast  I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \lnot(\textsf{entry\_present entryv}) \ast \textsf{entryp+KERNBASE} \mapsto_{\mathsf{vpte,1}} \mathsf{entryp} \; \textsf{pfn\_set(entryv nextpaddr)}}$
+  $\specline{ I\texttt{ASpace}_{\textsf{id}}(\theta,\Xi,m) \ast \lnot(\textsf{entry\_present entryv}) \ast \textsf{entryp+KERNBASE} \mapsto_{\mathsf{vpte,1}} \mathsf{entryp} \; \textsf{pfn\_set(entryv nextpaddr)}}$
   $\specline{\ghostmaptoken{\delta{}s}{\rtv}{\delta} \ast \forall_{i\in\textsf{0..511}}\ldotp ()\textsf{table\_root (pte\_initialized (pfn\_set (entry\_val nextpaddr))) + i * 8}) \mapsto_{\textsf{id}} \textsf{level-1}   }_{\rtv}$(*\label{line:initialize_post}*)
 }
 \end{lstlisting}
