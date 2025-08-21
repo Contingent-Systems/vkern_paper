@@ -79,26 +79,31 @@
 %% the commands and values with those provided to you when you
 %% complete the rights form.
 % \setcopyright{none}
-\setcopyright{rightsretained}
-\copyrightyear{2025}
-\acmYear{2025}
-\acmDOI{XXXXXXX.XXXXXXX}
+% \setcopyright{rightsretained}
+% \copyrightyear{2025}
+% \acmYear{2025}
+% \acmDOI{XXXXXXX.XXXXXXX}
 
-%% These commands are for a PROCEEDINGS abstract or paper.
-% \acmConference[Conference acronym 'XX]{Make sure to enter the correct
-%   conference title from your rights confirmation emai}{June 03--05,
-%   2018}{Woodstock, NY}
+% %% These commands are for a PROCEEDINGS abstract or paper.
+% % \acmConference[Conference acronym 'XX]{Make sure to enter the correct
+% %   conference title from your rights confirmation emai}{June 03--05,
+% %   2018}{Woodstock, NY}
+% \acmJournal{PACMPL}
+% \acmVolume{9}
+% \acmNumber{OOPSLA2}
+% %%
+% %%  Uncomment \acmBooktitle if the title of the proceedings is different
+% %%  from ``Proceedings of ...''!
+% %%
+% %%\acmBooktitle{Woodstock '18: ACM Symposium on Neural Gaze Detection,
+% %%  June 03--05, 2018, Woodstock, NY}
+% \acmPrice{15.00}
+% \acmISBN{978-1-4503-XXXX-X/18/06}
+
+\setcopyright{cc}
+\setcctype{by-nd}
 \acmJournal{PACMPL}
-\acmVolume{9}
-\acmNumber{OOPSLA2}
-%%
-%%  Uncomment \acmBooktitle if the title of the proceedings is different
-%%  from ``Proceedings of ...''!
-%%
-%%\acmBooktitle{Woodstock '18: ACM Symposium on Neural Gaze Detection,
-%%  June 03--05, 2018, Woodstock, NY}
-\acmPrice{15.00}
-\acmISBN{978-1-4503-XXXX-X/18/06}
+\acmYear{2025} \acmVolume{9} \acmNumber{OOPSLA2} \acmArticle{356} \acmMonth{10} \acmPrice{}\acmDOI{10.1145/3763134}
 
 
 %%
@@ -287,9 +292,8 @@ At the same time, misuse of MMU hardware can lead to kernel crashes.
 Virtual memory management (VMM) code is a critical piece of general-purpose OS kernels, but verification of this functionality
 is challenging due to the complexity of the hardware interface (the page tables are updated via writes to those
 memory locations, using addresses which are themselves virtualized).
-Prior work on verification of VMM code has either only handled a single address space, trusted significant
-pieces of assembly code, or resorted to direct reasoning over machine semantics rather than
-exposing a clean logical interface.
+Prior work on verification of VMM code has either only handled a single address space, or trusted significant
+pieces of assembly code.
 
 In this paper, we introduce a modal abstraction to describe
 the truth of assertions relative to a specific virtual address space: [r]P indicating that P holds in the
