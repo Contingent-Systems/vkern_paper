@@ -5,11 +5,11 @@ program logics with modalities.
 
 \paragraph{OS Kernel Verification}
 There has been relatively little prior work on formal verification of virtual memory.
-\replace{Instead, m}Most OS verification work \replace{has focused on minimizing}{minimizes} reasoning about virtual memory management.
+Most OS verification work minimizes reasoning about virtual memory management.
 The original \textsc{Verisoft} project~\cite{alkassar2008verisoft,alkassar2010pervasive,alkassar2008formal,dalinger2005verification,hillebrand2005address,alkassar2008formal,starostin2010formal} 
 relied on custom hardware which always ran kernel code with virtual memory disabled, removing the circularity that is a key challenge of verifying
-VMM code for real hardware: \replace{A}{a}t that point page tables become a basic partial map data structure to represent user program address translations,
-with an idiosyncratic format. \replace{It turns out that s}{S}ubsequent OS verification work
+VMM code for real hardware: at that point page tables become a basic partial map data structure to represent user program address translations,
+with an idiosyncratic format. Subsequent OS verification work
 \add{targets real hardware that uses virtual addressing in the kernel, but unsoundly
 uses hardware models that do not.} 
 \add{Thus} they \emph{trust}
@@ -23,9 +23,9 @@ which is not true of page table updates.
 Other work on OS verification either never progressed to VMM verification
 (\textsc{Verisoft XT}~\cite{cohen2009vcc,cohen2010local,dahlweid2009vcc,cohen2013SOFSEM}),
 or uses memory-safe languages
-\replace{to enable safe cohabitation of a single address space by all processes}{for process isolation instead of address translation}
+for process isolation instead of address translation
 (\textsc{Singularity}~\cite{Fahndrich2006language,Hunt2007singularity,Hunt2007sealing,Barnett2011specsharp}, \textsc{Verve}~\cite{Yang2010Verve},
-and \textsc{Tock}~\cite{levy2017multiprogramming})\replace{. The latter approach ensures}{, ensuring} memory safety, but ignor\replace{es}{ing} other functional uses of virtual memory
+and \textsc{Tock}~\cite{levy2017multiprogramming}), ensuring memory safety, but ignoring other functional uses of virtual memory
 hardware, like swapping~\cite{Denning1970VM} or exploiting copy-on-write techniques for dynamic migration of virtual machines~\cite{clark2005live}.
 \looseness=-1
 
@@ -38,17 +38,9 @@ model, where page table updates are performed through virtual memory accesses (l
 As noted in Section \ref{sec:overly-restrictive}, Kolanski and Klein's virtual points-to is similar to that in Figure \ref{fig:strongvirtualpointsto},
 with the attendant problems discussed earlier and lifted by our model. Their approach had modal elements,
 but
-\replace{the work never addressed the issues of managing multiple address spaces, switching address spaces, or
-invariants referring to other address spaces, which our explicitly modal approach and case studies do address.
-They verified a fraction of an ARM version of our Figure ??, which assumed that they already had the virtual address
-of the L1 entry (which they assumed existed), thereby skipping the physical-to-virtual conversion issues we treat in Section ??.
-}{
  did not tackle evaluations that would benefit from modality.
-}
-\add{
  Our work improves significantly on the technical capabilities of ther logic and
  evaluates on kernel code that is more complete and more challenging than theirs.
-}
 \looseness=-1
 
 \add{
@@ -76,7 +68,7 @@ We have verified the entirety of the software page table walk up to mapping a ne
 Due to a lack of fractional permissions in their formalism, they incidentally pick up other limitations orthogonal to their
 foundational focus: by requiring
 a virtual points-to have \emph{full} ownership of the page table walk memory, they limit their system to having only as many
-virtual points-to assertions as there are entries in the top-level table (\replace{4096}{512}) because they cannot share access to entries.
+virtual points-to assertions as there are entries in the top-level table ({512}) because they cannot share access to entries.
 We inherit fractional permission support form \iris, and use it extensively (the overly-restrictive
 Figure \ref{fig:strongvirtualpointsto} is already an improvement in this way).
 \add{While we cannot claim credit for \textsc{Iris}'s extensive feature set, the fact that the model of our
@@ -85,65 +77,40 @@ other logical bases as well, such as \textsc{PulseCore}~\cite{ebner2025pulsecore
 }
 \looseness=-1
  
-\replace{Unlike our work, Kolanski and Klein prove very useful embedding theorems stating that code that does not modify page table 
-entries can be verified in a VM-ignorant program logic, and that proofs in that logic can be embedded into the VM-aware logic 
-(essentially by interpreting ``normal'' points-to relations as virtual points-to facts).
-}{
- Kolanski and Klein prove that updates to any memory locations that are not part of the page tables
- do not affect the interpretation of other memory addresses, just like on real hardware.
- This implies that programs that do not modify memory mappings could be reasoned about without
- concern for mappings.
-}
-\replace{While we have not proven {such a result},
-an analagous result \replace{{should} hold}{holds} of our work:}{
+Kolanski and Klein prove that updates to any memory locations that are not part of the page tables
+do not affect the interpretation of other memory addresses, just like on real hardware.
+This implies that programs that do not modify memory mappings could be reasoned about without
+concern for mappings.
  An analagous result should hold of our model (though we have not proven it).
-}
-\replace{ consider that the doubles for the}{Informally this is visible in the rules for}
+Informally this is visible in the rules for
 \texttt{mov} instructions,
-\replace{that access memory behave just as one would expect for}{which are nearly identical to rules in a} VM-ignorant logic~\cite{Chlipala2013Bedrock,ni2007contexts}.
-\replace{With our general approach to virtual points-to assertions being inspired by Kolanski and Klein, \emph{both}
- our approach and theirs could in principle}{
+which are nearly identical to rules in a VM-ignorant logic~\cite{Chlipala2013Bedrock,ni2007contexts}.
   In principle both our approach and Kolanski and Klein's could
- } be extended to account for pageable points-to assertions by adding 
+ be extended to account for pageable points-to assertions by adding 
 disjunctions to an extended points-to definition\add{,} \add{which would be}
  the appropriate next step to extend reasoning to usermode programs running with a kernel that may demand-page the program's
 memory.
 \looseness=-1
 
 As noted in Section \ref{sec:backgroundonmachinemodel}, we do not formally model or reason about \add{translation lookaside buffers} \add{(}TLBs\add{)}.
-\replace{TLB flushes are required only when addresses are removed from a virtual address space, or when changing
-virtual address spaces.}{
  TLB flushes are necessary when a page is \emph{un}mapped, or when switching address spaces.
-}
-\replace{Because t}{T}his occurs in few places in \replace{the}{uniprocessor} kernel\add{s} (in some, only 3 locations), \add{so} full verified
+This occurs in few places in uniprocessor kernels (in some, only 3 locations), \add{so} full verified
 kernels including \textsc{seL4}~\cite{Klein2009seL4,seL4TOCS} and \textsc{CertiKOS}~\cite{gu15,gu2016certikos}
 trust TLB management. Neither of the aforementioned systems has a hardware model including a TLB, so neither is able
 to verify TLB management in any form --- they \emph{must} trust its operation.
-\replace{
-The only place TLB code becomes particularly challenging is in multiprocessor kernels, where
-not only must the running CPU flush its own TLB with special instructions, but it must send an inter-processor interrupt (IPI) to all
-other cores to ensure they also flush the relevant ranges of their own TLBs.
-Currently no formal hardware model exists with sufficient detail to reason about IPIs in full detail,
-which would require extensions to model interactions with ACPI tables populated by firmware on desktop and server machines,
-or flattened device trees for (semi-)embedded systems like single-board ARM and RISC-V machines, which tell the OS
-important information about how to control other CPU cores;
-plus the memory-mapped IO used to trigger those IPIs.
-As a result, multicore extensions of \textsc{seL4}~[?] and \textsc{CertiKOS}~[?] also trust this functionality.
-}{
  This is true of multicore verified kernels as well~\cite{von2013clustered,gu2016certikos}, though there
  the situation becomes much more challenging: when unmapping pages, the running CPU must invalidate the relevant TLB entries locally,
  but also send an inter-procesor interrupt (IPI) to all other cores to ensure they also invalidate affected entries on their TLBs.
  No formal hardware model currently exists for IPIs on any architecture, or even for the memory-mapped IO
  used to trigger those IPIs.
-}
 
-The only \replace{other attempt to verify a change of address space was by}{work to tackle TLB code verification was}
+The only work to tackle TLB code verification was
 \citet{syeda2018program,syeda2020formal},
-\replace{whose focus was on TLB maintenance (which we do not model)}{who are also the only prior work on verifying address-space-aware context switching}.
+who are also the only prior work on verifying address-space-aware context switching.
 However, they verified only the 4 instructions to switch address spaces and update the TLB on an ARM processor, in isolation
 (i.e., not the full context switch including changing stacks with address spaces).
 The specification they proved for those instructions did not address program invariants that may be valid in one address space and not the other,
-so is not flexible enough to extend directly to a full context switching primitive as in Figure \ref{fig:swtchC}\replace{,}{.}
+so is not flexible enough to extend directly to a full context switching primitive as in Figure \ref{fig:swtchC}.
 \add{Their logic adds an assertion tracking known-inconsistent addresses (i.e., recently-unmapped by a table update or change in page table root)
 and their memory access rules require accessed memory to lie outside that set.
 % However their logic is proven sound against a generalized semantics where
@@ -155,8 +122,8 @@ reasoning about updates to the inconsistent set (from a page table update)
 requires direct reasoning
 directly about the physical memory heap, which limits modularity.
 }
-The right \replace{eventual}{general} solution would be to combine our work
-and \add{an extension of} theirs, \add{a substantial project} which we leave to future work\replace{,}{.}
+The right general solution would be to combine our work
+and \add{an extension of} theirs, \add{a substantial project} which we leave to future work.
 \add{
  No other prior work has considered address space changes during context switching. \textsc{XCAP}~\cite{ni2007contexts}
  and Bedrock~\cite{Chlipala2011Bedrock,Chlipala2013Bedrock,Chlipala2015webapp} deal
@@ -166,7 +133,7 @@ and \add{an extension of} theirs, \add{a substantial project} which we leave to 
 }
 
 \paragraph{Program Logics with Modalities}
-Modalities have long been a staple of program logics, at least \replace{as far back as}{since} Dijkstra's weakest precondition calculus~\cite{dijkstra1975guarded}
+Modalities have long been a staple of program logics, at least {since} Dijkstra's weakest precondition calculus~\cite{dijkstra1975guarded}
 and Pratt's observation the Hoare triples
 could be decomposed using the weakest-precondition modality of dynamic logic~\cite{pratt1976semantical},
 in a form quite similar to what \iris uses today~\cite{jung2018iris}.
@@ -197,7 +164,8 @@ to abstract reference-counting specifics from specifications of a low-level appl
 % where nominals named the local state of individual actors (with such assertions stabilized with a 
 % rely/guarantee approach). 
 Beyond these, there is limited work on the interaction of hybrid logic with general substructural logics, in restricted forms
-that do not affect expressivity~\cite{despeyroux2014hybrid,chaudhuri2019hybrid}.\looseness=-1
+that do not affect expressivity~\cite{despeyroux2014hybrid,chaudhuri2019hybrid}.
+\looseness=-1
 % Primarily there is a line of work on hybrid linear logic (\HyLL)~\cite{despeyroux2014hybrid}, 
 % originally used as a way to more conveniently express aspects of transition systems in linear logic. 
 % However, \HyLL's proof rules offer no non-trivial interactions with multiplicative connectives 
