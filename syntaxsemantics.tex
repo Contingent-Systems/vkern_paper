@@ -195,7 +195,7 @@ Of particular note, \lstinline|cr3|, the page table register, is included in the
 
 Programs in our logic are instruction sequences \instrs, which are formed by either a basic instruction \iskip, or prefixing an existing instruction
 sequence with an additional instruction (\iseq\instr\instrs).
-We model (and later, give program logic rules for) instructions for register \replace{moves}{loads and stores}, and reading and writing memory.
+We model (and later, give program logic rules for) instructions for register loads and stores, and reading and writing memory.
 The latter require page table walks.
 The most important instructions that we model are memory-accessing variants of the x86-64 \lstinline|mov| instruction, which we format in Intel syntax
 (destination on the left, source on the right).
