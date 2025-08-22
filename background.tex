@@ -158,7 +158,7 @@ address, but tagged with the physical data addresses, so cache lookups and addre
 
 \includegraphics[width=\textwidth]{addr_translation.png}
 \vspace{-2em}
-          \caption{x86-64 \replace{page table lookups}{hardware address translation}.}
+          \caption{x86-64 hardware address translation.}
         \label{fig:pagetables}
     \end{subfigure}
     \vfill
@@ -211,7 +211,7 @@ On the x86-64 architecture, the \textsc{MMU}'s address translation uses a sparse
 AMD64 architecture manual~\cite{amd64_manual_vol2}\footnote{While x86 up through its 32-bit incarnation were due to Intel,
 the x86-64 architecture as a 64-bit extension to x86 was originally due to AMD. As a result, it is sometimes also referred to as the \texttt{amd64} architecture.})
 shows,
-address translation proceeds by repeatedly taking designated slices of the virtual address and indexing into \replace{a}{successive} table\add{s} \add{of 512 8-byte entries (making each table 4KB in size)}.
+address translation proceeds by repeatedly taking designated slices of the virtual address and indexing into {successive} table\add{s} \add{of 512 8-byte entries (making each table 4KB in size)}.
 The final lookup in the page tables gives the base physical address of a 4KB page of physical memory \add{accessible to the running
 program}, to which the low-order
 \add{12} bits of the accessed virtual address are added to determine the actual physical address retrieved.
@@ -219,20 +219,12 @@ On x86-64, standard configurations use 4 levels of page tables, labelled levels 
 1 page table resulting in the actual page of physical memory holding the requested data, and the low-order 12 bits 
 being used to index into this page.\footnote{Technically levels 1--3 have explicit historical names,
 but for brevity and consistency, we simply number them, in keeping with the newer 5th level. Our formalization only deals with 4-level page tables, but is straightforwardly extensible to 5.} 
-The translation process or algorithm is \replace{sometimes}{often} referred to as a \emph{page-table walk}.
+The translation process or algorithm is {often} referred to as a \emph{page-table walk}.
 While Figure \ref{fig:pagetables} and most of our constants (how many levels, which virtual address bits index which
-table levels) are specific to \replace{the}{common} x86-64 \replace{architecture}{CPUs},
-\replace{
-ARMv8 (a.k.a. aarch64), RISC-V, and PowerPC use similar hierarchical page tables for address translation.
-RISC-V's sv48 paging configuration~?? and AArch64's 4-level paging configuration
-both split 64-bit virtual addresses at the same points to index into the respective tables, so most of what follows
-is equally applicable to those architectures (the only difference is that page table entries place control bits of write access, etc.,
-in different orders).
-}{
+table levels) are specific to {common} x86-64 {CPUs},
   it is straightforward to adapt our approach to ARMv8/\texttt{aarch64}, RISC-V, or PowerPC, which use nearly-identical
   page table structures (only the order of flag bits in the entries differ),
   or to 5-level paging present in newer x86-64 or RISC-V designs (one step would be iterated an additional time).
-}
 
 The entries \add{(e.g., L4 Entry in Figure \ref{fig:pagetables})} of each table are 64 bits wide,
 but each points to a physical address aligned to 4KB (4096 byte) boundaries, leaving 12 bits to spare to 
@@ -241,7 +233,7 @@ and a range of additional bits which can be used to control caching, write-throu
 This paper will only consider the present bit (0).
 \looseness=-1
 
-The page tables are managed by the \replace{OS, typically by a}{OS kernel's} \emph{virtual memory manager} (VMM).\footnote{Not to be confused with Virtual 
+The page tables are managed by the {OS kernel's} \emph{virtual memory manager} (VMM).\footnote{Not to be confused with Virtual 
 Machine Monitor. We focus on non-hypervisor scenarios, but hardware virtualization extensions for both 
 x86-64 and ARM make use of an additional set of page tables translating what a \emph{guest} considers to be its 
 (virtualized) physical memory to actual physical memory. Our contributions should offer value in this scenario as well.}
@@ -415,7 +407,7 @@ if a small number of ``glue'' lemmas are proven, \iris
 provides a ready-made separation logic with a number of advanced features, including
 higher-order ghost state and impredicative invariants, for no additional work.
 
-We suppress \replace{many details of Iris assertions}{some technical \iris details} for brevity, but briefly note
+We suppress {some technical \iris details} for brevity, but briefly note
 a few recurring details used heavily in \iris but not necessarily in traditional
 separation logics.
 Because \iris is an embedded framework in \rocq, proofs in \iris-derived
@@ -479,7 +471,7 @@ in certain other circumstances, such as in other times~\cite{pnueli1977temporal}
 Of particular interest for reasoning about virtual memory are modalities that permit \emph{naming} the alternate 
 circumstances, prominently \emph{hybrid} modal logics~\cite{blackburn1995hybrid,areces2001hybrid}, which come equipped 
 with assertions of the form $[\ell](P)$ indicating that $P$ is true in the specific alternate circumstance (Kripke world)
- named by the \replace{\emph{nominal}}{term} $\ell$. Note that a distinctive property of hybrid logics is that, rather than hiding
+ named by the {term} $\ell$. Note that a distinctive property of hybrid logics is that, rather than hiding
 the points at which a modal assertion is evaluated inside the modality's definition, the choice of what world a modalized
 assertion should be true in is chosen \emph{in the assertion itself}. This allows assertions to talk about not simply whether some other assertion
 is true in some possible future or past world related in a fixed way to the current world, but to talk about \emph{arbitrary}
@@ -545,7 +537,7 @@ modality and substructural rules.
 % while address-space-relative assertions 
 % --- unless guarded by another address space modality.
 Some prior \iris-based work~\cite{dang2019rustbelt,dang2022compass} has constructed derived modalities in the style we propose, indexed
-by thread IDs. However \replace{in that setting, the}{their} intepretation of those modalities was fully fixed ahead of time (to refer to essentially buffers in operationalized versions of C11
+by thread IDs. However their intepretation of those modalities was fully fixed ahead of time (to refer to essentially buffers in operationalized versions of C11
 concurrency). In this setting, while our modalities will be indexed by page table roots, it is possible to modify the address translation for an address
 space with root $r$ --- thus changing the interpretation of a modality, and even whether a modality is valid --- \emph{while assertions with that modality are active}.
 \add{This is essential to updating page mappings for the current address space in use by a CPU.}
