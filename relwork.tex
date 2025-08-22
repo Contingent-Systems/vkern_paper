@@ -146,8 +146,14 @@ The specification they proved for those instructions did not address program inv
 so is not flexible enough to extend directly to a full context switching primitive as in Figure \ref{fig:swtchC}\replace{,}{.}
 \add{Their logic adds an assertion tracking known-inconsistent addresses (i.e., recently-unmapped by a table update or change in page table root)
 and their memory access rules require accessed memory to lie outside that set.
-However their logic is proven sound against a generalized semantics where any page table change adds \emph{all}
-addresses to the inconsistent set, which is too imprecise for finer-grained unmapping.
+% However their logic is proven sound against a generalized semantics where
+% any page table change adds \emph{all}
+% addresses to the inconsistent set,
+% which is too imprecise for finer-grained unmapping.
+However in their logic,
+reasoning about updates to the inconsistent set (from a page table update)
+requires direct reasoning
+directly about the physical memory heap, which limits modularity.
 }
 The right \replace{eventual}{general} solution would be to combine our work
 and \add{an extension of} theirs, \add{a substantial project} which we leave to future work\replace{,}{.}
